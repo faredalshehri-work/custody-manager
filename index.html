@@ -610,7 +610,7 @@
             const reportData = mainTab === 'reports' ? getReportData() : null;
 
             return (
-                <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+                <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-2 md:p-6">
                     {/* شاشة التحميل */}
                     {isLoading && (
                         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -636,6 +636,20 @@
                         )}
                     </div>
 
+{/* Header with Logo */}
+<div className="max-w-6xl mx-auto mb-4">
+  <div className="bg-white rounded-xl shadow-md px-4 py-3 flex items-center justify-center md:justify-start gap-3">
+    <img
+      src="https://volga.sa/images/logo_en_911566.png"
+      alt="VOLGA"
+      className="h-10 md:h-12 object-contain"
+    />
+    <span className="text-slate-700 font-bold text-lg hidden md:block">
+      Custody Management System
+    </span>
+  </div>
+</div>
+                    
                     <div className="max-w-6xl mx-auto">
                         {/* Top Bar with Undo/Redo and Search */}
                         <div className="bg-white rounded-xl shadow-lg p-4 mb-4 flex gap-3 items-center flex-wrap">
@@ -679,7 +693,7 @@
                                 <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
                                     <h1 className="text-3xl font-bold text-slate-800 mb-6 text-center">نظام إدارة العهد</h1>
                                     
-                                    <div className="grid grid-cols-3 gap-4 mb-6">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                                         <div className="bg-blue-50 rounded-xl p-4 text-center">
                                             <div className="text-sm text-blue-600 mb-1">إجمالي العهد</div>
                                             <div className="text-2xl font-bold text-blue-700">{totalCustodies.toFixed(2)} ريال</div>
@@ -694,7 +708,7 @@
                                         </div>
                                     </div>
 
-                                    <div className="flex gap-2 mb-4">
+                                    <div className="flex flex-col md:flex-row gap-2 mb-4">
                                         <input type="text" placeholder="اسم العهدة" value={newCustody.name} onChange={(e) => setNewCustody({ ...newCustody, name: e.target.value })} className="flex-1 px-4 py-2 border border-slate-300 rounded-lg" />
                                         <input type="number" placeholder="المبلغ" value={newCustody.amount} onChange={(e) => setNewCustody({ ...newCustody, amount: e.target.value })} className="w-32 px-4 py-2 border rounded-lg" />
                                         <input type="date" value={newCustody.date} onChange={(e) => setNewCustody({ ...newCustody, date: e.target.value })} className="w-40 px-4 py-2 border rounded-lg" />
@@ -703,7 +717,7 @@
                                         </button>
                                     </div>
 
-                                    <div className="flex gap-2 flex-wrap">
+                                    <div className="flex flex-wrap gap-2 justify-center md:justify-start">
                                         <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="px-4 py-2 border rounded-lg">
                                             <option value="newest">الأحدث</option>
                                             <option value="oldest">الأقدم</option>
