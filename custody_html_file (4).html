@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة العهد - متصل بـ Supabase</title>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .highlight-expense { animation: highlight 2s ease-in-out; }
+        @keyframes highlight {
+            0%, 100% { background-color: white; }
+            50% { background-color: #fef3c7; }
+        }
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // إعداد Supabase
+        const supabaseUrl = 'https://opyuncxyjdqxawddhdjn.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        const Plus = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
+        const Trash2 = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>;
+        const Edit2 = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
+        const Lock = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
+        const Unlock = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>;
+        const ChevronUp = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="18 15 12 9 6 15"/></svg>;
+        const ChevronDown = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>;
+        const X = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+        const Check = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>;
+        const Archive = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>;
+        const BarChart = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>;
+        const Settings = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m9-9h-6m-6 0H1"/></svg>;
+        const Search = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>;
+        const Undo = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/></svg>;
+        const Redo = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 019-9 9 9 0 016 2.3l3 2.7"/></svg>;
+
+        const CustodyManager = () => {
+            const [custodies, setCustodies] = useState([]);
+            const [clearedCustodies, setClearedCustodies] = useState([]);
+            const [predefinedExpenses, setPredefinedExpenses] = useState([]);
+            const [history, setHistory] = useState([]);
+            const [historyIndex, setHistoryIndex] = useState(-1);
+            const [custodySequence, setCustodySequence] = useState(1);
+            const [expenseSequence, setExpenseSequence] = useState(1);
+            const [mainTab, setMainTab] = useState('custodies');
+            const [activeTab, setActiveTab] = useState('active');
+            const [sortBy, setSortBy] = useState('newest');
+            const [selectedIds, setSelectedIds] = useState([]);
+            const [editingId, setEditingId] = useState(null);
+            const [globalLock, setGlobalLock] = useState(false);
+            const [newCustody, setNewCustody] = useState({ name: '', amount: '', date: new Date().toISOString().split('T')[0] });
+            const [expandedExpenses, setExpandedExpenses] = useState({});
+            const [newPredefined, setNewPredefined] = useState({ name: '', fixedPrice: '', hasFixedPrice: false });
+            const [editingPredefinedId, setEditingPredefinedId] = useState(null);
+            const [selectedExpenseType, setSelectedExpenseType] = useState('');
+            const [reportPeriod, setReportPeriod] = useState('month');
+            const [customStartDate, setCustomStartDate] = useState('');
+            const [customEndDate, setCustomEndDate] = useState('');
+            const [searchCustody, setSearchCustody] = useState('');
+            const [searchExpense, setSearchExpense] = useState('');
+            const [highlightedExpense, setHighlightedExpense] = useState(null);
+            const [isLoading, setIsLoading] = useState(true);
+            const [isSaving, setIsSaving] = useState(false);
+            const [lastSaved, setLastSaved] = useState(null);
+            
+            const expenseRefs = useRef({});
+
+            // تحميل البيانات من Supabase
+            useEffect(() => {
+                loadFromSupabase();
+            }, []);
+
+            const loadFromSupabase = async () => {
+                try {
+                    setIsLoading(true);
+                    
+                    // تحميل العهد
+                    const { data: custodiesData, error: custodiesError } = await supabase
+                        .from('custodies')
+                        .select('*')
+                        .order('id', { ascending: true });
+                    
+                    if (custodiesError) throw custodiesError;
+                    
+                    if (custodiesData && custodiesData.length > 0) {
+                        const active = custodiesData.filter(c => !c.clearedDate);
+                        const cleared = custodiesData.filter(c => c.clearedDate);
+                        
+                        setCustodies(active);
+                        setClearedCustodies(cleared);
+                        
+                        // تحديث التسلسلات
+                        const maxCustodySeq = Math.max(...custodiesData.map(c => c.seqNumber || 0), 0);
+                        setCustodySequence(maxCustodySeq + 1);
+                        
+                        const allExpenses = custodiesData.flatMap(c => c.expenses || []);
+                        const maxExpenseSeq = Math.max(...allExpenses.map(e => e.seqNumber || 0), 0);
+                        setExpenseSequence(maxExpenseSeq + 1);
+                    }
+                    
+                    // تحميل المصاريف المعرفة
+                    const { data: predefinedData, error: predefinedError } = await supabase
+                        .from('predefined_settings')
+                        .select('*');
+                    
+                    if (predefinedError) throw predefinedError;
+                    
+                    if (predefinedData) {
+                        setPredefinedExpenses(predefinedData);
+                    }
+                    
+                } catch (error) {
+                    console.error('Error loading from Supabase:', error);
+                    alert('حدث خطأ أثناء تحميل البيانات: ' + error.message);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            // حفظ البيانات في Supabase تلقائياً
+            useEffect(() => {
+                if (isLoading) return; // لا تحفظ أثناء التحميل الأولي
+                
+                const saveTimer = setTimeout(async () => {
+                    await saveToSupabase();
+                }, 2000); // حفظ بعد ثانيتين من آخر تعديل
+
+                return () => clearTimeout(saveTimer);
+            }, [custodies, clearedCustodies, predefinedExpenses]);
+
+            const saveToSupabase = async () => {
+                try {
+                    setIsSaving(true);
+                    
+                    // حفظ العهد
+                    const allCustodies = [...custodies, ...clearedCustodies];
+                    if (allCustodies.length > 0) {
+                        const { error: custodiesError } = await supabase
+                            .from('custodies')
+                            .upsert(allCustodies, { onConflict: 'id' });
+                        
+                        if (custodiesError) throw custodiesError;
+                    }
+                    
+                    // حفظ المصاريف المعرفة
+                    if (predefinedExpenses.length > 0) {
+                        const { error: predefinedError } = await supabase
+                            .from('predefined_settings')
+                            .upsert(predefinedExpenses, { onConflict: 'id' });
+                        
+                        if (predefinedError) throw predefinedError;
+                    }
+                    
+                    setLastSaved(new Date());
+                    
+                } catch (error) {
+                    console.error('Error saving to Supabase:', error);
+                } finally {
+                    setIsSaving(false);
+                }
+            };
+
+            // Keyboard shortcuts
+            useEffect(() => {
+                const handleKeyboard = (e) => {
+                    if (e.ctrlKey && e.key === 'z') {
+                        e.preventDefault();
+                        undo();
+                    } else if (e.ctrlKey && e.key === 'y') {
+                        e.preventDefault();
+                        redo();
+                    }
+                };
+                window.addEventListener('keydown', handleKeyboard);
+                return () => window.removeEventListener('keydown', handleKeyboard);
+            }, [historyIndex, history]);
+
+            const saveToHistory = (newCustodies, newCleared) => {
+                const newHistory = history.slice(0, historyIndex + 1);
+                newHistory.push({ custodies: JSON.parse(JSON.stringify(newCustodies)), clearedCustodies: JSON.parse(JSON.stringify(newCleared)) });
+                if (newHistory.length > 50) newHistory.shift();
+                setHistory(newHistory);
+                setHistoryIndex(newHistory.length - 1);
+            };
+
+            const undo = () => {
+                if (historyIndex > 0) {
+                    const prevState = history[historyIndex - 1];
+                    setCustodies(JSON.parse(JSON.stringify(prevState.custodies)));
+                    setClearedCustodies(JSON.parse(JSON.stringify(prevState.clearedCustodies)));
+                    setHistoryIndex(historyIndex - 1);
+                }
+            };
+
+            const redo = () => {
+                if (historyIndex < history.length - 1) {
+                    const nextState = history[historyIndex + 1];
+                    setCustodies(JSON.parse(JSON.stringify(nextState.custodies)));
+                    setClearedCustodies(JSON.parse(JSON.stringify(nextState.clearedCustodies)));
+                    setHistoryIndex(historyIndex + 1);
+                }
+            };
+
+            const updateCustodiesWithHistory = (newCustodies) => {
+                setCustodies(newCustodies);
+                saveToHistory(newCustodies, clearedCustodies);
+            };
+
+            const updateClearedWithHistory = (newCleared) => {
+                setClearedCustodies(newCleared);
+                saveToHistory(custodies, newCleared);
+            };
+
+            const addCustody = () => {
+                if (!newCustody.name || !newCustody.amount) return;
+                const custody = {
+                    id: Date.now(),
+                    seqNumber: custodySequence,
+                    name: newCustody.name,
+                    amount: parseFloat(newCustody.amount),
+                    date: newCustody.date,
+                    locked: false,
+                    expenses: []
+                };
+                updateCustodiesWithHistory([...custodies, custody]);
+                setCustodySequence(custodySequence + 1);
+                setNewCustody({ name: '', amount: '', date: new Date().toISOString().split('T')[0] });
+            };
+
+            const deleteCustody = async (id) => {
+                if (!confirm('هل أنت متأكد من حذف هذه العهدة؟')) return;
+                
+                try {
+                    // حذف من Supabase
+                    const { error } = await supabase
+                        .from('custodies')
+                        .delete()
+                        .eq('id', id);
+                    
+                    if (error) throw error;
+                    
+                    // حذف من الحالة المحلية
+                    const list = activeTab === 'active' ? custodies : clearedCustodies;
+                    const setter = activeTab === 'active' ? updateCustodiesWithHistory : updateClearedWithHistory;
+                    setter(list.filter(c => c.id !== id));
+                    setSelectedIds(selectedIds.filter(sid => sid !== id));
+                    
+                } catch (error) {
+                    console.error('Error deleting:', error);
+                    alert('حدث خطأ أثناء الحذف: ' + error.message);
+                }
+            };
+
+            const deleteSelected = async () => {
+                if (!confirm(`هل أنت متأكد من حذف ${selectedIds.length} عهدة؟`)) return;
+                
+                try {
+                    // حذف من Supabase
+                    const { error } = await supabase
+                        .from('custodies')
+                        .delete()
+                        .in('id', selectedIds);
+                    
+                    if (error) throw error;
+                    
+                    // حذف من الحالة المحلية
+                    const list = activeTab === 'active' ? custodies : clearedCustodies;
+                    const setter = activeTab === 'active' ? updateCustodiesWithHistory : updateClearedWithHistory;
+                    setter(list.filter(c => !selectedIds.includes(c.id)));
+                    setSelectedIds([]);
+                    
+                } catch (error) {
+                    console.error('Error deleting:', error);
+                    alert('حدث خطأ أثناء الحذف: ' + error.message);
+                }
+            };
+
+            const toggleLock = (id) => updateCustodiesWithHistory(custodies.map(c => c.id === id ? { ...c, locked: !c.locked } : c));
+            
+            const toggleGlobalLock = () => {
+                setGlobalLock(!globalLock);
+                updateCustodiesWithHistory(custodies.map(c => ({ ...c, locked: !globalLock })));
+            };
+
+            const moveCustody = (id, dir) => {
+                const idx = custodies.findIndex(c => c.id === id);
+                if (idx === -1) return;
+                const newIdx = dir === 'up' ? idx - 1 : idx + 1;
+                if (newIdx < 0 || newIdx >= custodies.length) return;
+                const arr = [...custodies];
+                [arr[idx], arr[newIdx]] = [arr[newIdx], arr[idx]];
+                updateCustodiesWithHistory(arr);
+            };
+
+            const updateCustody = (id, field, value) => updateCustodiesWithHistory(custodies.map(c => c.id === id ? { ...c, [field]: value } : c));
+
+            const addExpense = (custodyId, scrollToNew = true) => {
+                const newExpense = {
+                    id: Date.now(),
+                    seqNumber: expenseSequence,
+                    name: '',
+                    expenseType: '',
+                    amount: '',
+                    date: new Date().toISOString().split('T')[0],
+                    includeTax: true
+                };
+                
+                updateCustodiesWithHistory(custodies.map(c => c.id === custodyId ? {
+                    ...c,
+                    expenses: [...c.expenses, newExpense]
+                } : c));
+                
+                setExpenseSequence(expenseSequence + 1);
+                setExpandedExpenses({ ...expandedExpenses, [custodyId]: true });
+                
+                if (scrollToNew) {
+                    setTimeout(() => {
+                        const expenseEl = expenseRefs.current[`${custodyId}-${newExpense.id}`];
+                        if (expenseEl) {
+                            expenseEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }, 100);
+                }
+            };
+
+            const updateExpense = (custodyId, expenseId, field, value) => {
+                updateCustodiesWithHistory(custodies.map(c => {
+                    if (c.id === custodyId) {
+                        return {
+                            ...c,
+                            expenses: c.expenses.map(e => {
+                                if (e.id === expenseId) {
+                                    if (field === 'expenseType' && value) {
+                                        const pred = predefinedExpenses.find(p => p.id === parseInt(value));
+                                        if (pred) {
+                                            return {
+                                                ...e,
+                                                expenseType: value,
+                                                name: pred.name,
+                                                amount: pred.hasFixedPrice ? pred.fixedPrice : e.amount
+                                            };
+                                        }
+                                    }
+                                    return { ...e, [field]: value };
+                                }
+                                return e;
+                            })
+                        };
+                    }
+                    return c;
+                }));
+            };
+
+            const deleteExpense = (custodyId, expenseId) => {
+                if (!confirm('هل أنت متأكد من حذف هذا المصروف؟')) return;
+                updateCustodiesWithHistory(custodies.map(c => c.id === custodyId ? {
+                    ...c,
+                    expenses: c.expenses.filter(e => e.id !== expenseId)
+                } : c));
+            };
+
+            const calcExpenseTotal = (exp) => {
+                const amt = parseFloat(exp.amount) || 0;
+                return exp.includeTax ? amt : amt * 1.15;
+            };
+
+            const calcCustodyExpenses = (custody) => custody.expenses.reduce((s, e) => s + calcExpenseTotal(e), 0);
+            const calcRemaining = (custody) => custody.amount - calcCustodyExpenses(custody);
+
+            const clearCustody = (id, withdrawRemaining = false) => {
+                const custody = custodies.find(c => c.id === id);
+                if (!custody) return;
+                
+                let message = 'هل تريد تصفية هذه العهدة؟';
+                if (withdrawRemaining && calcRemaining(custody) > 0) {
+                    message = `هل تريد تصفية هذه العهدة وسحب المبلغ المتبقي (${calcRemaining(custody).toFixed(2)} ريال)؟`;
+                }
+                
+                if (!confirm(message)) return;
+                
+                updateCustodiesWithHistory(custodies.filter(c => c.id !== id));
+                setClearedCustodies([...clearedCustodies, { ...custody, clearedDate: new Date().toISOString() }]);
+            };
+
+            const restoreCustody = (id) => {
+                const custody = clearedCustodies.find(c => c.id === id);
+                if (!custody) return;
+                
+                updateClearedWithHistory(clearedCustodies.filter(c => c.id !== id));
+                const { clearedDate, ...restored } = custody;
+                updateCustodiesWithHistory([...custodies, restored]);
+            };
+
+            const getSorted = (list) => {
+                const sorted = [...list];
+                switch (sortBy) {
+                    case 'highest': return sorted.sort((a, b) => b.amount - a.amount);
+                    case 'lowest': return sorted.sort((a, b) => a.amount - b.amount);
+                    case 'newest': return sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    case 'oldest': return sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
+                    default: return sorted;
+                }
+            };
+
+            const addPredefined = () => {
+                if (!newPredefined.name) return;
+                setPredefinedExpenses([...predefinedExpenses, {
+                    id: Date.now(),
+                    name: newPredefined.name,
+                    hasFixedPrice: newPredefined.hasFixedPrice,
+                    fixedPrice: newPredefined.hasFixedPrice ? parseFloat(newPredefined.fixedPrice) || 0 : 0
+                }]);
+                setNewPredefined({ name: '', fixedPrice: '', hasFixedPrice: false });
+            };
+
+            const updatePredefined = (id, field, value) => {
+                setPredefinedExpenses(predefinedExpenses.map(e => e.id === id ? { ...e, [field]: value } : e));
+            };
+
+            const deletePredefined = async (id) => {
+                if (!confirm('هل أنت متأكد من حذف هذا المصروف المعرف؟')) return;
+                
+                try {
+                    // حذف من Supabase
+                    const { error } = await supabase
+                        .from('predefined_settings')
+                        .delete()
+                        .eq('id', id);
+                    
+                    if (error) throw error;
+                    
+                    // حذف من الحالة المحلية
+                    setPredefinedExpenses(predefinedExpenses.filter(e => e.id !== id));
+                    
+                } catch (error) {
+                    console.error('Error deleting:', error);
+                    alert('حدث خطأ أثناء الحذف: ' + error.message);
+                }
+            };
+
+            const searchForCustody = () => {
+                const seqNum = parseInt(searchCustody);
+                if (!seqNum) return;
+                
+                // Search in active custodies first
+                let custody = custodies.find(c => c.seqNumber === seqNum);
+                let isCleared = false;
+                
+                // If not found, search in cleared custodies
+                if (!custody) {
+                    custody = clearedCustodies.find(c => c.seqNumber === seqNum);
+                    isCleared = true;
+                }
+                
+                if (custody) {
+                    setMainTab('custodies');
+                    setActiveTab(isCleared ? 'cleared' : 'active');
+                    setTimeout(() => {
+                        const custodyEl = document.getElementById(`custody-${custody.id}`);
+                        if (custodyEl) {
+                            custodyEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            custodyEl.classList.add('highlight-expense');
+                            setTimeout(() => custodyEl.classList.remove('highlight-expense'), 2000);
+                        }
+                    }, 100);
+                } else {
+                    alert('لم يتم العثور على عهدة بهذا الرقم');
+                }
+            };
+
+            const searchForExpense = () => {
+                const seqNum = parseInt(searchExpense);
+                if (!seqNum) return;
+                
+                // Search in active custodies first
+                for (const custody of custodies) {
+                    const expense = custody.expenses.find(e => e.seqNumber === seqNum);
+                    if (expense) {
+                        setMainTab('custodies');
+                        setActiveTab('active');
+                        setExpandedExpenses({ ...expandedExpenses, [custody.id]: true });
+                        setHighlightedExpense(`${custody.id}-${expense.id}`);
+                        
+                        setTimeout(() => {
+                            const expenseEl = expenseRefs.current[`${custody.id}-${expense.id}`];
+                            if (expenseEl) {
+                                expenseEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                expenseEl.classList.add('highlight-expense');
+                                setTimeout(() => {
+                                    expenseEl.classList.remove('highlight-expense');
+                                    setHighlightedExpense(null);
+                                }, 2000);
+                            }
+                        }, 100);
+                        return;
+                    }
+                }
+                
+                // If not found, search in cleared custodies
+                for (const custody of clearedCustodies) {
+                    const expense = custody.expenses.find(e => e.seqNumber === seqNum);
+                    if (expense) {
+                        alert(`المصروف #${seqNum} موجود في العهدة المصفاة: ${custody.name} (#${custody.seqNumber})`);
+                        setMainTab('custodies');
+                        setActiveTab('cleared');
+                        setTimeout(() => {
+                            const custodyEl = document.getElementById(`custody-${custody.id}`);
+                            if (custodyEl) {
+                                custodyEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                custodyEl.classList.add('highlight-expense');
+                                setTimeout(() => custodyEl.classList.remove('highlight-expense'), 2000);
+                            }
+                        }, 100);
+                        return;
+                    }
+                }
+                
+                alert('لم يتم العثور على مصروف بهذا الرقم');
+            };
+
+            const getDateRange = () => {
+                const now = new Date();
+                let startDate, endDate = now;
+                if (reportPeriod === 'custom') {
+                    startDate = customStartDate ? new Date(customStartDate) : new Date(now.getFullYear(), 0, 1);
+                    endDate = customEndDate ? new Date(customEndDate) : now;
+                } else {
+                    const days = { '2days': 2, 'week': 7, 'month': 30, 'year': 365, '2years': 730, '5years': 1825 }[reportPeriod] || 30;
+                    startDate = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000));
+                }
+                return { startDate, endDate };
+            };
+
+            const getReportData = () => {
+                if (!selectedExpenseType) return null;
+                const { startDate, endDate } = getDateRange();
+                const selExp = predefinedExpenses.find(e => e.id === parseInt(selectedExpenseType));
+                if (!selExp) return null;
+
+                const filtered = [...custodies, ...clearedCustodies].filter(c => {
+                    const d = new Date(c.date);
+                    return d >= startDate && d <= endDate;
+                });
+
+                let total = 0, count = 0;
+                let totalAllCustodies = 0;
+                let totalAllExpenses = 0;
+                
+                filtered.forEach(c => {
+                    totalAllCustodies += c.amount;
+                    totalAllExpenses += calcCustodyExpenses(c);
+                    
+                    c.expenses.forEach(e => {
+                        if (e.expenseType === selectedExpenseType) {
+                            total += calcExpenseTotal(e);
+                            count++;
+                        }
+                    });
+                });
+
+                return {
+                    expenseName: selExp.name,
+                    custodiesCount: filtered.length,
+                    custodies: filtered,
+                    expenseCount: count,
+                    totalExpenses: total,
+                    totalAllCustodies,
+                    totalAllExpenses,
+                    totalRemaining: totalAllCustodies - totalAllExpenses,
+                    startDate,
+                    endDate
+                };
+            };
+
+            const displayList = activeTab === 'active' ? custodies : clearedCustodies;
+            const sortedList = getSorted(displayList);
+            const totalCustodies = custodies.reduce((s, c) => s + c.amount, 0);
+            const totalExpenses = custodies.reduce((s, c) => s + calcCustodyExpenses(c), 0);
+            const totalRemaining = totalCustodies - totalExpenses;
+            
+            // Cleared custodies statistics
+            const clearedTotalAmount = clearedCustodies.reduce((s, c) => s + c.amount, 0);
+            const clearedTotalExpenses = clearedCustodies.reduce((s, c) => s + calcCustodyExpenses(c), 0);
+            const clearedTotalRemaining = clearedTotalAmount - clearedTotalExpenses;
+            const clearedTotalExpenseCount = clearedCustodies.reduce((s, c) => s + c.expenses.length, 0);
+            
+            const reportData = mainTab === 'reports' ? getReportData() : null;
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+                    {/* شاشة التحميل */}
+                    {isLoading && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                            <div className="bg-white rounded-2xl p-8 flex flex-col items-center gap-4">
+                                <div className="loading-spinner"></div>
+                                <p className="text-lg font-bold text-slate-800">جاري تحميل البيانات من Supabase...</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* شريط الحالة */}
+                    <div className="fixed top-4 left-4 z-40">
+                        {isSaving && (
+                            <div className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-pulse">
+                                <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
+                                جاري الحفظ...
+                            </div>
+                        )}
+                        {!isSaving && lastSaved && (
+                            <div className="bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg text-sm">
+                                آخر حفظ: {lastSaved.toLocaleTimeString('ar-SA')}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="max-w-6xl mx-auto">
+                        {/* Top Bar with Undo/Redo and Search */}
+                        <div className="bg-white rounded-xl shadow-lg p-4 mb-4 flex gap-3 items-center flex-wrap">
+                            <button onClick={undo} disabled={historyIndex <= 0} className="px-3 py-2 bg-slate-200 rounded-lg hover:bg-slate-300 disabled:opacity-30 flex items-center gap-2">
+                                <Undo /> تراجع
+                            </button>
+                            <button onClick={redo} disabled={historyIndex >= history.length - 1} className="px-3 py-2 bg-slate-200 rounded-lg hover:bg-slate-300 disabled:opacity-30 flex items-center gap-2">
+                                <Redo /> إعادة
+                            </button>
+                            <div className="h-6 w-px bg-slate-300"></div>
+                            <div className="flex gap-2 items-center">
+                                <input type="number" placeholder="رقم العهدة" value={searchCustody} onChange={(e) => setSearchCustody(e.target.value)} className="w-32 px-3 py-2 border rounded-lg text-sm" />
+                                <button onClick={searchForCustody} className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                                    <Search /> بحث عهدة
+                                </button>
+                            </div>
+                            <div className="flex gap-2 items-center">
+                                <input type="number" placeholder="رقم المصروف" value={searchExpense} onChange={(e) => setSearchExpense(e.target.value)} className="w-32 px-3 py-2 border rounded-lg text-sm" />
+                                <button onClick={searchForExpense} className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2">
+                                    <Search /> بحث مصروف
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Main Nav */}
+                        <div className="flex gap-3 mb-6">
+                            <button onClick={() => setMainTab('custodies')} className={`px-6 py-3 rounded-xl font-bold transition flex items-center gap-2 ${mainTab === 'custodies' ? 'bg-white text-blue-600 shadow-xl' : 'bg-white/60 text-slate-600 hover:bg-white/90'}`}>
+                                <Archive /> العهد
+                            </button>
+                            <button onClick={() => setMainTab('reports')} className={`px-6 py-3 rounded-xl font-bold transition flex items-center gap-2 ${mainTab === 'reports' ? 'bg-white text-blue-600 shadow-xl' : 'bg-white/60 text-slate-600 hover:bg-white/90'}`}>
+                                <BarChart /> التقارير
+                            </button>
+                            <button onClick={() => setMainTab('settings')} className={`px-6 py-3 rounded-xl font-bold transition flex items-center gap-2 ${mainTab === 'settings' ? 'bg-white text-blue-600 shadow-xl' : 'bg-white/60 text-slate-600 hover:bg-white/90'}`}>
+                                <Settings /> المصاريف المعرفة
+                            </button>
+                        </div>
+
+                        {/* Custodies Tab */}
+                        {mainTab === 'custodies' && (
+                            <>
+                                <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
+                                    <h1 className="text-3xl font-bold text-slate-800 mb-6 text-center">نظام إدارة العهد</h1>
+                                    
+                                    <div className="grid grid-cols-3 gap-4 mb-6">
+                                        <div className="bg-blue-50 rounded-xl p-4 text-center">
+                                            <div className="text-sm text-blue-600 mb-1">إجمالي العهد</div>
+                                            <div className="text-2xl font-bold text-blue-700">{totalCustodies.toFixed(2)} ريال</div>
+                                        </div>
+                                        <div className="bg-red-50 rounded-xl p-4 text-center">
+                                            <div className="text-sm text-red-600 mb-1">إجمالي المصروفات</div>
+                                            <div className="text-2xl font-bold text-red-700">{totalExpenses.toFixed(2)} ريال</div>
+                                        </div>
+                                        <div className="bg-green-50 rounded-xl p-4 text-center">
+                                            <div className="text-sm text-green-600 mb-1">المتبقي</div>
+                                            <div className="text-2xl font-bold text-green-700">{totalRemaining.toFixed(2)} ريال</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-2 mb-4">
+                                        <input type="text" placeholder="اسم العهدة" value={newCustody.name} onChange={(e) => setNewCustody({ ...newCustody, name: e.target.value })} className="flex-1 px-4 py-2 border border-slate-300 rounded-lg" />
+                                        <input type="number" placeholder="المبلغ" value={newCustody.amount} onChange={(e) => setNewCustody({ ...newCustody, amount: e.target.value })} className="w-32 px-4 py-2 border rounded-lg" />
+                                        <input type="date" value={newCustody.date} onChange={(e) => setNewCustody({ ...newCustody, date: e.target.value })} className="w-40 px-4 py-2 border rounded-lg" />
+                                        <button onClick={addCustody} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                                            <Plus /> إضافة
+                                        </button>
+                                    </div>
+
+                                    <div className="flex gap-2 flex-wrap">
+                                        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="px-4 py-2 border rounded-lg">
+                                            <option value="newest">الأحدث</option>
+                                            <option value="oldest">الأقدم</option>
+                                            <option value="highest">الأعلى قيمة</option>
+                                            <option value="lowest">الأقل قيمة</option>
+                                        </select>
+                                        <button onClick={toggleGlobalLock} className={`px-4 py-2 rounded-lg flex items-center gap-2 ${globalLock ? 'bg-red-600 text-white' : 'bg-slate-200 text-slate-700'}`}>
+                                            {globalLock ? <Lock /> : <Unlock />} {globalLock ? 'إلغاء القفل الشامل' : 'قفل الكل'}
+                                        </button>
+                                        {selectedIds.length > 0 && (
+                                            <button onClick={deleteSelected} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2">
+                                                <Trash2 /> حذف المحدد ({selectedIds.length})
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-2 mb-4">
+                                    <button onClick={() => setActiveTab('active')} className={`px-6 py-3 rounded-lg font-semibold ${activeTab === 'active' ? 'bg-white text-blue-600 shadow-lg' : 'bg-white/50 text-slate-600'}`}>
+                                        العهد الحالية ({custodies.length})
+                                    </button>
+                                    <button onClick={() => setActiveTab('cleared')} className={`px-6 py-3 rounded-lg font-semibold ${activeTab === 'cleared' ? 'bg-white text-blue-600 shadow-lg' : 'bg-white/50 text-slate-600'}`}>
+                                        العهد المصفاة ({clearedCustodies.length})
+                                    </button>
+                                </div>
+
+                                {/* Cleared Custodies Statistics */}
+                                {activeTab === 'cleared' && clearedCustodies.length > 0 && (
+                                    <div className="bg-white rounded-xl shadow-lg p-6 mb-4">
+                                        <h3 className="text-lg font-bold text-slate-800 mb-4">إحصائيات العهد المصفاة</h3>
+                                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                            <div className="bg-blue-50 rounded-lg p-3 text-center">
+                                                <div className="text-xs text-blue-600 mb-1">عدد العهد</div>
+                                                <div className="text-xl font-bold text-blue-700">{clearedCustodies.length}</div>
+                                            </div>
+                                            <div className="bg-purple-50 rounded-lg p-3 text-center">
+                                                <div className="text-xs text-purple-600 mb-1">إجمالي قيمة العهد</div>
+                                                <div className="text-xl font-bold text-purple-700">{clearedTotalAmount.toFixed(2)} ريال</div>
+                                            </div>
+                                            <div className="bg-orange-50 rounded-lg p-3 text-center">
+                                                <div className="text-xs text-orange-600 mb-1">عدد المصروفات</div>
+                                                <div className="text-xl font-bold text-orange-700">{clearedTotalExpenseCount}</div>
+                                            </div>
+                                            <div className="bg-red-50 rounded-lg p-3 text-center">
+                                                <div className="text-xs text-red-600 mb-1">إجمالي المصروفات</div>
+                                                <div className="text-xl font-bold text-red-700">{clearedTotalExpenses.toFixed(2)} ريال</div>
+                                            </div>
+                                            <div className={`rounded-lg p-3 text-center ${clearedTotalRemaining > 0 ? 'bg-green-50' : 'bg-slate-50'}`}>
+                                                <div className={`text-xs mb-1 ${clearedTotalRemaining > 0 ? 'text-green-600' : 'text-slate-600'}`}>
+                                                    المتبقي (مصفى مبكراً)
+                                                </div>
+                                                <div className={`text-xl font-bold ${clearedTotalRemaining > 0 ? 'text-green-700' : 'text-slate-700'}`}>
+                                                    {clearedTotalRemaining.toFixed(2)} ريال
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="space-y-4">
+                                    {sortedList.map((custody, idx) => {
+                                        const remaining = calcRemaining(custody);
+                                        const isReady = remaining <= 0.01 && remaining >= -0.01;
+                                        const isCleared = activeTab === 'cleared';
+
+                                        return (
+                                            <div id={`custody-${custody.id}`} key={custody.id} className={`bg-white rounded-xl shadow-lg p-6 ${isCleared ? 'opacity-60 bg-gray-50' : ''}`}>
+                                                <div className="flex items-center gap-4 mb-4">
+                                                    {activeTab === 'active' && (
+                                                        <input type="checkbox" checked={selectedIds.includes(custody.id)} onChange={(e) => setSelectedIds(e.target.checked ? [...selectedIds, custody.id] : selectedIds.filter(id => id !== custody.id))} className="w-5 h-5" />
+                                                    )}
+
+                                                    <div className="flex-1">
+                                                        {editingId === custody.id && !custody.locked ? (
+                                                            <div className="flex gap-2 flex-wrap">
+                                                                <input type="text" value={custody.name} onChange={(e) => updateCustody(custody.id, 'name', e.target.value)} className="flex-1 px-3 py-2 border rounded-lg" />
+                                                                <input type="number" value={custody.amount} onChange={(e) => updateCustody(custody.id, 'amount', parseFloat(e.target.value))} className="w-32 px-3 py-2 border rounded-lg" />
+                                                                <input type="date" value={custody.date} onChange={(e) => updateCustody(custody.id, 'date', e.target.value)} className="w-40 px-3 py-2 border rounded-lg" />
+                                                                <button onClick={() => setEditingId(null)} className="px-4 py-2 bg-green-600 text-white rounded-lg">
+                                                                    <Check />
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <div>
+                                                                <h3 className="text-xl font-bold text-slate-800">
+                                                                    #{custody.seqNumber} - {custody.name}
+                                                                </h3>
+                                                                <div className="flex gap-4 text-sm text-slate-600 mt-1 flex-wrap">
+                                                                    <span>التاريخ: {new Date(custody.date).toLocaleDateString('ar-SA')}</span>
+                                                                    <span>المبلغ: {custody.amount.toFixed(2)} ريال</span>
+                                                                    <span>المصروفات: {calcCustodyExpenses(custody).toFixed(2)} ريال</span>
+                                                                    <span className={`font-semibold ${remaining < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                                                        المتبقي: {remaining.toFixed(2)} ريال
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {isReady && !isCleared && (
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-green-600 font-semibold">جاهز للتصفية</span>
+                                                            <button onClick={() => clearCustody(custody.id)} className="px-4 py-2 bg-green-600 text-white rounded-lg flex items-center gap-2">
+                                                                <Archive /> تصفية
+                                                            </button>
+                                                        </div>
+                                                    )}
+
+                                                    {!isReady && !isCleared && activeTab === 'active' && remaining > 0 && (
+                                                        <button onClick={() => clearCustody(custody.id, true)} className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700">
+                                                            تصفية مبكرة
+                                                        </button>
+                                                    )}
+
+                                                    {isCleared && (
+                                                        <button onClick={() => restoreCustody(custody.id)} className="px-4 py-2 bg-blue-600 text-white rounded-lg">استرجاع</button>
+                                                    )}
+
+                                                    {activeTab === 'active' && (
+                                                        <div className="flex gap-2">
+                                                            <button onClick={() => moveCustody(custody.id, 'up')} disabled={idx === 0} className="p-2 bg-slate-200 rounded-lg disabled:opacity-30">
+                                                                <ChevronUp />
+                                                            </button>
+                                                            <button onClick={() => moveCustody(custody.id, 'down')} disabled={idx === sortedList.length - 1} className="p-2 bg-slate-200 rounded-lg disabled:opacity-30">
+                                                                <ChevronDown />
+                                                            </button>
+                                                            <button onClick={() => toggleLock(custody.id)} className={`p-2 rounded-lg ${custody.locked ? 'bg-red-100 text-red-600' : 'bg-slate-200'}`}>
+                                                                {custody.locked ? <Lock /> : <Unlock />}
+                                                            </button>
+                                                            <button onClick={() => setEditingId(editingId === custody.id ? null : custody.id)} disabled={custody.locked} className="p-2 bg-blue-100 text-blue-600 rounded-lg disabled:opacity-30">
+                                                                <Edit2 />
+                                                            </button>
+                                                            <button onClick={() => deleteCustody(custody.id)} disabled={custody.locked} className="p-2 bg-red-100 text-red-600 rounded-lg disabled:opacity-30">
+                                                                <Trash2 />
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {activeTab === 'active' && !custody.locked && (
+                                                    <div className="mt-4 space-y-2">
+                                                        <div className="flex items-center justify-between">
+                                                            <button onClick={() => setExpandedExpenses({ ...expandedExpenses, [custody.id]: !expandedExpenses[custody.id] })} className="text-blue-600 font-semibold">
+                                                                {expandedExpenses[custody.id] ? '▼' : '◀'} المصروفات ({custody.expenses.length})
+                                                            </button>
+                                                            <button onClick={() => addExpense(custody.id)} className="px-4 py-1 bg-blue-600 text-white rounded-lg text-sm flex items-center gap-1">
+                                                                <Plus /> إضافة مصروف
+                                                            </button>
+                                                        </div>
+
+                                                        {expandedExpenses[custody.id] && (
+                                                            <div className="space-y-2 bg-slate-50 p-4 rounded-lg">
+                                                                {custody.expenses.map((exp) => (
+                                                                    <div 
+                                                                        key={exp.id} 
+                                                                        ref={el => expenseRefs.current[`${custody.id}-${exp.id}`] = el}
+                                                                        className={`flex gap-2 items-center bg-white p-3 rounded-lg ${highlightedExpense === `${custody.id}-${exp.id}` ? 'ring-2 ring-yellow-400' : ''}`}
+                                                                    >
+                                                                        <div className="text-xs text-slate-500 font-mono w-12">#{exp.seqNumber}</div>
+                                                                        <select value={exp.expenseType} onChange={(e) => updateExpense(custody.id, exp.id, 'expenseType', e.target.value)} className="px-3 py-2 border rounded-lg text-sm">
+                                                                            <option value="">نوع المصروف</option>
+                                                                            {predefinedExpenses.map(pe => (
+                                                                                <option key={pe.id} value={pe.id}>
+                                                                                    {pe.name} {pe.hasFixedPrice ? `(${pe.fixedPrice} ريال)` : ''}
+                                                                                </option>
+                                                                            ))}
+                                                                        </select>
+                                                                        <input type="text" placeholder="اسم الفاتورة" value={exp.name} onChange={(e) => updateExpense(custody.id, exp.id, 'name', e.target.value)} className="flex-1 px-3 py-2 border rounded-lg text-sm" />
+                                                                        <input type="number" placeholder="المبلغ" value={exp.amount} onChange={(e) => updateExpense(custody.id, exp.id, 'amount', e.target.value)} className="w-28 px-3 py-2 border rounded-lg text-sm" />
+                                                                        <input type="date" value={exp.date} onChange={(e) => updateExpense(custody.id, exp.id, 'date', e.target.value)} className="w-36 px-3 py-2 border rounded-lg text-sm" />
+                                                                        <button onClick={() => updateExpense(custody.id, exp.id, 'includeTax', !exp.includeTax)} className={`px-3 py-2 rounded-lg text-xs whitespace-nowrap ${exp.includeTax ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                                                            {exp.includeTax ? 'شامل ضريبة' : 'بدون ضريبة'}
+                                                                        </button>
+                                                                        <span className="text-sm text-slate-600 w-24">{calcExpenseTotal(exp).toFixed(2)} ريال</span>
+                                                                        <button onClick={() => deleteExpense(custody.id, exp.id)} className="p-2 bg-red-100 text-red-600 rounded-lg">
+                                                                            <X />
+                                                                        </button>
+                                                                    </div>
+                                                                ))}
+                                                                <button onClick={() => addExpense(custody.id)} className="w-full py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 flex items-center justify-center gap-2 border-2 border-dashed border-blue-300">
+                                                                    <Plus /> إضافة مصروف آخر
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+
+                                    {sortedList.length === 0 && (
+                                        <div className="bg-white rounded-xl shadow-lg p-12 text-center text-slate-400">
+                                            <p className="text-xl">لا توجد عهد في هذه القائمة</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        )}
+
+                        {/* Reports Tab */}
+                        {mainTab === 'reports' && (
+                            <div className="bg-white rounded-2xl shadow-xl p-6">
+                                <h2 className="text-2xl font-bold text-slate-800 mb-6">تقارير المصروفات</h2>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-2">نوع المصروف</label>
+                                        <select value={selectedExpenseType} onChange={(e) => setSelectedExpenseType(e.target.value)} className="w-full px-4 py-2 border rounded-lg">
+                                            <option value="">اختر نوع المصروف</option>
+                                            {predefinedExpenses.map(pe => <option key={pe.id} value={pe.id}>{pe.name}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-2">الفترة الزمنية</label>
+                                        <select value={reportPeriod} onChange={(e) => setReportPeriod(e.target.value)} className="w-full px-4 py-2 border rounded-lg">
+                                            <option value="2days">يومين</option>
+                                            <option value="week">أسبوع</option>
+                                            <option value="month">شهر</option>
+                                            <option value="year">سنة</option>
+                                            <option value="2years">سنتين</option>
+                                            <option value="5years">5 سنين</option>
+                                            <option value="custom">فترة مخصصة</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {reportPeriod === 'custom' && (
+                                    <div className="grid grid-cols-2 gap-4 mb-6">
+                                        <div>
+                                            <label className="block text-sm font-semibold text-slate-700 mb-2">من تاريخ</label>
+                                            <input type="date" value={customStartDate} onChange={(e) => setCustomStartDate(e.target.value)} className="w-full px-4 py-2 border rounded-lg" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-semibold text-slate-700 mb-2">إلى تاريخ</label>
+                                            <input type="date" value={customEndDate} onChange={(e) => setCustomEndDate(e.target.value)} className="w-full px-4 py-2 border rounded-lg" />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {reportData && (
+                                    <div className="mt-6">
+                                        <div className="bg-blue-50 rounded-xl p-6 mb-6">
+                                            <h3 className="text-xl font-bold text-blue-900 mb-4">تقرير: {reportData.expenseName}</h3>
+                                            <div className="text-sm text-blue-700 mb-4">
+                                                الفترة: {reportData.startDate.toLocaleDateString('ar-SA')} - {reportData.endDate.toLocaleDateString('ar-SA')}
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-3 gap-4">
+                                                <div className="bg-white rounded-lg p-4 text-center">
+                                                    <div className="text-sm text-slate-600 mb-1">عدد العهد</div>
+                                                    <div className="text-2xl font-bold text-blue-700">{reportData.custodiesCount}</div>
+                                                </div>
+                                                <div className="bg-white rounded-lg p-4 text-center">
+                                                    <div className="text-sm text-slate-600 mb-1">عدد مصروفات {reportData.expenseName}</div>
+                                                    <div className="text-2xl font-bold text-purple-700">{reportData.expenseCount}</div>
+                                                </div>
+                                                <div className="bg-white rounded-lg p-4 text-center">
+                                                    <div className="text-sm text-slate-600 mb-1">إجمالي صرف {reportData.expenseName}</div>
+                                                    <div className="text-2xl font-bold text-green-700">{reportData.totalExpenses.toFixed(2)} ريال</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-slate-50 rounded-xl p-4">
+                                            <h4 className="font-bold text-slate-800 mb-3">العهد في الفترة المحددة:</h4>
+                                            <div className="space-y-2">
+                                                {reportData.custodies.map(custody => {
+                                                    const custExpenses = custody.expenses.filter(e => e.expenseType === selectedExpenseType);
+                                                    if (custExpenses.length === 0) return null;
+                                                    return (
+                                                        <div key={custody.id} className="bg-white rounded-lg p-3">
+                                                            <div className="text-sm font-semibold text-slate-700">
+                                                                #{custody.seqNumber} - {custody.name}
+                                                                <span className="text-xs text-slate-500 mr-2">({new Date(custody.date).toLocaleDateString('ar-SA')})</span>
+                                                            </div>
+                                                            <div className="text-xs text-slate-600 mt-1">
+                                                                عدد مصروفات {reportData.expenseName}: {custExpenses.length} | المجموع: {custExpenses.reduce((s, e) => s + calcExpenseTotal(e), 0).toFixed(2)} ريال
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {!selectedExpenseType && (
+                                    <div className="mt-6 text-center text-slate-400">
+                                        <p>الرجاء اختيار نوع المصروف لعرض التقرير</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Settings Tab */}
+                        {mainTab === 'settings' && (
+                            <div className="bg-white rounded-2xl shadow-xl p-6">
+                                <h2 className="text-2xl font-bold text-slate-800 mb-6">المصاريف المعرفة</h2>
+                                
+                                <div className="mb-6 bg-slate-50 rounded-xl p-4">
+                                    <h3 className="font-bold text-slate-700 mb-3">إضافة مصروف جديد</h3>
+                                    <div className="flex gap-2 items-end">
+                                        <div className="flex-1">
+                                            <label className="block text-sm text-slate-600 mb-1">اسم المصروف</label>
+                                            <input type="text" placeholder="مثال: بنزين، لحام، صيانة" value={newPredefined.name} onChange={(e) => setNewPredefined({ ...newPredefined, name: e.target.value })} className="w-full px-4 py-2 border rounded-lg" />
+                                        </div>
+                                        <div className="w-40">
+                                            <label className="flex items-center gap-2 mb-2">
+                                                <input type="checkbox" checked={newPredefined.hasFixedPrice} onChange={(e) => setNewPredefined({ ...newPredefined, hasFixedPrice: e.target.checked })} className="w-4 h-4" />
+                                                <span className="text-sm text-slate-600">سعر ثابت</span>
+                                            </label>
+                                            <input type="number" placeholder="السعر" value={newPredefined.fixedPrice} onChange={(e) => setNewPredefined({ ...newPredefined, fixedPrice: e.target.value })} disabled={!newPredefined.hasFixedPrice} className="w-full px-4 py-2 border rounded-lg disabled:bg-slate-100" />
+                                        </div>
+                                        <button onClick={addPredefined} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                                            <Plus /> إضافة
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    {predefinedExpenses.map((exp) => (
+                                        <div key={exp.id} className="flex items-center gap-3 bg-slate-50 p-4 rounded-lg">
+                                            {editingPredefinedId === exp.id ? (
+                                                <>
+                                                    <input type="text" value={exp.name} onChange={(e) => updatePredefined(exp.id, 'name', e.target.value)} className="flex-1 px-3 py-2 border rounded-lg" />
+                                                    <label className="flex items-center gap-2">
+                                                        <input type="checkbox" checked={exp.hasFixedPrice} onChange={(e) => updatePredefined(exp.id, 'hasFixedPrice', e.target.checked)} className="w-4 h-4" />
+                                                        <span className="text-sm">سعر ثابت</span>
+                                                    </label>
+                                                    <input type="number" value={exp.fixedPrice} onChange={(e) => updatePredefined(exp.id, 'fixedPrice', parseFloat(e.target.value))} disabled={!exp.hasFixedPrice} className="w-32 px-3 py-2 border rounded-lg disabled:bg-slate-100" />
+                                                    <button onClick={() => setEditingPredefinedId(null)} className="p-2 bg-green-600 text-white rounded-lg">
+                                                        <Check />
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="flex-1">
+                                                        <div className="font-semibold text-slate-800">{exp.name}</div>
+                                                        {exp.hasFixedPrice && (
+                                                            <div className="text-sm text-slate-600">سعر ثابت: {exp.fixedPrice} ريال (شامل الضريبة)</div>
+                                                        )}
+                                                    </div>
+                                                    <button onClick={() => setEditingPredefinedId(exp.id)} className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                                                        <Edit2 />
+                                                    </button>
+                                                    <button onClick={() => deletePredefined(exp.id)} className="p-2 bg-red-100 text-red-600 rounded-lg">
+                                                        <Trash2 />
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    ))}
+
+                                    {predefinedExpenses.length === 0 && (
+                                        <div className="text-center py-12 text-slate-400">
+                                            <p>لا توجد مصاريف معرفة. ابدأ بإضافة أول مصروف!</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<CustodyManager />, document.getElementById('root'));
+    </script>
+</body>
+</html>
