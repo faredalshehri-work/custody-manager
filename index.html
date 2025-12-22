@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام إدارة العهد - متصل بـ Supabase</title>
+    <title>نظام إدارة العهد</title>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
@@ -15,6 +15,10 @@
         @keyframes highlight {
             0%, 100% { background-color: white; }
             50% { background-color: #fef3c7; }
+        }
+        .dark .highlight-expense { 
+            0%, 100% { background-color: #1e293b; }
+            50% { background-color: #3b4253; }
         }
         .loading-spinner {
             border: 3px solid #f3f3f3;
@@ -36,11 +40,17 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // إعداد Supabase
         const supabaseUrl = 'https://opyuncxyjdqxawddhdjn.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+        const USERS = {
+            'Fareed': { password: '0555038099', branch: 'jeddah', branchName: 'فرع جدة', role: 'admin' },
+            'Yazeed': { password: '0531613949', branch: 'riyadh', branchName: 'فرع الرياض', role: 'admin' },
+            'VOLGA': { password: '0550433333', branch: 'all', branchName: 'المحاسب المركزي العام', role: 'viewer' }
+        };
+
+        // Icons
         const Plus = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
         const Trash2 = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>;
         const Edit2 = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
@@ -52,12 +62,86 @@
         const Check = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>;
         const Archive = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>;
         const BarChart = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>;
-        const Settings = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m9-9h-6m-6 0H1"/></svg>;
+        const Settings = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>;
         const Search = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>;
         const Undo = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/></svg>;
         const Redo = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 019-9 9 9 0 016 2.3l3 2.7"/></svg>;
+        const Moon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>;
+        const Sun = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>;
+        const LogOut = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
+
+        const LoginScreen = ({ onLogin }) => {
+            const [username, setUsername] = useState('');
+            const [password, setPassword] = useState('');
+            const [error, setError] = useState('');
+
+            const handleLogin = () => {
+                const user = USERS[username];
+                if (user && user.password === password) {
+                    onLogin(username, user);
+                } else {
+                    setError('اسم المستخدم أو كلمة المرور غير صحيحة');
+                }
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 w-full max-w-md">
+                        <div className="text-center mb-8">
+                            <div className="w-20 h-20 bg-blue-600 rounded-2xl mx-auto mb-4 flex items-center justify-center">
+                                <Archive />
+                            </div>
+                            <h1 className="text-3xl font-black text-slate-800 mb-2">نظام إدارة العهد</h1>
+                            <p className="text-slate-500">Custody Management System</p>
+                        </div>
+                        
+                        {error && (
+                            <div className="bg-red-50 border-r-4 border-red-500 text-red-700 p-4 rounded-lg mb-4">
+                                {error}
+                            </div>
+                        )}
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">اسم المستخدم</label>
+                                <input
+                                    type="text"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition"
+                                    placeholder="أدخل اسم المستخدم"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">كلمة المرور</label>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition"
+                                    placeholder="أدخل كلمة المرور"
+                                />
+                            </div>
+
+                            <button
+                                onClick={handleLogin}
+                                className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg hover:shadow-xl"
+                            >
+                                تسجيل الدخول
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
 
         const CustodyManager = () => {
+            const [currentUser, setCurrentUser] = useState(null);
+            const [userInfo, setUserInfo] = useState(null);
+            const [darkMode, setDarkMode] = useState(false);
             const [custodies, setCustodies] = useState([]);
             const [clearedCustodies, setClearedCustodies] = useState([]);
             const [predefinedExpenses, setPredefinedExpenses] = useState([]);
@@ -88,20 +172,31 @@
             
             const expenseRefs = useRef({});
 
-            // تحميل البيانات من Supabase
             useEffect(() => {
-                loadFromSupabase();
-            }, []);
+                if (darkMode) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }, [darkMode]);
+
+            useEffect(() => {
+                if (currentUser) {
+                    loadFromSupabase();
+                }
+            }, [currentUser]);
 
             const loadFromSupabase = async () => {
                 try {
                     setIsLoading(true);
                     
-                    // تحميل العهد
-                    const { data: custodiesData, error: custodiesError } = await supabase
-                        .from('custodies')
-                        .select('*')
-                        .order('id', { ascending: true });
+                    let custodiesQuery = supabase.from('custodies').select('*');
+                    
+                    if (userInfo.branch !== 'all') {
+                        custodiesQuery = custodiesQuery.eq('branch', userInfo.branch);
+                    }
+                    
+                    const { data: custodiesData, error: custodiesError } = await custodiesQuery.order('id', { ascending: true });
                     
                     if (custodiesError) throw custodiesError;
                     
@@ -112,7 +207,6 @@
                         setCustodies(active);
                         setClearedCustodies(cleared);
                         
-                        // تحديث التسلسلات
                         const maxCustodySeq = Math.max(...custodiesData.map(c => c.seqNumber || 0), 0);
                         setCustodySequence(maxCustodySeq + 1);
                         
@@ -121,10 +215,13 @@
                         setExpenseSequence(maxExpenseSeq + 1);
                     }
                     
-                    // تحميل المصاريف المعرفة
-                    const { data: predefinedData, error: predefinedError } = await supabase
-                        .from('predefined_settings')
-                        .select('*');
+                    let predefinedQuery = supabase.from('predefined_settings').select('*');
+                    
+                    if (userInfo.branch !== 'all') {
+                        predefinedQuery = predefinedQuery.eq('branch', userInfo.branch);
+                    }
+                    
+                    const { data: predefinedData, error: predefinedError } = await predefinedQuery;
                     
                     if (predefinedError) throw predefinedError;
                     
@@ -140,23 +237,27 @@
                 }
             };
 
-            // حفظ البيانات في Supabase تلقائياً
             useEffect(() => {
-                if (isLoading) return; // لا تحفظ أثناء التحميل الأولي
+                if (isLoading || !currentUser) return;
                 
                 const saveTimer = setTimeout(async () => {
                     await saveToSupabase();
-                }, 2000); // حفظ بعد ثانيتين من آخر تعديل
+                }, 2000);
 
                 return () => clearTimeout(saveTimer);
             }, [custodies, clearedCustodies, predefinedExpenses]);
 
             const saveToSupabase = async () => {
+                if (userInfo.role === 'viewer') return;
+                
                 try {
                     setIsSaving(true);
                     
-                    // حفظ العهد
-                    const allCustodies = [...custodies, ...clearedCustodies];
+                    const allCustodies = [...custodies, ...clearedCustodies].map(c => ({
+                        ...c,
+                        branch: c.branch || userInfo.branch
+                    }));
+                    
                     if (allCustodies.length > 0) {
                         const { error: custodiesError } = await supabase
                             .from('custodies')
@@ -165,11 +266,15 @@
                         if (custodiesError) throw custodiesError;
                     }
                     
-                    // حفظ المصاريف المعرفة
-                    if (predefinedExpenses.length > 0) {
+                    const branchPredefined = predefinedExpenses.map(p => ({
+                        ...p,
+                        branch: p.branch || userInfo.branch
+                    }));
+                    
+                    if (branchPredefined.length > 0) {
                         const { error: predefinedError } = await supabase
                             .from('predefined_settings')
-                            .upsert(predefinedExpenses, { onConflict: 'id' });
+                            .upsert(branchPredefined, { onConflict: 'id' });
                         
                         if (predefinedError) throw predefinedError;
                     }
@@ -183,7 +288,6 @@
                 }
             };
 
-            // Keyboard shortcuts
             useEffect(() => {
                 const handleKeyboard = (e) => {
                     if (e.ctrlKey && e.key === 'z') {
@@ -207,7 +311,7 @@
             };
 
             const undo = () => {
-                if (historyIndex > 0) {
+                if (historyIndex > 0 && userInfo.role !== 'viewer') {
                     const prevState = history[historyIndex - 1];
                     setCustodies(JSON.parse(JSON.stringify(prevState.custodies)));
                     setClearedCustodies(JSON.parse(JSON.stringify(prevState.clearedCustodies)));
@@ -216,7 +320,7 @@
             };
 
             const redo = () => {
-                if (historyIndex < history.length - 1) {
+                if (historyIndex < history.length - 1 && userInfo.role !== 'viewer') {
                     const nextState = history[historyIndex + 1];
                     setCustodies(JSON.parse(JSON.stringify(nextState.custodies)));
                     setClearedCustodies(JSON.parse(JSON.stringify(nextState.clearedCustodies)));
@@ -225,16 +329,19 @@
             };
 
             const updateCustodiesWithHistory = (newCustodies) => {
+                if (userInfo.role === 'viewer') return;
                 setCustodies(newCustodies);
                 saveToHistory(newCustodies, clearedCustodies);
             };
 
             const updateClearedWithHistory = (newCleared) => {
+                if (userInfo.role === 'viewer') return;
                 setClearedCustodies(newCleared);
                 saveToHistory(custodies, newCleared);
             };
 
             const addCustody = () => {
+                if (userInfo.role === 'viewer') return;
                 if (!newCustody.name || !newCustody.amount) return;
                 const custody = {
                     id: Date.now(),
@@ -242,6 +349,7 @@
                     name: newCustody.name,
                     amount: parseFloat(newCustody.amount),
                     date: newCustody.date,
+                    branch: userInfo.branch,
                     locked: false,
                     expenses: []
                 };
@@ -251,23 +359,17 @@
             };
 
             const deleteCustody = async (id) => {
+                if (userInfo.role === 'viewer') return;
                 if (!confirm('هل أنت متأكد من حذف هذه العهدة؟')) return;
                 
                 try {
-                    // حذف من Supabase
-                    const { error } = await supabase
-                        .from('custodies')
-                        .delete()
-                        .eq('id', id);
-                    
+                    const { error } = await supabase.from('custodies').delete().eq('id', id);
                     if (error) throw error;
                     
-                    // حذف من الحالة المحلية
                     const list = activeTab === 'active' ? custodies : clearedCustodies;
                     const setter = activeTab === 'active' ? updateCustodiesWithHistory : updateClearedWithHistory;
                     setter(list.filter(c => c.id !== id));
                     setSelectedIds(selectedIds.filter(sid => sid !== id));
-                    
                 } catch (error) {
                     console.error('Error deleting:', error);
                     alert('حدث خطأ أثناء الحذف: ' + error.message);
@@ -275,37 +377,36 @@
             };
 
             const deleteSelected = async () => {
+                if (userInfo.role === 'viewer') return;
                 if (!confirm(`هل أنت متأكد من حذف ${selectedIds.length} عهدة؟`)) return;
                 
                 try {
-                    // حذف من Supabase
-                    const { error } = await supabase
-                        .from('custodies')
-                        .delete()
-                        .in('id', selectedIds);
-                    
+                    const { error } = await supabase.from('custodies').delete().in('id', selectedIds);
                     if (error) throw error;
                     
-                    // حذف من الحالة المحلية
                     const list = activeTab === 'active' ? custodies : clearedCustodies;
                     const setter = activeTab === 'active' ? updateCustodiesWithHistory : updateClearedWithHistory;
                     setter(list.filter(c => !selectedIds.includes(c.id)));
                     setSelectedIds([]);
-                    
                 } catch (error) {
                     console.error('Error deleting:', error);
                     alert('حدث خطأ أثناء الحذف: ' + error.message);
                 }
             };
 
-            const toggleLock = (id) => updateCustodiesWithHistory(custodies.map(c => c.id === id ? { ...c, locked: !c.locked } : c));
+            const toggleLock = (id) => {
+                if (userInfo.role === 'viewer') return;
+                updateCustodiesWithHistory(custodies.map(c => c.id === id ? { ...c, locked: !c.locked } : c));
+            };
             
             const toggleGlobalLock = () => {
+                if (userInfo.role === 'viewer') return;
                 setGlobalLock(!globalLock);
                 updateCustodiesWithHistory(custodies.map(c => ({ ...c, locked: !globalLock })));
             };
 
             const moveCustody = (id, dir) => {
+                if (userInfo.role === 'viewer') return;
                 const idx = custodies.findIndex(c => c.id === id);
                 if (idx === -1) return;
                 const newIdx = dir === 'up' ? idx - 1 : idx + 1;
@@ -315,9 +416,13 @@
                 updateCustodiesWithHistory(arr);
             };
 
-            const updateCustody = (id, field, value) => updateCustodiesWithHistory(custodies.map(c => c.id === id ? { ...c, [field]: value } : c));
+            const updateCustody = (id, field, value) => {
+                if (userInfo.role === 'viewer') return;
+                updateCustodiesWithHistory(custodies.map(c => c.id === id ? { ...c, [field]: value } : c));
+            };
 
             const addExpense = (custodyId, scrollToNew = true) => {
+                if (userInfo.role === 'viewer') return;
                 const newExpense = {
                     id: Date.now(),
                     seqNumber: expenseSequence,
@@ -347,6 +452,7 @@
             };
 
             const updateExpense = (custodyId, expenseId, field, value) => {
+                if (userInfo.role === 'viewer') return;
                 updateCustodiesWithHistory(custodies.map(c => {
                     if (c.id === custodyId) {
                         return {
@@ -375,6 +481,7 @@
             };
 
             const deleteExpense = (custodyId, expenseId) => {
+                if (userInfo.role === 'viewer') return;
                 if (!confirm('هل أنت متأكد من حذف هذا المصروف؟')) return;
                 updateCustodiesWithHistory(custodies.map(c => c.id === custodyId ? {
                     ...c,
@@ -391,6 +498,7 @@
             const calcRemaining = (custody) => custody.amount - calcCustodyExpenses(custody);
 
             const clearCustody = (id, withdrawRemaining = false) => {
+                if (userInfo.role === 'viewer') return;
                 const custody = custodies.find(c => c.id === id);
                 if (!custody) return;
                 
@@ -406,6 +514,7 @@
             };
 
             const restoreCustody = (id) => {
+                if (userInfo.role === 'viewer') return;
                 const custody = clearedCustodies.find(c => c.id === id);
                 if (!custody) return;
                 
@@ -426,35 +535,31 @@
             };
 
             const addPredefined = () => {
+                if (userInfo.role === 'viewer') return;
                 if (!newPredefined.name) return;
                 setPredefinedExpenses([...predefinedExpenses, {
                     id: Date.now(),
                     name: newPredefined.name,
                     hasFixedPrice: newPredefined.hasFixedPrice,
-                    fixedPrice: newPredefined.hasFixedPrice ? parseFloat(newPredefined.fixedPrice) || 0 : 0
+                    fixedPrice: newPredefined.hasFixedPrice ? parseFloat(newPredefined.fixedPrice) || 0 : 0,
+                    branch: userInfo.branch
                 }]);
                 setNewPredefined({ name: '', fixedPrice: '', hasFixedPrice: false });
             };
 
             const updatePredefined = (id, field, value) => {
+                if (userInfo.role === 'viewer') return;
                 setPredefinedExpenses(predefinedExpenses.map(e => e.id === id ? { ...e, [field]: value } : e));
             };
 
             const deletePredefined = async (id) => {
+                if (userInfo.role === 'viewer') return;
                 if (!confirm('هل أنت متأكد من حذف هذا المصروف المعرف؟')) return;
                 
                 try {
-                    // حذف من Supabase
-                    const { error } = await supabase
-                        .from('predefined_settings')
-                        .delete()
-                        .eq('id', id);
-                    
+                    const { error } = await supabase.from('predefined_settings').delete().eq('id', id);
                     if (error) throw error;
-                    
-                    // حذف من الحالة المحلية
                     setPredefinedExpenses(predefinedExpenses.filter(e => e.id !== id));
-                    
                 } catch (error) {
                     console.error('Error deleting:', error);
                     alert('حدث خطأ أثناء الحذف: ' + error.message);
@@ -465,11 +570,9 @@
                 const seqNum = parseInt(searchCustody);
                 if (!seqNum) return;
                 
-                // Search in active custodies first
                 let custody = custodies.find(c => c.seqNumber === seqNum);
                 let isCleared = false;
                 
-                // If not found, search in cleared custodies
                 if (!custody) {
                     custody = clearedCustodies.find(c => c.seqNumber === seqNum);
                     isCleared = true;
@@ -495,7 +598,6 @@
                 const seqNum = parseInt(searchExpense);
                 if (!seqNum) return;
                 
-                // Search in active custodies first
                 for (const custody of custodies) {
                     const expense = custody.expenses.find(e => e.seqNumber === seqNum);
                     if (expense) {
@@ -519,7 +621,6 @@
                     }
                 }
                 
-                // If not found, search in cleared custodies
                 for (const custody of clearedCustodies) {
                     const expense = custody.expenses.find(e => e.seqNumber === seqNum);
                     if (expense) {
@@ -566,13 +667,7 @@
                 });
 
                 let total = 0, count = 0;
-                let totalAllCustodies = 0;
-                let totalAllExpenses = 0;
-                
                 filtered.forEach(c => {
-                    totalAllCustodies += c.amount;
-                    totalAllExpenses += calcCustodyExpenses(c);
-                    
                     c.expenses.forEach(e => {
                         if (e.expenseType === selectedExpenseType) {
                             total += calcExpenseTotal(e);
@@ -587,13 +682,25 @@
                     custodies: filtered,
                     expenseCount: count,
                     totalExpenses: total,
-                    totalAllCustodies,
-                    totalAllExpenses,
-                    totalRemaining: totalAllCustodies - totalAllExpenses,
                     startDate,
                     endDate
                 };
             };
+
+            const handleLogout = () => {
+                setCurrentUser(null);
+                setUserInfo(null);
+                setCustodies([]);
+                setClearedCustodies([]);
+                setPredefinedExpenses([]);
+            };
+
+            if (!currentUser) {
+                return <LoginScreen onLogin={(username, user) => {
+                    setCurrentUser(username);
+                    setUserInfo(user);
+                }} />;
+            }
 
             const displayList = activeTab === 'active' ? custodies : clearedCustodies;
             const sortedList = getSorted(displayList);
@@ -601,7 +708,6 @@
             const totalExpenses = custodies.reduce((s, c) => s + calcCustodyExpenses(c), 0);
             const totalRemaining = totalCustodies - totalExpenses;
             
-            // Cleared custodies statistics
             const clearedTotalAmount = clearedCustodies.reduce((s, c) => s + c.amount, 0);
             const clearedTotalExpenses = clearedCustodies.reduce((s, c) => s + calcCustodyExpenses(c), 0);
             const clearedTotalRemaining = clearedTotalAmount - clearedTotalExpenses;
@@ -609,80 +715,104 @@
             
             const reportData = mainTab === 'reports' ? getReportData() : null;
 
+            const isReadOnly = userInfo.role === 'viewer';
+
             return (
-                <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-2 md:p-6">
-                    {/* شاشة التحميل */}
+                <div className={`min-h-screen ${darkMode ? 'dark bg-slate-900' : 'bg-gradient-to-br from-slate-50 to-slate-100'} transition-colors duration-300`}>
                     {isLoading && (
                         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                            <div className="bg-white rounded-2xl p-8 flex flex-col items-center gap-4">
+                            <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 flex flex-col items-center gap-4">
                                 <div className="loading-spinner"></div>
-                                <p className="text-lg font-bold text-slate-800">جاري تحميل البيانات من Supabase...</p>
+                                <p className="text-lg font-bold text-slate-800 dark:text-white">جاري تحميل البيانات...</p>
                             </div>
                         </div>
                     )}
 
-                    {/* شريط الحالة */}
-                    <div className="fixed top-4 left-4 z-40">
+                    <div className="fixed top-2 left-2 md:top-4 md:left-4 z-40 flex flex-col gap-2">
                         {isSaving && (
-                            <div className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-pulse">
+                            <div className="bg-blue-600 text-white px-3 py-2 md:px-4 rounded-lg shadow-lg flex items-center gap-2 animate-pulse text-sm">
                                 <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
                                 جاري الحفظ...
                             </div>
                         )}
                         {!isSaving && lastSaved && (
-                            <div className="bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg text-sm">
+                            <div className="bg-green-600 text-white px-3 py-2 md:px-4 rounded-lg shadow-lg text-xs md:text-sm">
                                 آخر حفظ: {lastSaved.toLocaleTimeString('ar-SA')}
                             </div>
                         )}
                     </div>
 
-{/* Header with Logo */}
-<div className="max-w-6xl mx-auto mb-4">
-  <div className="bg-white rounded-xl shadow-md px-4 py-3 flex items-center justify-center md:justify-start gap-3">
-    <img
-      src="https://volga.sa/images/logo_en_911566.png"
-      alt="VOLGA"
-      className="h-10 md:h-12 object-contain"
-    />
-    <span className="text-slate-700 font-bold text-lg hidden md:block">
-      Custody Management System
-    </span>
-  </div>
-</div>
-                    
-                    <div className="max-w-6xl mx-auto">
-                        {/* Top Bar with Undo/Redo and Search */}
-                        <div className="bg-white rounded-xl shadow-lg p-4 mb-4 flex gap-3 items-center flex-wrap">
-                            <button onClick={undo} disabled={historyIndex <= 0} className="px-3 py-2 bg-slate-200 rounded-lg hover:bg-slate-300 disabled:opacity-30 flex items-center gap-2">
-                                <Undo /> تراجع
-                            </button>
-                            <button onClick={redo} disabled={historyIndex >= history.length - 1} className="px-3 py-2 bg-slate-200 rounded-lg hover:bg-slate-300 disabled:opacity-30 flex items-center gap-2">
-                                <Redo /> إعادة
-                            </button>
-                            <div className="h-6 w-px bg-slate-300"></div>
-                            <div className="flex gap-2 items-center">
-                                <input type="number" placeholder="رقم العهدة" value={searchCustody} onChange={(e) => setSearchCustody(e.target.value)} className="w-32 px-3 py-2 border rounded-lg text-sm" />
-                                <button onClick={searchForCustody} className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
-                                    <Search /> بحث عهدة
-                                </button>
-                            </div>
-                            <div className="flex gap-2 items-center">
-                                <input type="number" placeholder="رقم المصروف" value={searchExpense} onChange={(e) => setSearchExpense(e.target.value)} className="w-32 px-3 py-2 border rounded-lg text-sm" />
-                                <button onClick={searchForExpense} className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2">
-                                    <Search /> بحث مصروف
-                                </button>
+                    <div className="max-w-7xl mx-auto p-3 md:p-6">
+                        {/* Header */}
+                        <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl shadow-xl p-4 md:p-6 mb-4 md:mb-6`}>
+                            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                                <div className="text-center md:text-right">
+                                    <h1 className="text-2xl md:text-4xl font-black text-blue-600 mb-1">نظام إدارة العهد</h1>
+                                    <p className={`text-xs md:text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Custody Management System</p>
+                                </div>
+                                
+                                <div className={`text-center px-4 md:px-6 py-2 md:py-3 rounded-xl ${darkMode ? 'bg-slate-700' : 'bg-blue-50'}`}>
+                                    <div className={`text-xl md:text-3xl font-black ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                                        {userInfo.branchName}
+                                    </div>
+                                    {isReadOnly && (
+                                        <div className="text-xs md:text-sm text-orange-600 font-bold mt-1">وضع القراءة فقط</div>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <button 
+                                        onClick={() => setDarkMode(!darkMode)}
+                                        className={`p-2 md:p-3 rounded-xl ${darkMode ? 'bg-yellow-400 text-slate-900' : 'bg-slate-700 text-white'} hover:scale-110 transition`}
+                                    >
+                                        {darkMode ? <Sun /> : <Moon />}
+                                    </button>
+                                    <button 
+                                        onClick={handleLogout}
+                                        className="p-2 md:p-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition flex items-center gap-2"
+                                    >
+                                        <LogOut />
+                                        <span className="hidden md:inline">خروج</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Main Nav */}
-                        <div className="flex gap-3 mb-6">
-                            <button onClick={() => setMainTab('custodies')} className={`px-6 py-3 rounded-xl font-bold transition flex items-center gap-2 ${mainTab === 'custodies' ? 'bg-white text-blue-600 shadow-xl' : 'bg-white/60 text-slate-600 hover:bg-white/90'}`}>
+                        {/* Search and Undo/Redo Bar */}
+                        {!isReadOnly && (
+                            <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-xl shadow-lg p-3 md:p-4 mb-4 flex flex-wrap gap-2 items-center justify-between`}>
+                                <div className="flex gap-2">
+                                    <button onClick={undo} disabled={historyIndex <= 0} className={`px-3 py-2 ${darkMode ? 'bg-slate-700' : 'bg-slate-200'} rounded-lg disabled:opacity-30 flex items-center gap-2 text-sm`}>
+                                        <Undo /> <span className="hidden md:inline">تراجع</span>
+                                    </button>
+                                    <button onClick={redo} disabled={historyIndex >= history.length - 1} className={`px-3 py-2 ${darkMode ? 'bg-slate-700' : 'bg-slate-200'} rounded-lg disabled:opacity-30 flex items-center gap-2 text-sm`}>
+                                        <Redo /> <span className="hidden md:inline">إعادة</span>
+                                    </button>
+                                </div>
+                                
+                                <div className="flex flex-wrap gap-2 items-center">
+                                    <input type="number" placeholder="رقم العهدة" value={searchCustody} onChange={(e) => setSearchCustody(e.target.value)} className={`w-24 md:w-32 px-2 md:px-3 py-2 border rounded-lg text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`} />
+                                    <button onClick={searchForCustody} className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-1 text-sm">
+                                        <Search /> <span className="hidden md:inline">بحث عهدة</span>
+                                    </button>
+                                    
+                                    <input type="number" placeholder="رقم المصروف" value={searchExpense} onChange={(e) => setSearchExpense(e.target.value)} className={`w-24 md:w-32 px-2 md:px-3 py-2 border rounded-lg text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`} />
+                                    <button onClick={searchForExpense} className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-1 text-sm">
+                                        <Search /> <span className="hidden md:inline">بحث مصروف</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Main Tabs */}
+                        <div className="flex gap-2 md:gap-3 mb-4 md:mb-6 overflow-x-auto">
+                            <button onClick={() => setMainTab('custodies')} className={`flex-1 min-w-[100px] px-4 md:px-6 py-2 md:py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 text-sm md:text-base ${mainTab === 'custodies' ? 'bg-blue-600 text-white shadow-xl' : `${darkMode ? 'bg-slate-800 text-slate-300' : 'bg-white text-slate-600'} hover:bg-blue-50`}`}>
                                 <Archive /> العهد
                             </button>
-                            <button onClick={() => setMainTab('reports')} className={`px-6 py-3 rounded-xl font-bold transition flex items-center gap-2 ${mainTab === 'reports' ? 'bg-white text-blue-600 shadow-xl' : 'bg-white/60 text-slate-600 hover:bg-white/90'}`}>
+                            <button onClick={() => setMainTab('reports')} className={`flex-1 min-w-[100px] px-4 md:px-6 py-2 md:py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 text-sm md:text-base ${mainTab === 'reports' ? 'bg-blue-600 text-white shadow-xl' : `${darkMode ? 'bg-slate-800 text-slate-300' : 'bg-white text-slate-600'} hover:bg-blue-50`}`}>
                                 <BarChart /> التقارير
                             </button>
-                            <button onClick={() => setMainTab('settings')} className={`px-6 py-3 rounded-xl font-bold transition flex items-center gap-2 ${mainTab === 'settings' ? 'bg-white text-blue-600 shadow-xl' : 'bg-white/60 text-slate-600 hover:bg-white/90'}`}>
+                            <button onClick={() => setMainTab('settings')} className={`flex-1 min-w-[100px] px-4 md:px-6 py-2 md:py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 text-sm md:text-base ${mainTab === 'settings' ? 'bg-blue-600 text-white shadow-xl' : `${darkMode ? 'bg-slate-800 text-slate-300' : 'bg-white text-slate-600'} hover:bg-blue-50`}`}>
                                 <Settings /> المصاريف المعرفة
                             </button>
                         </div>
@@ -690,126 +820,129 @@
                         {/* Custodies Tab */}
                         {mainTab === 'custodies' && (
                             <>
-                                <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
-                                    <h1 className="text-3xl font-bold text-slate-800 mb-6 text-center">نظام إدارة العهد</h1>
-                                    
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                                        <div className="bg-blue-50 rounded-xl p-4 text-center">
-                                            <div className="text-sm text-blue-600 mb-1">إجمالي العهد</div>
-                                            <div className="text-2xl font-bold text-blue-700">{totalCustodies.toFixed(2)} ريال</div>
+                                <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl shadow-xl p-4 md:p-6 mb-4 md:mb-6`}>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6">
+                                        <div className="bg-blue-50 dark:bg-blue-900 rounded-xl p-3 md:p-4 text-center">
+                                            <div className="text-xs md:text-sm text-blue-600 dark:text-blue-300 mb-1">إجمالي العهد</div>
+                                            <div className="text-xl md:text-2xl font-bold text-blue-700 dark:text-blue-200">{totalCustodies.toFixed(2)} ريال</div>
                                         </div>
-                                        <div className="bg-red-50 rounded-xl p-4 text-center">
-                                            <div className="text-sm text-red-600 mb-1">إجمالي المصروفات</div>
-                                            <div className="text-2xl font-bold text-red-700">{totalExpenses.toFixed(2)} ريال</div>
+                                        <div className="bg-red-50 dark:bg-red-900 rounded-xl p-3 md:p-4 text-center">
+                                            <div className="text-xs md:text-sm text-red-600 dark:text-red-300 mb-1">إجمالي المصروفات</div>
+                                            <div className="text-xl md:text-2xl font-bold text-red-700 dark:text-red-200">{totalExpenses.toFixed(2)} ريال</div>
                                         </div>
-                                        <div className="bg-green-50 rounded-xl p-4 text-center">
-                                            <div className="text-sm text-green-600 mb-1">المتبقي</div>
-                                            <div className="text-2xl font-bold text-green-700">{totalRemaining.toFixed(2)} ريال</div>
+                                        <div className="bg-green-50 dark:bg-green-900 rounded-xl p-3 md:p-4 text-center">
+                                            <div className="text-xs md:text-sm text-green-600 dark:text-green-300 mb-1">المتبقي</div>
+                                            <div className="text-xl md:text-2xl font-bold text-green-700 dark:text-green-200">{totalRemaining.toFixed(2)} ريال</div>
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-col md:flex-row gap-2 mb-4">
-                                        <input type="text" placeholder="اسم العهدة" value={newCustody.name} onChange={(e) => setNewCustody({ ...newCustody, name: e.target.value })} className="flex-1 px-4 py-2 border border-slate-300 rounded-lg" />
-                                        <input type="number" placeholder="المبلغ" value={newCustody.amount} onChange={(e) => setNewCustody({ ...newCustody, amount: e.target.value })} className="w-32 px-4 py-2 border rounded-lg" />
-                                        <input type="date" value={newCustody.date} onChange={(e) => setNewCustody({ ...newCustody, date: e.target.value })} className="w-40 px-4 py-2 border rounded-lg" />
-                                        <button onClick={addCustody} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
-                                            <Plus /> إضافة
-                                        </button>
-                                    </div>
+                                    {!isReadOnly && (
+                                        <>
+                                            <div className="flex flex-col md:flex-row gap-2 mb-4">
+                                                <input type="text" placeholder="اسم العهدة" value={newCustody.name} onChange={(e) => setNewCustody({ ...newCustody, name: e.target.value })} className={`flex-1 px-3 md:px-4 py-2 border rounded-lg text-sm md:text-base ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'border-slate-300'}`} />
+                                                <input type="number" placeholder="المبلغ" value={newCustody.amount} onChange={(e) => setNewCustody({ ...newCustody, amount: e.target.value })} className={`w-full md:w-32 px-3 md:px-4 py-2 border rounded-lg text-sm md:text-base ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'border-slate-300'}`} />
+                                                <input type="date" value={newCustody.date} onChange={(e) => setNewCustody({ ...newCustody, date: e.target.value })} className={`w-full md:w-40 px-3 md:px-4 py-2 border rounded-lg text-sm md:text-base ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'border-slate-300'}`} />
+                                                <button onClick={addCustody} className="w-full md:w-auto px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 text-sm md:text-base">
+                                                    <Plus /> إضافة
+                                                </button>
+                                            </div>
 
-                                    <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                                        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="px-4 py-2 border rounded-lg">
-                                            <option value="newest">الأحدث</option>
-                                            <option value="oldest">الأقدم</option>
-                                            <option value="highest">الأعلى قيمة</option>
-                                            <option value="lowest">الأقل قيمة</option>
-                                        </select>
-                                        <button onClick={toggleGlobalLock} className={`px-4 py-2 rounded-lg flex items-center gap-2 ${globalLock ? 'bg-red-600 text-white' : 'bg-slate-200 text-slate-700'}`}>
-                                            {globalLock ? <Lock /> : <Unlock />} {globalLock ? 'إلغاء القفل الشامل' : 'قفل الكل'}
-                                        </button>
-                                        {selectedIds.length > 0 && (
-                                            <button onClick={deleteSelected} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2">
-                                                <Trash2 /> حذف المحدد ({selectedIds.length})
-                                            </button>
-                                        )}
-                                    </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className={`px-3 md:px-4 py-2 border rounded-lg text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'border-slate-300'}`}>
+                                                    <option value="newest">الأحدث</option>
+                                                    <option value="oldest">الأقدم</option>
+                                                    <option value="highest">الأعلى قيمة</option>
+                                                    <option value="lowest">الأقل قيمة</option>
+                                                </select>
+                                                <button onClick={toggleGlobalLock} className={`px-3 md:px-4 py-2 rounded-lg flex items-center gap-2 text-sm ${globalLock ? 'bg-red-600 text-white' : `${darkMode ? 'bg-slate-700' : 'bg-slate-200'} ${darkMode ? 'text-white' : 'text-slate-700'}`}`}>
+                                                    {globalLock ? <Lock /> : <Unlock />}
+                                                    <span className="hidden md:inline">{globalLock ? 'إلغاء القفل الشامل' : 'قفل الكل'}</span>
+                                                </button>
+                                                {selectedIds.length > 0 && (
+                                                    <button onClick={deleteSelected} className="px-3 md:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2 text-sm">
+                                                        <Trash2 />
+                                                        <span className="hidden md:inline">حذف المحدد ({selectedIds.length})</span>
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
 
-                                <div className="flex gap-2 mb-4">
-                                    <button onClick={() => setActiveTab('active')} className={`px-6 py-3 rounded-lg font-semibold ${activeTab === 'active' ? 'bg-white text-blue-600 shadow-lg' : 'bg-white/50 text-slate-600'}`}>
+                                <div className="flex gap-2 mb-4 overflow-x-auto">
+                                    <button onClick={() => setActiveTab('active')} className={`flex-1 min-w-[120px] px-4 md:px-6 py-2 md:py-3 rounded-lg font-semibold text-sm md:text-base ${activeTab === 'active' ? `${darkMode ? 'bg-slate-700 text-blue-400' : 'bg-white text-blue-600'} shadow-lg` : `${darkMode ? 'bg-slate-800 text-slate-400' : 'bg-white/50 text-slate-600'}`}`}>
                                         العهد الحالية ({custodies.length})
                                     </button>
-                                    <button onClick={() => setActiveTab('cleared')} className={`px-6 py-3 rounded-lg font-semibold ${activeTab === 'cleared' ? 'bg-white text-blue-600 shadow-lg' : 'bg-white/50 text-slate-600'}`}>
+                                    <button onClick={() => setActiveTab('cleared')} className={`flex-1 min-w-[120px] px-4 md:px-6 py-2 md:py-3 rounded-lg font-semibold text-sm md:text-base ${activeTab === 'cleared' ? `${darkMode ? 'bg-slate-700 text-blue-400' : 'bg-white text-blue-600'} shadow-lg` : `${darkMode ? 'bg-slate-800 text-slate-400' : 'bg-white/50 text-slate-600'}`}`}>
                                         العهد المصفاة ({clearedCustodies.length})
                                     </button>
                                 </div>
 
-                                {/* Cleared Custodies Statistics */}
                                 {activeTab === 'cleared' && clearedCustodies.length > 0 && (
-                                    <div className="bg-white rounded-xl shadow-lg p-6 mb-4">
-                                        <h3 className="text-lg font-bold text-slate-800 mb-4">إحصائيات العهد المصفاة</h3>
-                                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                                            <div className="bg-blue-50 rounded-lg p-3 text-center">
-                                                <div className="text-xs text-blue-600 mb-1">عدد العهد</div>
-                                                <div className="text-xl font-bold text-blue-700">{clearedCustodies.length}</div>
+                                    <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-xl shadow-lg p-4 md:p-6 mb-4`}>
+                                        <h3 className={`text-base md:text-lg font-bold ${darkMode ? 'text-white' : 'text-slate-800'} mb-4`}>إحصائيات العهد المصفاة</h3>
+                                        <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4">
+                                            <div className="bg-blue-50 dark:bg-blue-900 rounded-lg p-2 md:p-3 text-center">
+                                                <div className="text-xs text-blue-600 dark:text-blue-300 mb-1">عدد العهد</div>
+                                                <div className="text-lg md:text-xl font-bold text-blue-700 dark:text-blue-200">{clearedCustodies.length}</div>
                                             </div>
-                                            <div className="bg-purple-50 rounded-lg p-3 text-center">
-                                                <div className="text-xs text-purple-600 mb-1">إجمالي قيمة العهد</div>
-                                                <div className="text-xl font-bold text-purple-700">{clearedTotalAmount.toFixed(2)} ريال</div>
+                                            <div className="bg-purple-50 dark:bg-purple-900 rounded-lg p-2 md:p-3 text-center">
+                                                <div className="text-xs text-purple-600 dark:text-purple-300 mb-1">إجمالي قيمة العهد</div>
+                                                <div className="text-lg md:text-xl font-bold text-purple-700 dark:text-purple-200">{clearedTotalAmount.toFixed(2)}</div>
                                             </div>
-                                            <div className="bg-orange-50 rounded-lg p-3 text-center">
-                                                <div className="text-xs text-orange-600 mb-1">عدد المصروفات</div>
-                                                <div className="text-xl font-bold text-orange-700">{clearedTotalExpenseCount}</div>
+                                            <div className="bg-orange-50 dark:bg-orange-900 rounded-lg p-2 md:p-3 text-center">
+                                                <div className="text-xs text-orange-600 dark:text-orange-300 mb-1">عدد المصروفات</div>
+                                                <div className="text-lg md:text-xl font-bold text-orange-700 dark:text-orange-200">{clearedTotalExpenseCount}</div>
                                             </div>
-                                            <div className="bg-red-50 rounded-lg p-3 text-center">
-                                                <div className="text-xs text-red-600 mb-1">إجمالي المصروفات</div>
-                                                <div className="text-xl font-bold text-red-700">{clearedTotalExpenses.toFixed(2)} ريال</div>
+                                            <div className="bg-red-50 dark:bg-red-900 rounded-lg p-2 md:p-3 text-center">
+                                                <div className="text-xs text-red-600 dark:text-red-300 mb-1">إجمالي المصروفات</div>
+                                                <div className="text-lg md:text-xl font-bold text-red-700 dark:text-red-200">{clearedTotalExpenses.toFixed(2)}</div>
                                             </div>
-                                            <div className={`rounded-lg p-3 text-center ${clearedTotalRemaining > 0 ? 'bg-green-50' : 'bg-slate-50'}`}>
-                                                <div className={`text-xs mb-1 ${clearedTotalRemaining > 0 ? 'text-green-600' : 'text-slate-600'}`}>
-                                                    المتبقي (مصفى مبكراً)
+                                            <div className={`rounded-lg p-2 md:p-3 text-center ${clearedTotalRemaining > 0 ? 'bg-green-50 dark:bg-green-900' : 'bg-slate-50 dark:bg-slate-700'}`}>
+                                                <div className={`text-xs mb-1 ${clearedTotalRemaining > 0 ? 'text-green-600 dark:text-green-300' : 'text-slate-600 dark:text-slate-400'}`}>
+                                                    المتبقي
                                                 </div>
-                                                <div className={`text-xl font-bold ${clearedTotalRemaining > 0 ? 'text-green-700' : 'text-slate-700'}`}>
-                                                    {clearedTotalRemaining.toFixed(2)} ريال
+                                                <div className={`text-lg md:text-xl font-bold ${clearedTotalRemaining > 0 ? 'text-green-700 dark:text-green-200' : 'text-slate-700 dark:text-slate-300'}`}>
+                                                    {clearedTotalRemaining.toFixed(2)}
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 )}
 
-                                <div className="space-y-4">
+                                <div className="space-y-3 md:space-y-4">
                                     {sortedList.map((custody, idx) => {
                                         const remaining = calcRemaining(custody);
                                         const isReady = remaining <= 0.01 && remaining >= -0.01;
                                         const isCleared = activeTab === 'cleared';
 
                                         return (
-                                            <div id={`custody-${custody.id}`} key={custody.id} className={`bg-white rounded-xl shadow-lg p-6 ${isCleared ? 'opacity-60 bg-gray-50' : ''}`}>
-                                                <div className="flex items-center gap-4 mb-4">
-                                                    {activeTab === 'active' && (
-                                                        <input type="checkbox" checked={selectedIds.includes(custody.id)} onChange={(e) => setSelectedIds(e.target.checked ? [...selectedIds, custody.id] : selectedIds.filter(id => id !== custody.id))} className="w-5 h-5" />
+                                            <div id={`custody-${custody.id}`} key={custody.id} className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-xl shadow-lg p-4 md:p-6 ${isCleared ? 'opacity-60' : ''}`}>
+                                                <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4 mb-4">
+                                                    {activeTab === 'active' && !isReadOnly && (
+                                                        <input type="checkbox" checked={selectedIds.includes(custody.id)} onChange={(e) => setSelectedIds(e.target.checked ? [...selectedIds, custody.id] : selectedIds.filter(id => id !== custody.id))} className="w-5 h-5 mt-1 md:mt-0" />
                                                     )}
 
-                                                    <div className="flex-1">
-                                                        {editingId === custody.id && !custody.locked ? (
-                                                            <div className="flex gap-2 flex-wrap">
-                                                                <input type="text" value={custody.name} onChange={(e) => updateCustody(custody.id, 'name', e.target.value)} className="flex-1 px-3 py-2 border rounded-lg" />
-                                                                <input type="number" value={custody.amount} onChange={(e) => updateCustody(custody.id, 'amount', parseFloat(e.target.value))} className="w-32 px-3 py-2 border rounded-lg" />
-                                                                <input type="date" value={custody.date} onChange={(e) => updateCustody(custody.id, 'date', e.target.value)} className="w-40 px-3 py-2 border rounded-lg" />
+                                                    <div className="flex-1 w-full">
+                                                        {editingId === custody.id && !custody.locked && !isReadOnly ? (
+                                                            <div className="flex flex-col md:flex-row gap-2">
+                                                                <input type="text" value={custody.name} onChange={(e) => updateCustody(custody.id, 'name', e.target.value)} className={`flex-1 px-3 py-2 border rounded-lg text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'border-slate-300'}`} />
+                                                                <input type="number" value={custody.amount} onChange={(e) => updateCustody(custody.id, 'amount', parseFloat(e.target.value))} className={`w-full md:w-32 px-3 py-2 border rounded-lg text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'border-slate-300'}`} />
+                                                                <input type="date" value={custody.date} onChange={(e) => updateCustody(custody.id, 'date', e.target.value)} className={`w-full md:w-40 px-3 py-2 border rounded-lg text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'border-slate-300'}`} />
                                                                 <button onClick={() => setEditingId(null)} className="px-4 py-2 bg-green-600 text-white rounded-lg">
                                                                     <Check />
                                                                 </button>
                                                             </div>
                                                         ) : (
                                                             <div>
-                                                                <h3 className="text-xl font-bold text-slate-800">
+                                                                <h3 className={`text-lg md:text-xl font-bold ${darkMode ? 'text-white' : 'text-slate-800'}`}>
                                                                     #{custody.seqNumber} - {custody.name}
                                                                 </h3>
-                                                                <div className="flex gap-4 text-sm text-slate-600 mt-1 flex-wrap">
+                                                                <div className={`flex flex-wrap gap-2 md:gap-4 text-xs md:text-sm ${darkMode ? 'text-slate-400' : 'text-slate-600'} mt-1`}>
                                                                     <span>التاريخ: {new Date(custody.date).toLocaleDateString('ar-SA')}</span>
                                                                     <span>المبلغ: {custody.amount.toFixed(2)} ريال</span>
                                                                     <span>المصروفات: {calcCustodyExpenses(custody).toFixed(2)} ريال</span>
-                                                                    <span className={`font-semibold ${remaining < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                                                    <span className={`font-semibold ${remaining < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
                                                                         المتبقي: {remaining.toFixed(2)} ريال
                                                                     </span>
                                                                 </div>
@@ -817,40 +950,40 @@
                                                         )}
                                                     </div>
 
-                                                    {isReady && !isCleared && (
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-green-600 font-semibold">جاهز للتصفية</span>
-                                                            <button onClick={() => clearCustody(custody.id)} className="px-4 py-2 bg-green-600 text-white rounded-lg flex items-center gap-2">
+                                                    {isReady && !isCleared && !isReadOnly && (
+                                                        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2 w-full md:w-auto">
+                                                            <span className="text-green-600 dark:text-green-400 font-semibold text-sm text-center">جاهز للتصفية</span>
+                                                            <button onClick={() => clearCustody(custody.id)} className="px-3 md:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2 text-sm">
                                                                 <Archive /> تصفية
                                                             </button>
                                                         </div>
                                                     )}
 
-                                                    {!isReady && !isCleared && activeTab === 'active' && remaining > 0 && (
-                                                        <button onClick={() => clearCustody(custody.id, true)} className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700">
+                                                    {!isReady && !isCleared && activeTab === 'active' && remaining > 0 && !isReadOnly && (
+                                                        <button onClick={() => clearCustody(custody.id, true)} className="w-full md:w-auto px-3 md:px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm">
                                                             تصفية مبكرة
                                                         </button>
                                                     )}
 
-                                                    {isCleared && (
-                                                        <button onClick={() => restoreCustody(custody.id)} className="px-4 py-2 bg-blue-600 text-white rounded-lg">استرجاع</button>
+                                                    {isCleared && !isReadOnly && (
+                                                        <button onClick={() => restoreCustody(custody.id)} className="w-full md:w-auto px-3 md:px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">استرجاع</button>
                                                     )}
 
-                                                    {activeTab === 'active' && (
-                                                        <div className="flex gap-2">
-                                                            <button onClick={() => moveCustody(custody.id, 'up')} disabled={idx === 0} className="p-2 bg-slate-200 rounded-lg disabled:opacity-30">
+                                                    {activeTab === 'active' && !isReadOnly && (
+                                                        <div className="flex gap-2 flex-wrap md:flex-nowrap w-full md:w-auto">
+                                                            <button onClick={() => moveCustody(custody.id, 'up')} disabled={idx === 0} className={`p-2 ${darkMode ? 'bg-slate-700' : 'bg-slate-200'} rounded-lg disabled:opacity-30`}>
                                                                 <ChevronUp />
                                                             </button>
-                                                            <button onClick={() => moveCustody(custody.id, 'down')} disabled={idx === sortedList.length - 1} className="p-2 bg-slate-200 rounded-lg disabled:opacity-30">
+                                                            <button onClick={() => moveCustody(custody.id, 'down')} disabled={idx === sortedList.length - 1} className={`p-2 ${darkMode ? 'bg-slate-700' : 'bg-slate-200'} rounded-lg disabled:opacity-30`}>
                                                                 <ChevronDown />
                                                             </button>
-                                                            <button onClick={() => toggleLock(custody.id)} className={`p-2 rounded-lg ${custody.locked ? 'bg-red-100 text-red-600' : 'bg-slate-200'}`}>
+                                                            <button onClick={() => toggleLock(custody.id)} className={`p-2 rounded-lg ${custody.locked ? 'bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400' : `${darkMode ? 'bg-slate-700' : 'bg-slate-200'}`}`}>
                                                                 {custody.locked ? <Lock /> : <Unlock />}
                                                             </button>
-                                                            <button onClick={() => setEditingId(editingId === custody.id ? null : custody.id)} disabled={custody.locked} className="p-2 bg-blue-100 text-blue-600 rounded-lg disabled:opacity-30">
+                                                            <button onClick={() => setEditingId(editingId === custody.id ? null : custody.id)} disabled={custody.locked} className={`p-2 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded-lg disabled:opacity-30`}>
                                                                 <Edit2 />
                                                             </button>
-                                                            <button onClick={() => deleteCustody(custody.id)} disabled={custody.locked} className="p-2 bg-red-100 text-red-600 rounded-lg disabled:opacity-30">
+                                                            <button onClick={() => deleteCustody(custody.id)} disabled={custody.locked} className={`p-2 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 rounded-lg disabled:opacity-30`}>
                                                                 <Trash2 />
                                                             </button>
                                                         </div>
@@ -860,46 +993,59 @@
                                                 {activeTab === 'active' && !custody.locked && (
                                                     <div className="mt-4 space-y-2">
                                                         <div className="flex items-center justify-between">
-                                                            <button onClick={() => setExpandedExpenses({ ...expandedExpenses, [custody.id]: !expandedExpenses[custody.id] })} className="text-blue-600 font-semibold">
+                                                            <button onClick={() => setExpandedExpenses({ ...expandedExpenses, [custody.id]: !expandedExpenses[custody.id] })} className={`${darkMode ? 'text-blue-400' : 'text-blue-600'} font-semibold text-sm`}>
                                                                 {expandedExpenses[custody.id] ? '▼' : '◀'} المصروفات ({custody.expenses.length})
                                                             </button>
-                                                            <button onClick={() => addExpense(custody.id)} className="px-4 py-1 bg-blue-600 text-white rounded-lg text-sm flex items-center gap-1">
-                                                                <Plus /> إضافة مصروف
-                                                            </button>
+                                                            {!isReadOnly && (
+                                                                <button onClick={() => addExpense(custody.id)} className="px-3 md:px-4 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs md:text-sm flex items-center gap-1">
+                                                                    <Plus /> إضافة مصروف
+                                                                </button>
+                                                            )}
                                                         </div>
 
                                                         {expandedExpenses[custody.id] && (
-                                                            <div className="space-y-2 bg-slate-50 p-4 rounded-lg">
+                                                            <div className={`space-y-2 ${darkMode ? 'bg-slate-700' : 'bg-slate-50'} p-3 md:p-4 rounded-lg`}>
                                                                 {custody.expenses.map((exp) => (
                                                                     <div 
                                                                         key={exp.id} 
                                                                         ref={el => expenseRefs.current[`${custody.id}-${exp.id}`] = el}
-                                                                        className={`flex gap-2 items-center bg-white p-3 rounded-lg ${highlightedExpense === `${custody.id}-${exp.id}` ? 'ring-2 ring-yellow-400' : ''}`}
+                                                                        className={`flex flex-col md:flex-row gap-2 items-start md:items-center ${darkMode ? 'bg-slate-800' : 'bg-white'} p-2 md:p-3 rounded-lg ${highlightedExpense === `${custody.id}-${exp.id}` ? 'ring-2 ring-yellow-400' : ''}`}
                                                                     >
-                                                                        <div className="text-xs text-slate-500 font-mono w-12">#{exp.seqNumber}</div>
-                                                                        <select value={exp.expenseType} onChange={(e) => updateExpense(custody.id, exp.id, 'expenseType', e.target.value)} className="px-3 py-2 border rounded-lg text-sm">
-                                                                            <option value="">نوع المصروف</option>
-                                                                            {predefinedExpenses.map(pe => (
-                                                                                <option key={pe.id} value={pe.id}>
-                                                                                    {pe.name} {pe.hasFixedPrice ? `(${pe.fixedPrice} ريال)` : ''}
-                                                                                </option>
-                                                                            ))}
-                                                                        </select>
-                                                                        <input type="text" placeholder="اسم الفاتورة" value={exp.name} onChange={(e) => updateExpense(custody.id, exp.id, 'name', e.target.value)} className="flex-1 px-3 py-2 border rounded-lg text-sm" />
-                                                                        <input type="number" placeholder="المبلغ" value={exp.amount} onChange={(e) => updateExpense(custody.id, exp.id, 'amount', e.target.value)} className="w-28 px-3 py-2 border rounded-lg text-sm" />
-                                                                        <input type="date" value={exp.date} onChange={(e) => updateExpense(custody.id, exp.id, 'date', e.target.value)} className="w-36 px-3 py-2 border rounded-lg text-sm" />
-                                                                        <button onClick={() => updateExpense(custody.id, exp.id, 'includeTax', !exp.includeTax)} className={`px-3 py-2 rounded-lg text-xs whitespace-nowrap ${exp.includeTax ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                                                                            {exp.includeTax ? 'شامل ضريبة' : 'بدون ضريبة'}
-                                                                        </button>
-                                                                        <span className="text-sm text-slate-600 w-24">{calcExpenseTotal(exp).toFixed(2)} ريال</span>
-                                                                        <button onClick={() => deleteExpense(custody.id, exp.id)} className="p-2 bg-red-100 text-red-600 rounded-lg">
-                                                                            <X />
-                                                                        </button>
+                                                                        <div className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'} font-mono w-12`}>#{exp.seqNumber}</div>
+                                                                        {!isReadOnly ? (
+                                                                            <>
+                                                                                <select value={exp.expenseType} onChange={(e) => updateExpense(custody.id, exp.id, 'expenseType', e.target.value)} className={`w-full md:w-auto px-2 md:px-3 py-2 border rounded-lg text-xs md:text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'border-slate-300'}`}>
+                                                                                    <option value="">نوع المصروف</option>
+                                                                                    {predefinedExpenses.map(pe => (
+                                                                                        <option key={pe.id} value={pe.id}>
+                                                                                            {pe.name} {pe.hasFixedPrice ? `(${pe.fixedPrice} ريال)` : ''}
+                                                                                        </option>
+                                                                                    ))}
+                                                                                </select>
+                                                                                <input type="text" placeholder="اسم الفاتورة" value={exp.name} onChange={(e) => updateExpense(custody.id, exp.id, 'name', e.target.value)} className={`flex-1 px-2 md:px-3 py-2 border rounded-lg text-xs md:text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'border-slate-300'}`} />
+                                                                                <input type="number" placeholder="المبلغ" value={exp.amount} onChange={(e) => updateExpense(custody.id, exp.id, 'amount', e.target.value)} className={`w-full md:w-28 px-2 md:px-3 py-2 border rounded-lg text-xs md:text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'border-slate-300'}`} />
+                                                                                <input type="date" value={exp.date} onChange={(e) => updateExpense(custody.id, exp.id, 'date', e.target.value)} className={`w-full md:w-36 px-2 md:px-3 py-2 border rounded-lg text-xs md:text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'border-slate-300'}`} />
+                                                                                <button onClick={() => updateExpense(custody.id, exp.id, 'includeTax', !exp.includeTax)} className={`px-2 md:px-3 py-2 rounded-lg text-xs whitespace-nowrap ${exp.includeTax ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300'}`}>
+                                                                                    {exp.includeTax ? 'شامل ضريبة' : 'بدون ضريبة'}
+                                                                                </button>
+                                                                                <span className={`text-xs md:text-sm ${darkMode ? 'text-slate-400' : 'text-slate-600'} w-full md:w-24 text-center`}>{calcExpenseTotal(exp).toFixed(2)} ريال</span>
+                                                                                <button onClick={() => deleteExpense(custody.id, exp.id)} className="p-2 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 rounded-lg w-full md:w-auto">
+                                                                                    <X />
+                                                                                </button>
+                                                                            </>
+                                                                        ) : (
+                                                                            <div className={`flex-1 text-xs md:text-sm ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                                                                                <div className="font-semibold">{exp.name}</div>
+                                                                                <div className={darkMode ? 'text-slate-400' : 'text-slate-500'}>{exp.amount} ريال - {exp.includeTax ? 'شامل ضريبة' : 'بدون ضريبة'} - {new Date(exp.date).toLocaleDateString('ar-SA')}</div>
+                                                                            </div>
+                                                                        )}
                                                                     </div>
                                                                 ))}
-                                                                <button onClick={() => addExpense(custody.id)} className="w-full py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 flex items-center justify-center gap-2 border-2 border-dashed border-blue-300">
-                                                                    <Plus /> إضافة مصروف آخر
-                                                                </button>
+                                                                {!isReadOnly && (
+                                                                    <button onClick={() => addExpense(custody.id)} className={`w-full py-2 ${darkMode ? 'bg-slate-600 text-blue-400' : 'bg-blue-50 text-blue-600'} rounded-lg hover:bg-blue-100 dark:hover:bg-slate-500 flex items-center justify-center gap-2 border-2 border-dashed ${darkMode ? 'border-slate-500' : 'border-blue-300'} text-sm`}>
+                                                                        <Plus /> إضافة مصروف آخر
+                                                                    </button>
+                                                                )}
                                                             </div>
                                                         )}
                                                     </div>
@@ -909,8 +1055,8 @@
                                     })}
 
                                     {sortedList.length === 0 && (
-                                        <div className="bg-white rounded-xl shadow-lg p-12 text-center text-slate-400">
-                                            <p className="text-xl">لا توجد عهد في هذه القائمة</p>
+                                        <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-xl shadow-lg p-12 text-center ${darkMode ? 'text-slate-400' : 'text-slate-400'}`}>
+                                            <p className="text-lg md:text-xl">لا توجد عهد في هذه القائمة</p>
                                         </div>
                                     )}
                                 </div>
@@ -919,20 +1065,20 @@
 
                         {/* Reports Tab */}
                         {mainTab === 'reports' && (
-                            <div className="bg-white rounded-2xl shadow-xl p-6">
-                                <h2 className="text-2xl font-bold text-slate-800 mb-6">تقارير المصروفات</h2>
+                            <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl shadow-xl p-4 md:p-6`}>
+                                <h2 className={`text-xl md:text-2xl font-bold ${darkMode ? 'text-white' : 'text-slate-800'} mb-6`}>تقارير المصروفات</h2>
                                 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                                     <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-2">نوع المصروف</label>
-                                        <select value={selectedExpenseType} onChange={(e) => setSelectedExpenseType(e.target.value)} className="w-full px-4 py-2 border rounded-lg">
+                                        <label className={`block text-sm font-semibold ${darkMode ? 'text-slate-300' : 'text-slate-700'} mb-2`}>نوع المصروف</label>
+                                        <select value={selectedExpenseType} onChange={(e) => setSelectedExpenseType(e.target.value)} className={`w-full px-3 md:px-4 py-2 border rounded-lg text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'border-slate-300'}`}>
                                             <option value="">اختر نوع المصروف</option>
                                             {predefinedExpenses.map(pe => <option key={pe.id} value={pe.id}>{pe.name}</option>)}
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-2">الفترة الزمنية</label>
-                                        <select value={reportPeriod} onChange={(e) => setReportPeriod(e.target.value)} className="w-full px-4 py-2 border rounded-lg">
+                                        <label className={`block text-sm font-semibold ${darkMode ? 'text-slate-300' : 'text-slate-700'} mb-2`}>الفترة الزمنية</label>
+                                        <select value={reportPeriod} onChange={(e) => setReportPeriod(e.target.value)} className={`w-full px-3 md:px-4 py-2 border rounded-lg text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'border-slate-300'}`}>
                                             <option value="2days">يومين</option>
                                             <option value="week">أسبوع</option>
                                             <option value="month">شهر</option>
@@ -945,55 +1091,55 @@
                                 </div>
 
                                 {reportPeriod === 'custom' && (
-                                    <div className="grid grid-cols-2 gap-4 mb-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                                         <div>
-                                            <label className="block text-sm font-semibold text-slate-700 mb-2">من تاريخ</label>
-                                            <input type="date" value={customStartDate} onChange={(e) => setCustomStartDate(e.target.value)} className="w-full px-4 py-2 border rounded-lg" />
+                                            <label className={`block text-sm font-semibold ${darkMode ? 'text-slate-300' : 'text-slate-700'} mb-2`}>من تاريخ</label>
+                                            <input type="date" value={customStartDate} onChange={(e) => setCustomStartDate(e.target.value)} className={`w-full px-3 md:px-4 py-2 border rounded-lg ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'border-slate-300'}`} />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-semibold text-slate-700 mb-2">إلى تاريخ</label>
-                                            <input type="date" value={customEndDate} onChange={(e) => setCustomEndDate(e.target.value)} className="w-full px-4 py-2 border rounded-lg" />
+                                            <label className={`block text-sm font-semibold ${darkMode ? 'text-slate-300' : 'text-slate-700'} mb-2`}>إلى تاريخ</label>
+                                            <input type="date" value={customEndDate} onChange={(e) => setCustomEndDate(e.target.value)} className={`w-full px-3 md:px-4 py-2 border rounded-lg ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'border-slate-300'}`} />
                                         </div>
                                     </div>
                                 )}
 
                                 {reportData && (
                                     <div className="mt-6">
-                                        <div className="bg-blue-50 rounded-xl p-6 mb-6">
-                                            <h3 className="text-xl font-bold text-blue-900 mb-4">تقرير: {reportData.expenseName}</h3>
-                                            <div className="text-sm text-blue-700 mb-4">
+                                        <div className="bg-blue-50 dark:bg-blue-900 rounded-xl p-4 md:p-6 mb-6">
+                                            <h3 className="text-lg md:text-xl font-bold text-blue-900 dark:text-blue-200 mb-4">تقرير: {reportData.expenseName}</h3>
+                                            <div className="text-xs md:text-sm text-blue-700 dark:text-blue-300 mb-4">
                                                 الفترة: {reportData.startDate.toLocaleDateString('ar-SA')} - {reportData.endDate.toLocaleDateString('ar-SA')}
                                             </div>
                                             
-                                            <div className="grid grid-cols-3 gap-4">
-                                                <div className="bg-white rounded-lg p-4 text-center">
-                                                    <div className="text-sm text-slate-600 mb-1">عدد العهد</div>
-                                                    <div className="text-2xl font-bold text-blue-700">{reportData.custodiesCount}</div>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+                                                <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-lg p-3 md:p-4 text-center`}>
+                                                    <div className={`text-xs md:text-sm ${darkMode ? 'text-slate-400' : 'text-slate-600'} mb-1`}>عدد العهد</div>
+                                                    <div className="text-xl md:text-2xl font-bold text-blue-700 dark:text-blue-300">{reportData.custodiesCount}</div>
                                                 </div>
-                                                <div className="bg-white rounded-lg p-4 text-center">
-                                                    <div className="text-sm text-slate-600 mb-1">عدد مصروفات {reportData.expenseName}</div>
-                                                    <div className="text-2xl font-bold text-purple-700">{reportData.expenseCount}</div>
+                                                <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-lg p-3 md:p-4 text-center`}>
+                                                    <div className={`text-xs md:text-sm ${darkMode ? 'text-slate-400' : 'text-slate-600'} mb-1`}>عدد مصروفات {reportData.expenseName}</div>
+                                                    <div className="text-xl md:text-2xl font-bold text-purple-700 dark:text-purple-300">{reportData.expenseCount}</div>
                                                 </div>
-                                                <div className="bg-white rounded-lg p-4 text-center">
-                                                    <div className="text-sm text-slate-600 mb-1">إجمالي صرف {reportData.expenseName}</div>
-                                                    <div className="text-2xl font-bold text-green-700">{reportData.totalExpenses.toFixed(2)} ريال</div>
+                                                <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-lg p-3 md:p-4 text-center`}>
+                                                    <div className={`text-xs md:text-sm ${darkMode ? 'text-slate-400' : 'text-slate-600'} mb-1`}>إجمالي صرف {reportData.expenseName}</div>
+                                                    <div className="text-xl md:text-2xl font-bold text-green-700 dark:text-green-300">{reportData.totalExpenses.toFixed(2)} ريال</div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className="bg-slate-50 rounded-xl p-4">
-                                            <h4 className="font-bold text-slate-800 mb-3">العهد في الفترة المحددة:</h4>
+                                        <div className={`${darkMode ? 'bg-slate-700' : 'bg-slate-50'} rounded-xl p-3 md:p-4`}>
+                                            <h4 className={`font-bold ${darkMode ? 'text-white' : 'text-slate-800'} mb-3 text-sm md:text-base`}>العهد في الفترة المحددة:</h4>
                                             <div className="space-y-2">
                                                 {reportData.custodies.map(custody => {
                                                     const custExpenses = custody.expenses.filter(e => e.expenseType === selectedExpenseType);
                                                     if (custExpenses.length === 0) return null;
                                                     return (
-                                                        <div key={custody.id} className="bg-white rounded-lg p-3">
-                                                            <div className="text-sm font-semibold text-slate-700">
+                                                        <div key={custody.id} className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-lg p-2 md:p-3`}>
+                                                            <div className={`text-xs md:text-sm font-semibold ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
                                                                 #{custody.seqNumber} - {custody.name}
-                                                                <span className="text-xs text-slate-500 mr-2">({new Date(custody.date).toLocaleDateString('ar-SA')})</span>
+                                                                <span className={`text-xs ${darkMode ? 'text-slate-500' : 'text-slate-500'} mr-2`}>({new Date(custody.date).toLocaleDateString('ar-SA')})</span>
                                                             </div>
-                                                            <div className="text-xs text-slate-600 mt-1">
+                                                            <div className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-600'} mt-1`}>
                                                                 عدد مصروفات {reportData.expenseName}: {custExpenses.length} | المجموع: {custExpenses.reduce((s, e) => s + calcExpenseTotal(e), 0).toFixed(2)} ريال
                                                             </div>
                                                         </div>
@@ -1005,8 +1151,8 @@
                                 )}
 
                                 {!selectedExpenseType && (
-                                    <div className="mt-6 text-center text-slate-400">
-                                        <p>الرجاء اختيار نوع المصروف لعرض التقرير</p>
+                                    <div className={`mt-6 text-center ${darkMode ? 'text-slate-400' : 'text-slate-400'}`}>
+                                        <p className="text-base md:text-lg">الرجاء اختيار نوع المصروف لعرض التقرير</p>
                                     </div>
                                 )}
                             </div>
@@ -1014,66 +1160,72 @@
 
                         {/* Settings Tab */}
                         {mainTab === 'settings' && (
-                            <div className="bg-white rounded-2xl shadow-xl p-6">
-                                <h2 className="text-2xl font-bold text-slate-800 mb-6">المصاريف المعرفة</h2>
+                            <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl shadow-xl p-4 md:p-6`}>
+                                <h2 className={`text-xl md:text-2xl font-bold ${darkMode ? 'text-white' : 'text-slate-800'} mb-6`}>المصاريف المعرفة</h2>
                                 
-                                <div className="mb-6 bg-slate-50 rounded-xl p-4">
-                                    <h3 className="font-bold text-slate-700 mb-3">إضافة مصروف جديد</h3>
-                                    <div className="flex gap-2 items-end">
-                                        <div className="flex-1">
-                                            <label className="block text-sm text-slate-600 mb-1">اسم المصروف</label>
-                                            <input type="text" placeholder="مثال: بنزين، لحام، صيانة" value={newPredefined.name} onChange={(e) => setNewPredefined({ ...newPredefined, name: e.target.value })} className="w-full px-4 py-2 border rounded-lg" />
+                                {!isReadOnly && (
+                                    <div className={`mb-6 ${darkMode ? 'bg-slate-700' : 'bg-slate-50'} rounded-xl p-3 md:p-4`}>
+                                        <h3 className={`font-bold ${darkMode ? 'text-white' : 'text-slate-700'} mb-3 text-sm md:text-base`}>إضافة مصروف جديد</h3>
+                                        <div className="flex flex-col md:flex-row gap-2 items-end">
+                                            <div className="flex-1 w-full">
+                                                <label className={`block text-xs md:text-sm ${darkMode ? 'text-slate-300' : 'text-slate-600'} mb-1`}>اسم المصروف</label>
+                                                <input type="text" placeholder="مثال: بنزين، لحام، صيانة" value={newPredefined.name} onChange={(e) => setNewPredefined({ ...newPredefined, name: e.target.value })} className={`w-full px-3 md:px-4 py-2 border rounded-lg text-sm ${darkMode ? 'bg-slate-600 border-slate-500 text-white' : 'border-slate-300'}`} />
+                                            </div>
+                                            <div className="w-full md:w-40">
+                                                <label className="flex items-center gap-2 mb-2">
+                                                    <input type="checkbox" checked={newPredefined.hasFixedPrice} onChange={(e) => setNewPredefined({ ...newPredefined, hasFixedPrice: e.target.checked })} className="w-4 h-4" />
+                                                    <span className={`text-xs md:text-sm ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>سعر ثابت</span>
+                                                </label>
+                                                <input type="number" placeholder="السعر" value={newPredefined.fixedPrice} onChange={(e) => setNewPredefined({ ...newPredefined, fixedPrice: e.target.value })} disabled={!newPredefined.hasFixedPrice} className={`w-full px-3 md:px-4 py-2 border rounded-lg disabled:bg-slate-100 dark:disabled:bg-slate-800 text-sm ${darkMode ? 'bg-slate-600 border-slate-500 text-white' : 'border-slate-300'}`} />
+                                            </div>
+                                            <button onClick={addPredefined} className="w-full md:w-auto px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 text-sm">
+                                                <Plus /> إضافة
+                                            </button>
                                         </div>
-                                        <div className="w-40">
-                                            <label className="flex items-center gap-2 mb-2">
-                                                <input type="checkbox" checked={newPredefined.hasFixedPrice} onChange={(e) => setNewPredefined({ ...newPredefined, hasFixedPrice: e.target.checked })} className="w-4 h-4" />
-                                                <span className="text-sm text-slate-600">سعر ثابت</span>
-                                            </label>
-                                            <input type="number" placeholder="السعر" value={newPredefined.fixedPrice} onChange={(e) => setNewPredefined({ ...newPredefined, fixedPrice: e.target.value })} disabled={!newPredefined.hasFixedPrice} className="w-full px-4 py-2 border rounded-lg disabled:bg-slate-100" />
-                                        </div>
-                                        <button onClick={addPredefined} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
-                                            <Plus /> إضافة
-                                        </button>
                                     </div>
-                                </div>
+                                )}
 
                                 <div className="space-y-2">
                                     {predefinedExpenses.map((exp) => (
-                                        <div key={exp.id} className="flex items-center gap-3 bg-slate-50 p-4 rounded-lg">
-                                            {editingPredefinedId === exp.id ? (
+                                        <div key={exp.id} className={`flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-3 ${darkMode ? 'bg-slate-700' : 'bg-slate-50'} p-3 md:p-4 rounded-lg`}>
+                                            {editingPredefinedId === exp.id && !isReadOnly ? (
                                                 <>
-                                                    <input type="text" value={exp.name} onChange={(e) => updatePredefined(exp.id, 'name', e.target.value)} className="flex-1 px-3 py-2 border rounded-lg" />
+                                                    <input type="text" value={exp.name} onChange={(e) => updatePredefined(exp.id, 'name', e.target.value)} className={`flex-1 px-3 py-2 border rounded-lg text-sm ${darkMode ? 'bg-slate-600 border-slate-500 text-white' : 'border-slate-300'}`} />
                                                     <label className="flex items-center gap-2">
                                                         <input type="checkbox" checked={exp.hasFixedPrice} onChange={(e) => updatePredefined(exp.id, 'hasFixedPrice', e.target.checked)} className="w-4 h-4" />
-                                                        <span className="text-sm">سعر ثابت</span>
+                                                        <span className="text-xs md:text-sm">سعر ثابت</span>
                                                     </label>
-                                                    <input type="number" value={exp.fixedPrice} onChange={(e) => updatePredefined(exp.id, 'fixedPrice', parseFloat(e.target.value))} disabled={!exp.hasFixedPrice} className="w-32 px-3 py-2 border rounded-lg disabled:bg-slate-100" />
-                                                    <button onClick={() => setEditingPredefinedId(null)} className="p-2 bg-green-600 text-white rounded-lg">
+                                                    <input type="number" value={exp.fixedPrice} onChange={(e) => updatePredefined(exp.id, 'fixedPrice', parseFloat(e.target.value))} disabled={!exp.hasFixedPrice} className={`w-full md:w-32 px-3 py-2 border rounded-lg disabled:bg-slate-100 dark:disabled:bg-slate-800 text-sm ${darkMode ? 'bg-slate-600 border-slate-500 text-white' : 'border-slate-300'}`} />
+                                                    <button onClick={() => setEditingPredefinedId(null)} className="w-full md:w-auto p-2 bg-green-600 text-white rounded-lg">
                                                         <Check />
                                                     </button>
                                                 </>
                                             ) : (
                                                 <>
                                                     <div className="flex-1">
-                                                        <div className="font-semibold text-slate-800">{exp.name}</div>
+                                                        <div className={`font-semibold ${darkMode ? 'text-white' : 'text-slate-800'} text-sm md:text-base`}>{exp.name}</div>
                                                         {exp.hasFixedPrice && (
-                                                            <div className="text-sm text-slate-600">سعر ثابت: {exp.fixedPrice} ريال (شامل الضريبة)</div>
+                                                            <div className={`text-xs md:text-sm ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>سعر ثابت: {exp.fixedPrice} ريال (شامل الضريبة)</div>
                                                         )}
                                                     </div>
-                                                    <button onClick={() => setEditingPredefinedId(exp.id)} className="p-2 bg-blue-100 text-blue-600 rounded-lg">
-                                                        <Edit2 />
-                                                    </button>
-                                                    <button onClick={() => deletePredefined(exp.id)} className="p-2 bg-red-100 text-red-600 rounded-lg">
-                                                        <Trash2 />
-                                                    </button>
+                                                    {!isReadOnly && (
+                                                        <div className="flex gap-2 w-full md:w-auto">
+                                                            <button onClick={() => setEditingPredefinedId(exp.id)} className={`flex-1 md:flex-none p-2 ${darkMode ? 'bg-blue-900' : 'bg-blue-100'} ${darkMode ? 'text-blue-400' : 'text-blue-600'} rounded-lg`}>
+                                                                <Edit2 />
+                                                            </button>
+                                                            <button onClick={() => deletePredefined(exp.id)} className={`flex-1 md:flex-none p-2 ${darkMode ? 'bg-red-900' : 'bg-red-100'} ${darkMode ? 'text-red-400' : 'text-red-600'} rounded-lg`}>
+                                                                <Trash2 />
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                 </>
                                             )}
                                         </div>
                                     ))}
 
                                     {predefinedExpenses.length === 0 && (
-                                        <div className="text-center py-12 text-slate-400">
-                                            <p>لا توجد مصاريف معرفة. ابدأ بإضافة أول مصروف!</p>
+                                        <div className={`text-center py-12 ${darkMode ? 'text-slate-400' : 'text-slate-400'}`}>
+                                            <p className="text-base md:text-lg">لا توجد مصاريف معرفة. ابدأ بإضافة أول مصروف!</p>
                                         </div>
                                     )}
                                 </div>
