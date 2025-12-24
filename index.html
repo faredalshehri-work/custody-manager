@@ -2252,19 +2252,11 @@ if (!currentUser) {
     }} />;
 }
 
-if (!currentModule) {
-    return <Dashboard userInfo={userInfo} onNavigate={setCurrentModule} onLogout={handleLogout} darkMode={darkMode} setDarkMode={setDarkMode} />;
-}
-
-if (currentModule === 'custody') {
-    // عرض نظام العهد مباشرة (الكود موجود تحت)
-    // فقط نضيف زر الرجوع
-    // الكود سيستمر للأسفل حيث يوجد كل UI نظام العهد
-}
-
 if (currentModule === 'requests') {
     return <RequestsSystem userInfo={userInfo} onBack={() => setCurrentModule(null)} darkMode={darkMode} />;
 }
+
+// إذا currentModule === 'custody'، الكود يستمر تحت عادي
 
             const displayList = activeTab === 'active' ? custodies : clearedCustodies;
             const sortedList = getSorted(displayList);
