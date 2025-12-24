@@ -936,388 +936,10 @@ const CategoryModal = ({ categories, onClose, onAdd, onUpdate, onDelete, darkMod
         </div>
     );
 };
-        
-        const InventoryManager = ({ userInfo, onBack, darkMode }) => {
-    const [products, setProducts] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const [selectedCategory, setSelectedCategory] = useState('all');
-            const [showCategoryModal, setShowCategoryModal] = useState(false);
-    const [newCategory, setNewCategory] = useState('');
-    const [editingCategory, setEditingCategory] = useState(null);
-    const [newProduct, setNewProduct] = useState({
-        name: '',
-        category_id: '',
-        price: '',
-        image_url: '',
-        jeddah_quantity: 0,
-        riyadh_quantity: 0,
-        suppliers: []
-    });
-    const [newSupplier, setNewSupplier] = useState({ name: '', phone: '' });
 
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = async () => {
-        // Load categories
-        const { data: cats } = await supabase.from('categories').select('*');
-        if (cats) setCategories(cats);
-
-        // Load products
-        let query = supabase.from('products').select('*');
-        if (userInfo.branch !== 'all') {
-            query = query.eq('branch', userInfo.branch);
-        }
-        const { data: prods } = await query;
-        if (prods) setProducts(prods);
-    };
-
-const addCategory = async () => {
-        if (!newCategory) return;
-        
-        const { data, error } = await supabase.from('categories').insert([{
-            name: newCategory,
-            branch: userInfo.branch
-        }]).select();
-        
-        if (!error && data) {
-            setCategories([...categories, ...data]);
-            setNewCategory('');
-            setShowCategoryModal(false);
-        }
-    };
-
-    const updateCategory = async (id, newName) => {
-        const { error } = await supabase.from('categories').update({ name: newName }).eq('id', id);
-        
-        if (!error) {
-            setCategories(categories.map(c => c.id === id ? { ...c, name: newName } : c));
-            setEditingCategory(null);
-        }
-    };
-
-    const deleteCategory = async (id) => {
-        // التحقق من عدم وجود منتجات في هذا القسم
-        const productsInCategory = products.filter(p => p.category_id === id);
-        if (productsInCategory.length > 0) {
-            alert(`لا يمكن حذف هذا القسم لأنه يحتوي على ${productsInCategory.length} منتج`);
-            return;
-        }
-        
-        if (!confirm('هل أنت متأكد من حذف هذا القسم؟')) return;
-        
-        const { error } = await supabase.from('categories').delete().eq('id', id);
-        
-        if (!error) {
-            setCategories(categories.filter(c => c.id !== id));
-        }
-    };
-            
-    const addProduct = async () => {
-        const updateProduct = async (productId, field, value) => {
-    const { error } = await supabase.from('products')
-        .update({ [field]: value })
-        .eq('id', productId);
-    
-    if (!error) {
-        setProducts(products.map(p => p.id === productId ? { ...p, [field]: value } : p));
-    }
-};
-
-const deleteProduct = async (productId) => {
-    if (!confirm('هل أنت متأكد من حذف هذا المنتج؟')) return;
-    
-    const { error } = await supabase.from('products').delete().eq('id', productId);
-    
-    if (!error) {
-        setProducts(products.filter(p => p.id !== productId));
-    }
-};
-        const { data, error } = await supabase.from('products').insert([{
-            ...newProduct,
-            branch: userInfo.branch
-        }]).select();
-        
-        if (!error && data) {
-            setProducts([...products, ...data]);
-            setNewProduct({ name: '', category_id: '', price: '', image_url: '', jeddah_quantity: 0, riyadh_quantity: 0, suppliers: [] });
-        }
-    };
-
-    const updateQuantity = async (productId, branch, newQuantity) => {
-        const field = branch === 'jeddah' ? 'jeddah_quantity' : 'riyadh_quantity';
-        const { error } = await supabase.from('products').update({ [field]: newQuantity }).eq('id', productId);
-        
-        if (!error) {
-            setProducts(products.map(p => p.id === productId ? { ...p, [field]: newQuantity } : p));
-        }
-    };
-
-    return (
-        <div className={`min-h-screen ${darkMode ? 'dark bg-slate-900' : 'bg-gradient-to-br from-slate-50 to-slate-100'}`}>
-            <div className="max-w-7xl mx-auto p-6">
-                <button onClick={onBack} className="mb-4 px-4 py-2 bg-slate-600 text-white rounded-lg">
-                    ← رجوع
-                </button>
-
-<div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl shadow-xl p-6 mb-6`}>
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-3xl font-bold text-blue-600">📦 إدارة المخزون</h2>
-                        <button
-                            onClick={() => setShowCategoryModal(true)}
-                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
-                        >
-                            <Settings /> إدارة الأقسام
-                        </button>
-                    </div>
-                    
-                    {/* Add Product Form */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
-                        <input type="text" placeholder="اسم المنتج" value={newProduct.name}
-                            onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
-                            className={`px-4 py-2 border rounded-lg ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`} />
-                        
-                        <select value={newProduct.category_id}
-                            onChange={(e) => setNewProduct({...newProduct, category_id: e.target.value})}
-                            className={`px-4 py-2 border rounded-lg ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`}>
-                            <option value="">اختر القسم</option>
-                            {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-                        </select>
-                        
-                        <input type="number" placeholder="السعر" value={newProduct.price}
-                            onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
-                            className={`px-4 py-2 border rounded-lg ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`} />
-                        
-                        <button onClick={addProduct} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                            <Plus /> إضافة منتج
-                        </button>
-                    </div>
-
-                    {/* Suppliers Input */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <input type="text" placeholder="اسم المورد" value={newSupplier.name}
-                            onChange={(e) => setNewSupplier({...newSupplier, name: e.target.value})}
-                            className={`px-4 py-2 border rounded-lg ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`} />
-                        <input type="text" placeholder="رقم المورد" value={newSupplier.phone}
-                            onChange={(e) => setNewSupplier({...newSupplier, phone: e.target.value})}
-                            className={`px-4 py-2 border rounded-lg ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`} />
-                        <button onClick={() => {
-                            if (newSupplier.name && newSupplier.phone) {
-                                setNewProduct({...newProduct, suppliers: [...newProduct.suppliers, newSupplier]});
-                                setNewSupplier({ name: '', phone: '' });
-                            }
-                        }} className="px-4 py-2 bg-green-600 text-white rounded-lg">
-                            إضافة مورد
-                        </button>
-                    </div>
-                    
-                    {newProduct.suppliers.length > 0 && (
-                        <div className="mt-2 text-sm">
-                            <strong>الموردين:</strong> {newProduct.suppliers.map(s => `${s.name} (${s.phone})`).join(', ')}
-                        </div>
-                    )}
-                </div>
-
-{/* فلتر الأقسام */}
-                {categories.length > 0 && (
-                    <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-xl shadow-lg p-4 mb-6`}>
-                        <h3 className={`font-bold ${darkMode ? 'text-white' : 'text-slate-800'} mb-3`}>
-                            تصفية حسب القسم
-                        </h3>
-                        <div className="flex flex-wrap gap-2">
-                            <button
-                                onClick={() => setSelectedCategory('all')}
-                                className={`px-4 py-2 rounded-lg font-semibold transition ${
-                                    selectedCategory === 'all'
-                                        ? 'bg-blue-600 text-white'
-                                        : `${darkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-700'} hover:bg-blue-100`
-                                }`}
-                            >
-                                الكل ({products.length})
-                            </button>
-                            {categories.map(cat => {
-                                const count = products.filter(p => p.category_id === cat.id).length;
-                                return (
-                                    <button
-                                        key={cat.id}
-                                        onClick={() => setSelectedCategory(cat.id)}
-                                        className={`px-4 py-2 rounded-lg font-semibold transition ${
-                                            selectedCategory === cat.id
-                                                ? 'bg-blue-600 text-white'
-                                                : `${darkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-700'} hover:bg-blue-100`
-                                        }`}
-                                    >
-                                        📁 {cat.name} ({count})
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-                )}
-                {products.filter(p => selectedCategory === 'all' || p.category_id === selectedCategory).map(product => {
-    const [isEditing, setIsEditing] = useState(false);
-    const [editData, setEditData] = useState(product);
-    
-    return (
-        <div key={product.id} className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-xl shadow-lg p-4`}>
-            {/* الصورة */}
-            <div className="mb-3">
-                {product.image_url ? (
-                    <img 
-                        src={product.image_url} 
-                        alt={product.name} 
-                        className="w-full h-32 object-cover rounded-lg" 
-                        onError={(e) => e.target.style.display = 'none'}
-                    />
-                ) : (
-                    <div className="w-full h-32 bg-slate-200 dark:bg-slate-700 rounded-lg flex items-center justify-center text-4xl">
-                        📦
-                    </div>
-                )}
-            </div>
-
-            {/* القسم */}
-            <div className="mb-2">
-                {product.category_id && (
-                    <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full">
-                        📁 {categories.find(c => c.id === product.category_id)?.name}
-                    </span>
-                )}
-            </div>
-
-            {isEditing ? (
-                <>
-                    <input
-                        type="text"
-                        value={editData.name}
-                        onChange={(e) => setEditData({...editData, name: e.target.value})}
-                        className={`w-full px-3 py-2 mb-2 border rounded-lg ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`}
-                    />
-                    <input
-                        type="number"
-                        value={editData.price}
-                        onChange={(e) => setEditData({...editData, price: e.target.value})}
-                        className={`w-full px-3 py-2 mb-2 border rounded-lg ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`}
-                    />
-                    <input
-                        type="text"
-                        placeholder="رابط الصورة"
-                        value={editData.image_url || ''}
-                        onChange={(e) => setEditData({...editData, image_url: e.target.value})}
-                        className={`w-full px-3 py-2 mb-2 border rounded-lg text-xs ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`}
-                    />
-                    <div className="flex gap-2">
-                        <button
-                            onClick={async () => {
-                                await updateProduct(product.id, 'name', editData.name);
-                                await updateProduct(product.id, 'price', editData.price);
-                                await updateProduct(product.id, 'image_url', editData.image_url);
-                                setIsEditing(false);
-                            }}
-                            className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg text-sm"
-                        >
-                            حفظ
-                        </button>
-                        <button
-                            onClick={() => {
-                                setEditData(product);
-                                setIsEditing(false);
-                            }}
-                            className="flex-1 px-3 py-2 bg-slate-400 text-white rounded-lg text-sm"
-                        >
-                            إلغاء
-                        </button>
-                    </div>
-                </>
-            ) : (
-                <>
-                    <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-slate-800'} mb-1`}>
-                        {product.name}
-                    </h3>
-                    <p className="text-green-600 font-bold text-lg mb-3">{product.price} ريال</p>
-                    
-                    <div className="mt-3 space-y-2">
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm">جدة:</span>
-                            <input 
-                                type="number" 
-                                value={product.jeddah_quantity}
-                                onChange={(e) => updateQuantity(product.id, 'jeddah', parseInt(e.target.value))}
-                                className="w-20 px-2 py-1 border rounded text-sm" 
-                            />
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm">الرياض:</span>
-                            <input 
-                                type="number" 
-                                value={product.riyadh_quantity}
-                                onChange={(e) => updateQuantity(product.id, 'riyadh', parseInt(e.target.value))}
-                                className="w-20 px-2 py-1 border rounded text-sm" 
-                            />
-                        </div>
-                    </div>
-                    
-                    {product.suppliers && product.suppliers.length > 0 && (
-                        <div className="mt-3 text-xs text-slate-500">
-                            <strong>الموردين:</strong>
-                            {product.suppliers.map((s, i) => (
-                                <div key={i}>• {s.name}: {s.phone}</div>
-                            ))}
-                        </div>
-                    )}
-
-                    <div className="flex gap-2 mt-3">
-                        <button
-                            onClick={() => setIsEditing(true)}
-                            className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm flex items-center justify-center gap-1"
-                        >
-                            <Edit2 /> تعديل
-                        </button>
-                        <button
-                            onClick={() => deleteProduct(product.id)}
-                            className="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg text-sm flex items-center justify-center gap-1"
-                        >
-                            <Trash2 /> حذف
-                        </button>
-                    </div>
-                </>
-            )}
-        </div>
-    );
-})}
-                const PurchaseRequests = ({ userInfo, onBack, darkMode }) => {
+const PurchaseRequests = ({ userInfo, onBack, darkMode }) => {
     const [requests, setRequests] = useState([]);
     const [newRequest, setNewRequest] = useState({
-        const [searchTerm, setSearchTerm] = useState('');
-const [filteredProducts, setFilteredProducts] = useState([]);
-const [selectedCategory, setSelectedCategory] = useState('all');
-const [categories, setCategories] = useState([]);
-
-useEffect(() => {
-    loadCategories();
-}, []);
-
-const loadCategories = async () => {
-    const { data } = await supabase.from('categories').select('*');
-    if (data) setCategories(data);
-};
-
-useEffect(() => {
-    if (searchTerm.length > 0) {
-        let filtered = products.filter(p => 
-            p.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        
-        if (selectedCategory !== 'all') {
-            filtered = filtered.filter(p => p.category_id === selectedCategory);
-        }
-        
-        setFilteredProducts(filtered);
-    } else {
-        setFilteredProducts([]);
-    }
-}, [searchTerm, selectedCategory, products]);
         item_name: '',
         quantity: '',
         description: '',
@@ -1429,10 +1051,15 @@ useEffect(() => {
         </div>
     );
 };
-        const BranchRequests = ({ userInfo, onBack, darkMode }) => {
+        
+       const BranchRequests = ({ userInfo, onBack, darkMode }) => {
     const [requests, setRequests] = useState([]);
     const [products, setProducts] = useState([]);
-    const [activeTab, setActiveTab] = useState('current'); // current, closed
+    const [categories, setCategories] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filteredProducts, setFilteredProducts] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState('all');
+    const [activeTab, setActiveTab] = useState('current');
     const [newRequest, setNewRequest] = useState({
         product_id: null,
         custom_description: '',
@@ -1443,12 +1070,29 @@ useEffect(() => {
         loadData();
     }, []);
 
+    useEffect(() => {
+        if (searchTerm.length > 0) {
+            let filtered = products.filter(p => 
+                p.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            
+            if (selectedCategory !== 'all') {
+                filtered = filtered.filter(p => p.category_id === selectedCategory);
+            }
+            
+            setFilteredProducts(filtered);
+        } else {
+            setFilteredProducts([]);
+        }
+    }, [searchTerm, selectedCategory, products]);
+
     const loadData = async () => {
-        // Load products
+        const { data: cats } = await supabase.from('categories').select('*');
+        if (cats) setCategories(cats);
+
         const { data: prods } = await supabase.from('products').select('*');
         if (prods) setProducts(prods);
 
-        // Load requests
         const { data: reqs } = await supabase.from('branch_requests')
             .select('*')
             .or(`from_branch.eq.${userInfo.branch},to_branch.eq.${userInfo.branch}`)
@@ -1464,12 +1108,14 @@ useEffect(() => {
             from_branch: userInfo.branch,
             requested_by: userInfo.name,
             status: 'pending',
-            seq_number: requests.length + 1
+            seq_number: requests.length + 1,
+            created_at: new Date().toISOString()
         }]).select();
         
         if (!error && data) {
             setRequests([...data, ...requests]);
             setNewRequest({ product_id: null, custom_description: '', to_branch: userInfo.branch === 'jeddah' ? 'riyadh' : 'jeddah' });
+            setSearchTerm('');
         }
     };
 
@@ -1503,83 +1149,76 @@ useEffect(() => {
                 <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl shadow-xl p-6 mb-6`}>
                     <h2 className="text-3xl font-bold text-blue-600 mb-4">🔄 طلبات الفروع</h2>
                     
-                    {/* New Request Form */}
                     <div className="space-y-3">
-<div className="space-y-3">
-    {/* فلتر القسم */}
-    <select
-        value={selectedCategory}
-        onChange={(e) => setSelectedCategory(e.target.value)}
-        className={`w-full px-4 py-2 border rounded-lg ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`}
-    >
-        <option value="all">جميع الأقسام</option>
-        {categories.map(cat => (
-            <option key={cat.id} value={cat.id}>{cat.name}</option>
-        ))}
-    </select>
-
-    {/* البحث عن المنتج */}
-    <div className="relative">
-        <input
-            type="text"
-            placeholder="🔍 ابحث عن منتج..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={`w-full px-4 py-2 border rounded-lg ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`}
-        />
-        
-        {/* نتائج البحث */}
-        {searchTerm && filteredProducts.length > 0 && (
-            <div className={`absolute z-10 w-full mt-2 ${darkMode ? 'bg-slate-700' : 'bg-white'} border rounded-lg shadow-lg max-h-96 overflow-y-auto`}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 p-2">
-                    {filteredProducts.map(p => (
-                        <button
-                            key={p.id}
-                            onClick={() => {
-                                setNewRequest({...newRequest, product_id: p.id, custom_description: ''});
-                                setSearchTerm('');
-                                setFilteredProducts([]);
-                            }}
-                            className={`flex items-center gap-3 p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-600 text-right`}
+                        <select
+                            value={selectedCategory}
+                            onChange={(e) => setSelectedCategory(e.target.value)}
+                            className={`w-full px-4 py-2 border rounded-lg ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`}
                         >
-                            {p.image_url ? (
-                                <img src={p.image_url} alt={p.name} className="w-16 h-16 object-cover rounded" />
-                            ) : (
-                                <div className="w-16 h-16 bg-slate-200 dark:bg-slate-600 rounded flex items-center justify-center text-2xl">
-                                    📦
+                            <option value="all">جميع الأقسام</option>
+                            {categories.map(cat => (
+                                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                            ))}
+                        </select>
+
+                        <div className="relative">
+                            <input
+                                type="text"
+                                placeholder="🔍 ابحث عن منتج..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className={`w-full px-4 py-2 border rounded-lg ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`}
+                            />
+                            
+                            {searchTerm && filteredProducts.length > 0 && (
+                                <div className={`absolute z-10 w-full mt-2 ${darkMode ? 'bg-slate-700' : 'bg-white'} border rounded-lg shadow-lg max-h-96 overflow-y-auto`}>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 p-2">
+                                        {filteredProducts.map(p => (
+                                            <button
+                                                key={p.id}
+                                                onClick={() => {
+                                                    setNewRequest({...newRequest, product_id: p.id, custom_description: ''});
+                                                    setSearchTerm('');
+                                                    setFilteredProducts([]);
+                                                }}
+                                                className={`flex items-center gap-3 p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-600 text-right`}
+                                            >
+                                                {p.image_url ? (
+                                                    <img src={p.image_url} alt={p.name} className="w-16 h-16 object-cover rounded" />
+                                                ) : (
+                                                    <div className="w-16 h-16 bg-slate-200 dark:bg-slate-600 rounded flex items-center justify-center text-2xl">
+                                                        📦
+                                                    </div>
+                                                )}
+                                                <div className="flex-1">
+                                                    <div className={`font-bold ${darkMode ? 'text-white' : 'text-slate-800'}`}>
+                                                        {p.name}
+                                                    </div>
+                                                    <div className="text-xs text-slate-500">
+                                                        جدة: {p.jeddah_quantity} | الرياض: {p.riyadh_quantity}
+                                                    </div>
+                                                    <div className="text-xs text-green-600">{p.price} ريال</div>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
-                            <div className="flex-1">
-                                <div className={`font-bold ${darkMode ? 'text-white' : 'text-slate-800'}`}>
-                                    {p.name}
+                            
+                            {newRequest.product_id && (
+                                <div className={`mt-2 p-3 ${darkMode ? 'bg-green-900' : 'bg-green-50'} rounded-lg flex items-center justify-between`}>
+                                    <span className="text-green-700 dark:text-green-300 font-bold">
+                                        ✓ تم اختيار: {products.find(p => p.id === newRequest.product_id)?.name}
+                                    </span>
+                                    <button
+                                        onClick={() => setNewRequest({...newRequest, product_id: null})}
+                                        className="text-red-600 hover:text-red-800"
+                                    >
+                                        <X />
+                                    </button>
                                 </div>
-                                <div className="text-xs text-slate-500">
-                                    جدة: {p.jeddah_quantity} | الرياض: {p.riyadh_quantity}
-                                </div>
-                                <div className="text-xs text-green-600">{p.price} ريال</div>
-                            </div>
-                        </button>
-                    ))}
-                </div>
-            </div>
-        )}
-        
-        {/* عرض المنتج المختار */}
-        {newRequest.product_id && (
-            <div className={`mt-2 p-3 ${darkMode ? 'bg-green-900' : 'bg-green-50'} rounded-lg flex items-center justify-between`}>
-                <span className="text-green-700 dark:text-green-300 font-bold">
-                    ✓ تم اختيار: {products.find(p => p.id === newRequest.product_id)?.name}
-                </span>
-                <button
-                    onClick={() => setNewRequest({...newRequest, product_id: null})}
-                    className="text-red-600 hover:text-red-800"
-                >
-                    <X />
-                </button>
-            </div>
-        )}
-    </div>
-</div>
+                            )}
+                        </div>
                         
                         <div className="text-center text-sm text-slate-500">أو</div>
                         
@@ -1595,7 +1234,6 @@ useEffect(() => {
                     </div>
                 </div>
 
-                {/* Tabs */}
                 <div className="flex gap-3 mb-4">
                     <button onClick={() => setActiveTab('current')}
                         className={`flex-1 px-6 py-3 rounded-lg font-bold ${activeTab === 'current' ? 'bg-blue-600 text-white' : `${darkMode ? 'bg-slate-800 text-slate-400' : 'bg-white text-slate-600'}`}`}>
@@ -1607,7 +1245,6 @@ useEffect(() => {
                     </button>
                 </div>
 
-                {/* Requests List */}
                 <div className="space-y-4">
                     {displayList.map(request => {
                         const isSender = request.from_branch === userInfo.branch;
