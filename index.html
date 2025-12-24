@@ -796,10 +796,154 @@ const Dashboard = ({ userInfo, onNavigate, onLogout, darkMode, setDarkMode }) =>
     if (activeModule === 'purchase') return <PurchaseRequests userInfo={userInfo} onBack={() => setActiveModule('menu')} darkMode={darkMode} />;
     if (activeModule === 'branch') return <BranchRequests userInfo={userInfo} onBack={() => setActiveModule('menu')} darkMode={darkMode} />;
 };
+        // Modal إدارة الأقسام
+const CategoryModal = ({ categories, onClose, onAdd, onUpdate, onDelete, darkMode }) => {
+    const [newCategoryName, setNewCategoryName] = useState('');
+    const [editingId, setEditingId] = useState(null);
+    const [editingName, setEditingName] = useState('');
+
+    const handleAdd = () => {
+        if (newCategoryName.trim()) {
+            onAdd(newCategoryName.trim());
+            setNewCategoryName('');
+        }
+    };
+
+    const handleUpdate = (id) => {
+        if (editingName.trim()) {
+            onUpdate(id, editingName.trim());
+            setEditingId(null);
+            setEditingName('');
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl shadow-2xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto`}>
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-slate-800'}`}>
+                        📂 إدارة الأقسام
+                    </h2>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+                        <X />
+                    </button>
+                </div>
+
+                {/* إضافة قسم جديد */}
+                <div className={`${darkMode ? 'bg-slate-700' : 'bg-blue-50'} rounded-xl p-4 mb-4`}>
+                    <h3 className={`font-bold ${darkMode ? 'text-white' : 'text-slate-700'} mb-3`}>
+                        إضافة قسم جديد
+                    </h3>
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            placeholder="اسم القسم (مثال: الصناديق، اللحام، القطع الميكانيكية)"
+                            value={newCategoryName}
+                            onChange={(e) => setNewCategoryName(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && handleAdd()}
+                            className={`flex-1 px-4 py-2 border rounded-lg ${darkMode ? 'bg-slate-600 border-slate-500 text-white' : 'border-slate-300'}`}
+                            autoFocus
+                        />
+                        <button
+                            onClick={handleAdd}
+                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                        >
+                            <Plus /> إضافة
+                        </button>
+                    </div>
+                </div>
+
+                {/* قائمة الأقسام */}
+                <div className="space-y-2">
+                    <h3 className={`font-bold ${darkMode ? 'text-white' : 'text-slate-700'} mb-3`}>
+                        الأقسام الحالية ({categories.length})
+                    </h3>
+                    
+                    {categories.length === 0 ? (
+                        <div className={`text-center py-8 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                            <p>لا توجد أقسام. ابدأ بإضافة أول قسم!</p>
+                        </div>
+                    ) : (
+                        categories.map(cat => (
+                            <div
+                                key={cat.id}
+                                className={`flex items-center gap-3 ${darkMode ? 'bg-slate-700' : 'bg-slate-50'} p-3 rounded-lg`}
+                            >
+                                {editingId === cat.id ? (
+                                    <>
+                                        <input
+                                            type="text"
+                                            value={editingName}
+                                            onChange={(e) => setEditingName(e.target.value)}
+                                            onKeyPress={(e) => e.key === 'Enter' && handleUpdate(cat.id)}
+                                            className={`flex-1 px-3 py-2 border rounded-lg ${darkMode ? 'bg-slate-600 border-slate-500 text-white' : 'border-slate-300'}`}
+                                            autoFocus
+                                        />
+                                        <button
+                                            onClick={() => handleUpdate(cat.id)}
+                                            className="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                                        >
+                                            <Check />
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setEditingId(null);
+                                                setEditingName('');
+                                            }}
+                                            className="p-2 bg-slate-400 text-white rounded-lg hover:bg-slate-500"
+                                        >
+                                            <X />
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="flex-1">
+                                            <span className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-slate-800'}`}>
+                                                📁 {cat.name}
+                                            </span>
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                setEditingId(cat.id);
+                                                setEditingName(cat.name);
+                                            }}
+                                            className={`p-2 ${darkMode ? 'bg-blue-900 text-blue-400' : 'bg-blue-100 text-blue-600'} rounded-lg hover:bg-blue-200`}
+                                        >
+                                            <Edit2 />
+                                        </button>
+                                        <button
+                                            onClick={() => onDelete(cat.id)}
+                                            className={`p-2 ${darkMode ? 'bg-red-900 text-red-400' : 'bg-red-100 text-red-600'} rounded-lg hover:bg-red-200`}
+                                        >
+                                            <Trash2 />
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+                        ))
+                    )}
+                </div>
+
+                <div className="mt-6 flex justify-end">
+                    <button
+                        onClick={onClose}
+                        className="px-6 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700"
+                    >
+                        إغلاق
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+        
         const InventoryManager = ({ userInfo, onBack, darkMode }) => {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('all');
+            const [showCategoryModal, setShowCategoryModal] = useState(false);
+    const [newCategory, setNewCategory] = useState('');
+    const [editingCategory, setEditingCategory] = useState(null);
     const [newProduct, setNewProduct] = useState({
         name: '',
         category_id: '',
@@ -829,6 +973,47 @@ const Dashboard = ({ userInfo, onNavigate, onLogout, darkMode, setDarkMode }) =>
         if (prods) setProducts(prods);
     };
 
+const addCategory = async () => {
+        if (!newCategory) return;
+        
+        const { data, error } = await supabase.from('categories').insert([{
+            name: newCategory,
+            branch: userInfo.branch
+        }]).select();
+        
+        if (!error && data) {
+            setCategories([...categories, ...data]);
+            setNewCategory('');
+            setShowCategoryModal(false);
+        }
+    };
+
+    const updateCategory = async (id, newName) => {
+        const { error } = await supabase.from('categories').update({ name: newName }).eq('id', id);
+        
+        if (!error) {
+            setCategories(categories.map(c => c.id === id ? { ...c, name: newName } : c));
+            setEditingCategory(null);
+        }
+    };
+
+    const deleteCategory = async (id) => {
+        // التحقق من عدم وجود منتجات في هذا القسم
+        const productsInCategory = products.filter(p => p.category_id === id);
+        if (productsInCategory.length > 0) {
+            alert(`لا يمكن حذف هذا القسم لأنه يحتوي على ${productsInCategory.length} منتج`);
+            return;
+        }
+        
+        if (!confirm('هل أنت متأكد من حذف هذا القسم؟')) return;
+        
+        const { error } = await supabase.from('categories').delete().eq('id', id);
+        
+        if (!error) {
+            setCategories(categories.filter(c => c.id !== id));
+        }
+    };
+            
     const addProduct = async () => {
         const { data, error } = await supabase.from('products').insert([{
             ...newProduct,
@@ -857,8 +1042,16 @@ const Dashboard = ({ userInfo, onNavigate, onLogout, darkMode, setDarkMode }) =>
                     ← رجوع
                 </button>
 
-                <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl shadow-xl p-6 mb-6`}>
-                    <h2 className="text-3xl font-bold text-blue-600 mb-4">📦 إدارة المخزون</h2>
+<div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl shadow-xl p-6 mb-6`}>
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-3xl font-bold text-blue-600">📦 إدارة المخزون</h2>
+                        <button
+                            onClick={() => setShowCategoryModal(true)}
+                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
+                        >
+                            <Settings /> إدارة الأقسام
+                        </button>
+                    </div>
                     
                     {/* Add Product Form */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
@@ -907,6 +1100,43 @@ const Dashboard = ({ userInfo, onNavigate, onLogout, darkMode, setDarkMode }) =>
                     )}
                 </div>
 
+{/* فلتر الأقسام */}
+                {categories.length > 0 && (
+                    <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-xl shadow-lg p-4 mb-6`}>
+                        <h3 className={`font-bold ${darkMode ? 'text-white' : 'text-slate-800'} mb-3`}>
+                            تصفية حسب القسم
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                            <button
+                                onClick={() => setSelectedCategory('all')}
+                                className={`px-4 py-2 rounded-lg font-semibold transition ${
+                                    selectedCategory === 'all'
+                                        ? 'bg-blue-600 text-white'
+                                        : `${darkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-700'} hover:bg-blue-100`
+                                }`}
+                            >
+                                الكل ({products.length})
+                            </button>
+                            {categories.map(cat => {
+                                const count = products.filter(p => p.category_id === cat.id).length;
+                                return (
+                                    <button
+                                        key={cat.id}
+                                        onClick={() => setSelectedCategory(cat.id)}
+                                        className={`px-4 py-2 rounded-lg font-semibold transition ${
+                                            selectedCategory === cat.id
+                                                ? 'bg-blue-600 text-white'
+                                                : `${darkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-700'} hover:bg-blue-100`
+                                        }`}
+                                    >
+                                        📁 {cat.name} ({count})
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+                
                 {/* Products List */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {products.filter(p => selectedCategory === 'all' || p.category_id === selectedCategory).map(product => (
@@ -914,6 +1144,13 @@ const Dashboard = ({ userInfo, onNavigate, onLogout, darkMode, setDarkMode }) =>
                             {product.image_url && (
                                 <img src={product.image_url} alt={product.name} className="w-full h-40 object-cover rounded-lg mb-3" />
                             )}
+<div className="mb-2">
+                                {product.category_id && (
+                                    <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full">
+                                        📁 {categories.find(c => c.id === product.category_id)?.name}
+                                    </span>
+                                )}
+                            </div>
                             <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-slate-800'}`}>{product.name}</h3>
                             <p className="text-green-600 font-bold text-lg">{product.price} ريال</p>
                             
@@ -944,6 +1181,26 @@ const Dashboard = ({ userInfo, onNavigate, onLogout, darkMode, setDarkMode }) =>
                     ))}
                 </div>
             </div>
+            {/* Modal إدارة الأقسام */}
+                {showCategoryModal && (
+                    <CategoryModal
+                        categories={categories}
+                        onClose={() => setShowCategoryModal(false)}
+                        onAdd={async (name) => {
+                            const { data, error } = await supabase.from('categories').insert([{
+                                name: name,
+                                branch: userInfo.branch
+                            }]).select();
+                            
+                            if (!error && data) {
+                                setCategories([...categories, ...data]);
+                            }
+                        }}
+                        onUpdate={updateCategory}
+                        onDelete={deleteCategory}
+                        darkMode={darkMode}
+                    />
+                )}
         </div>
     );
 };
