@@ -44,11 +44,41 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-        const USERS = {
-            'Fareed': { password: '0555038099', branch: 'jeddah', branchName: 'فرع جدة', role: 'admin' },
-            'Yazeed': { password: '0531613949', branch: 'riyadh', branchName: 'فرع الرياض', role: 'admin' },
-            'VOLGA': { password: '0550433333', branch: 'all', branchName: 'المحاسب المركزي العام', role: 'viewer' }
-        };
+// رقم التحقق الموحد
+const VERIFICATION_CODE = '0555038099';
+
+// نخزن كلمات السر في localStorage
+const getStoredPassword = (username) => {
+    return localStorage.getItem(`password_${username}`) || null;
+};
+
+const setStoredPassword = (username, password) => {
+    localStorage.setItem(`password_${username}`, password);
+};
+
+const USERS = {
+    'Fareed': { 
+        password: getStoredPassword('Fareed') || '0555038099', 
+        branch: 'jeddah', 
+        branchName: 'فرع جدة', 
+        role: 'admin',
+        allowNoPassword: localStorage.getItem('allowNoPassword_Fareed') === 'true'
+    },
+    'Yazeed': { 
+        password: getStoredPassword('Yazeed') || '0531613949', 
+        branch: 'riyadh', 
+        branchName: 'فرع الرياض', 
+        role: 'admin',
+        allowNoPassword: localStorage.getItem('allowNoPassword_Yazeed') === 'true'
+    },
+    'VOLGA': { 
+        password: getStoredPassword('VOLGA') || '0550433333', 
+        branch: 'all', 
+        branchName: 'المحاسب المركزي العام', 
+        role: 'viewer',
+        allowNoPassword: localStorage.getItem('allowNoPassword_VOLGA') === 'true'
+    }
+};
 
         // Icons
         const Plus = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
@@ -69,20 +99,418 @@
         const Moon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>;
         const Sun = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>;
         const LogOut = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
+        const Key = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>;
 
+
+// Modal لتفعيل الدخول بدون كلمة سر
+const EnableNoPasswordModal = ({ username, onClose, onSuccess }) => {
+    const [verificationCode, setVerificationCode] = useState('');
+    const [error, setError] = useState('');
+
+    const handleEnable = () => {
+        if (verificationCode === VERIFICATION_CODE) {
+            // تفعيل الدخول بدون كلمة سر
+            USERS[username].allowNoPassword = true;
+            localStorage.setItem(`allowNoPassword_${username}`, 'true');
+            // حذف كلمة السر من localStorage
+            localStorage.removeItem(`password_${username}`);
+            onSuccess();
+        } else {
+            setError('رمز التحقق غير صحيح');
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold text-slate-800">تفعيل الدخول بدون كلمة سر</h2>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+                        <X />
+                    </button>
+                </div>
+
+                {error && (
+                    <div className="bg-red-50 border-r-4 border-red-500 text-red-700 p-4 rounded-lg mb-4">
+                        {error}
+                    </div>
+                )}
+
+                <div className="space-y-4">
+                    <div className="text-center mb-4">
+                        <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <Unlock />
+                        </div>
+                        <p className="text-slate-600">أدخل كلمة السر الرئيسية للتأكيد</p>
+                        <p className="text-xs text-orange-600 mt-2">⚠️ سيتم إلغاء كلمة السر الحالية</p>
+                    </div>
+
+                    <input
+                        type="text"
+                        value={verificationCode}
+                        onChange={(e) => setVerificationCode(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleEnable()}
+                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-orange-100 focus:border-orange-500 outline-none text-center text-lg tracking-widest"
+                        placeholder="0555038099"
+                        autoFocus
+                    />
+
+                    <div className="flex gap-2">
+                        <button
+                            onClick={onClose}
+                            className="flex-1 bg-slate-200 text-slate-700 py-3 rounded-xl font-bold hover:bg-slate-300 transition"
+                        >
+                            إلغاء
+                        </button>
+                        <button
+                            onClick={handleEnable}
+                            className="flex-1 bg-orange-600 text-white py-3 rounded-xl font-bold hover:bg-orange-700 transition"
+                        >
+                            تفعيل
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Modal لإضافة كلمة سر (للمستخدمين الذين يدخلون بدون كلمة سر)
+const AddPasswordModal = ({ username, onClose, onSuccess }) => {
+    const [verificationCode, setVerificationCode] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [step, setStep] = useState(1); // 1: verification, 2: new password
+    const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+
+    const handleStep1 = () => {
+        if (verificationCode === VERIFICATION_CODE) {
+            setStep(2);
+            setError('');
+        } else {
+            setError('رمز التحقق غير صحيح');
+        }
+    };
+
+    const handleStep2 = () => {
+        if (newPassword.length < 4) {
+            setError('كلمة المرور يجب أن تكون 4 أرقام على الأقل');
+            return;
+        }
+        // إضافة كلمة سر جديدة
+        setStoredPassword(username, newPassword);
+        USERS[username].password = newPassword;
+        USERS[username].allowNoPassword = false;
+        localStorage.setItem(`allowNoPassword_${username}`, 'false');
+        onSuccess();
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold text-slate-800">إضافة كلمة سر</h2>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+                        <X />
+                    </button>
+                </div>
+
+                {error && (
+                    <div className="bg-red-50 border-r-4 border-red-500 text-red-700 p-4 rounded-lg mb-4">
+                        {error}
+                    </div>
+                )}
+
+                {/* Step 1: رمز التحقق */}
+                {step === 1 && (
+                    <div className="space-y-4">
+                        <div className="text-center mb-4">
+                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                                <Check />
+                            </div>
+                            <p className="text-slate-600">الخطوة 1: أدخل كلمة السر الرئيسية</p>
+                        </div>
+
+                        <input
+                            type="text"
+                            value={verificationCode}
+                            onChange={(e) => setVerificationCode(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && handleStep1()}
+                            className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none text-center text-lg tracking-widest"
+                            placeholder="0555038099"
+                            autoFocus
+                        />
+
+                        <div className="flex gap-2">
+                            <button
+                                onClick={onClose}
+                                className="flex-1 bg-slate-200 text-slate-700 py-3 rounded-xl font-bold hover:bg-slate-300 transition"
+                            >
+                                إلغاء
+                            </button>
+                            <button
+                                onClick={handleStep1}
+                                className="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition"
+                            >
+                                التالي →
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Step 2: كلمة المرور الجديدة */}
+                {step === 2 && (
+                    <div className="space-y-4">
+                        <div className="text-center mb-4">
+                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                                <Lock />
+                            </div>
+                            <p className="text-slate-600">الخطوة 2: اختر كلمة السر الجديدة</p>
+                        </div>
+
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && handleStep2()}
+                                className="w-full px-4 py-3 pr-12 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none"
+                                placeholder="كلمة المرور الجديدة"
+                                autoFocus
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute left-3 top-1/2 -translate-y-1/2 text-2xl"
+                            >
+                                {showPassword ? '🙈' : '👁️'}
+                            </button>
+                        </div>
+
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setStep(1)}
+                                className="flex-1 bg-slate-200 text-slate-700 py-3 rounded-xl font-bold hover:bg-slate-300 transition"
+                            >
+                                رجوع
+                            </button>
+                            <button
+                                onClick={handleStep2}
+                                className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition"
+                            >
+                                حفظ ✓
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+        
+        const PasswordChangeModal = ({ username, onClose, onSuccess }) => {
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [verificationCode, setVerificationCode] = useState('');
+    const [step, setStep] = useState(1); // 1: current password, 2: verification, 3: new password
+    const [error, setError] = useState('');
+    const [showPasswords, setShowPasswords] = useState(false);
+
+    const handleStep1 = () => {
+        const storedPassword = getStoredPassword(username) || USERS[username].password;
+        if (currentPassword === storedPassword || USERS[username].allowNoPassword) {
+            setStep(2);
+            setError('');
+        } else {
+            setError('كلمة المرور الحالية غير صحيحة');
+        }
+    };
+
+    const handleStep2 = () => {
+        if (verificationCode === VERIFICATION_CODE) {
+            setStep(3);
+            setError('');
+        } else {
+            setError('رمز التحقق غير صحيح');
+        }
+    };
+
+    const handleStep3 = () => {
+        if (newPassword.length < 4) {
+            setError('كلمة المرور يجب أن تكون 4 أرقام على الأقل');
+            return;
+        }
+        setStoredPassword(username, newPassword);
+        USERS[username].password = newPassword;
+        onSuccess();
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold text-slate-800">تغيير كلمة السر</h2>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+                        <X />
+                    </button>
+                </div>
+
+                {error && (
+                    <div className="bg-red-50 border-r-4 border-red-500 text-red-700 p-4 rounded-lg mb-4">
+                        {error}
+                    </div>
+                )}
+
+                {/* Step 1: كلمة المرور الحالية */}
+                {step === 1 && (
+                    <div className="space-y-4">
+                        <div className="text-center mb-4">
+                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                                <Key />
+                            </div>
+                            <p className="text-slate-600">الخطوة 1: أدخل كلمة المرور الحالية</p>
+                        </div>
+
+                        <div className="relative">
+                            <input
+                                type={showPasswords ? "text" : "password"}
+                                value={currentPassword}
+                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && handleStep1()}
+                                className="w-full px-4 py-3 pr-12 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none"
+                                placeholder="كلمة المرور الحالية"
+                                autoFocus
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPasswords(!showPasswords)}
+                                className="absolute left-3 top-1/2 -translate-y-1/2 text-2xl"
+                            >
+                                {showPasswords ? '🙈' : '👁️'}
+                            </button>
+                        </div>
+
+                        <button
+                            onClick={handleStep1}
+                            className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition"
+                        >
+                            التالي →
+                        </button>
+                    </div>
+                )}
+
+                {/* Step 2: رمز التحقق */}
+                {step === 2 && (
+                    <div className="space-y-4">
+                        <div className="text-center mb-4">
+                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                                <Check />
+                            </div>
+                            <p className="text-slate-600">الخطوة 2: أدخل رمز التحقق</p>
+                            <p className="text-xs text-slate-500 mt-2">رمز التحقق موحد لجميع المستخدمين</p>
+                        </div>
+
+                        <input
+                            type="text"
+                            value={verificationCode}
+                            onChange={(e) => setVerificationCode(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && handleStep2()}
+                            className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none text-center text-lg tracking-widest"
+                            placeholder="0555038099"
+                            autoFocus
+                        />
+
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setStep(1)}
+                                className="flex-1 bg-slate-200 text-slate-700 py-3 rounded-xl font-bold hover:bg-slate-300 transition"
+                            >
+                                رجوع
+                            </button>
+                            <button
+                                onClick={handleStep2}
+                                className="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition"
+                            >
+                                التالي →
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Step 3: كلمة المرور الجديدة */}
+                {step === 3 && (
+                    <div className="space-y-4">
+                        <div className="text-center mb-4">
+                            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                                <Lock />
+                            </div>
+                            <p className="text-slate-600">الخطوة 3: أدخل كلمة المرور الجديدة</p>
+                        </div>
+
+                        <div className="relative">
+                            <input
+                                type={showPasswords ? "text" : "password"}
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && handleStep3()}
+                                className="w-full px-4 py-3 pr-12 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none"
+                                placeholder="كلمة المرور الجديدة"
+                                autoFocus
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPasswords(!showPasswords)}
+                                className="absolute left-3 top-1/2 -translate-y-1/2 text-2xl"
+                            >
+                                {showPasswords ? '🙈' : '👁️'}
+                            </button>
+                        </div>
+
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setStep(2)}
+                                className="flex-1 bg-slate-200 text-slate-700 py-3 rounded-xl font-bold hover:bg-slate-300 transition"
+                            >
+                                رجوع
+                            </button>
+                            <button
+                                onClick={handleStep3}
+                                className="flex-1 bg-purple-600 text-white py-3 rounded-xl font-bold hover:bg-purple-700 transition"
+                            >
+                                حفظ ✓
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
         const LoginScreen = ({ onLogin }) => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
+            const [showPasswordChange, setShowPasswordChange] = useState(false);
+            const [showEnableNoPassword, setShowEnableNoPassword] = useState(false);
+    const [showAddPassword, setShowAddPassword] = useState(false);
 
-    const handleLogin = () => {
+const handleLogin = () => {
         if (!selectedUser) {
             setError('الرجاء اختيار مستخدم');
             return;
         }
         const user = USERS[selectedUser];
-        if (user && user.password === password) {
+        
+        // إذا يسمح بدخول بدون كلمة سر وحقل كلمة المرور فاضي
+        if (user.allowNoPassword && password === '') {
+            onLogin(selectedUser, user);
+            return;
+        }
+        
+        // التحقق من كلمة المرور
+        const storedPassword = getStoredPassword(selectedUser) || user.password;
+        if (storedPassword === password) {
             onLogin(selectedUser, user);
         } else {
             setError('كلمة المرور غير صحيحة');
@@ -174,28 +602,94 @@
                                 </div>
                             </div>
 
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => {
-                                        setSelectedUser(null);
-                                        setPassword('');
-                                        setError('');
-                                    }}
-                                    className="flex-1 bg-slate-200 text-slate-700 py-3 rounded-xl font-bold hover:bg-slate-300 transition"
-                                >
-                                    رجوع
-                                </button>
-                                <button
-                                    onClick={handleLogin}
-                                    className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg hover:shadow-xl"
-                                >
-                                    دخول
-                                </button>
+<div className="space-y-2">
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => {
+                                            setSelectedUser(null);
+                                            setPassword('');
+                                            setError('');
+                                        }}
+                                        className="flex-1 bg-slate-200 text-slate-700 py-3 rounded-xl font-bold hover:bg-slate-300 transition"
+                                    >
+                                        رجوع
+                                    </button>
+                                    <button
+                                        onClick={handleLogin}
+                                        className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg hover:shadow-xl"
+                                    >
+                                        دخول
+                                    </button>
+                                </div>
+                                
+{!USERS[selectedUser].allowNoPassword ? (
+                                    <>
+                                        <button
+                                            onClick={() => setShowPasswordChange(true)}
+                                            className="w-full bg-purple-50 text-purple-700 py-2 rounded-xl font-bold hover:bg-purple-100 transition flex items-center justify-center gap-2 text-sm"
+                                        >
+                                            <Key /> تغيير كلمة السر
+                                        </button>
+                                        
+                                        <button
+                                            onClick={() => setShowEnableNoPassword(true)}
+                                            className="w-full bg-orange-50 text-orange-700 py-2 rounded-xl font-bold hover:bg-orange-100 transition flex items-center justify-center gap-2 text-sm"
+                                        >
+                                            <Unlock /> تفعيل الدخول بدون كلمة سر
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="text-xs text-center text-green-600 font-bold bg-green-50 py-2 rounded-lg">
+                                            ✓ يمكنك الدخول بدون كلمة سر
+                                        </p>
+                                        
+                                        <button
+                                            onClick={() => setShowAddPassword(true)}
+                                            className="w-full bg-blue-50 text-blue-700 py-2 rounded-xl font-bold hover:bg-blue-100 transition flex items-center justify-center gap-2 text-sm"
+                                        >
+                                            <Lock /> إضافة كلمة سر
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         </div>
                     )}
                 </div>
             </div>
+            {showPasswordChange && selectedUser && (
+                    <PasswordChangeModal
+                        username={selectedUser}
+                        onClose={() => setShowPasswordChange(false)}
+                        onSuccess={() => {
+                            setShowPasswordChange(false);
+                            alert('✅ تم تغيير كلمة السر بنجاح!');
+                        }}
+                    />
+                )}
+                
+                {showEnableNoPassword && selectedUser && (
+                    <EnableNoPasswordModal
+                        username={selectedUser}
+                        onClose={() => setShowEnableNoPassword(false)}
+                        onSuccess={() => {
+                            setShowEnableNoPassword(false);
+                            alert('✅ تم تفعيل الدخول بدون كلمة سر!\nيمكنك الآن الدخول بترك حقل كلمة السر فارغاً');
+                            setPassword('');
+                        }}
+                    />
+                )}
+                
+                {showAddPassword && selectedUser && (
+                    <AddPasswordModal
+                        username={selectedUser}
+                        onClose={() => setShowAddPassword(false)}
+                        onSuccess={() => {
+                            setShowAddPassword(false);
+                            alert('✅ تم إضافة كلمة السر بنجاح!\nتم إلغاء الدخول بدون كلمة سر');
+                        }}
+                    />
+                )}
         </div>
     );
 };
@@ -1214,7 +1708,44 @@ if (!currentModule) {
 }
 
 if (currentModule === 'custody') {
-    return <CustodyManager onBack={() => setCurrentModule(null)} />;
+    // نمرر كل الـ props اللي يحتاجها CustodyManager
+    const custodyProps = {
+        currentUser,
+        setCurrentUser,
+        userInfo,
+        setUserInfo,
+        darkMode,
+        setDarkMode,
+        custodies,
+        setCustodies,
+        clearedCustodies,
+        setClearedCustodies,
+        predefinedExpenses,
+        setPredefinedExpenses,
+        history,
+        setHistory,
+        historyIndex,
+        setHistoryIndex,
+        custodySequence,
+        setCustodySequence,
+        expenseSequence,
+        setExpenseSequence
+    };
+    
+    // نضيف زر الرجوع في بداية CustodyManager
+    return (
+        <div>
+            <div className="fixed top-4 right-4 z-50">
+                <button 
+                    onClick={() => setCurrentModule(null)} 
+                    className="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 shadow-xl flex items-center gap-2"
+                >
+                    ← الرجوع للرئيسية
+                </button>
+            </div>
+            <CustodyManager {...custodyProps} />
+        </div>
+    );
 }
 
 if (currentModule === 'requests') {
