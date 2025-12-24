@@ -1777,13 +1777,7 @@ const [viewBranch, setViewBranch] = useState('all'); // 'all', 'jeddah', 'riyadh
                 }
             };
 
-                useEffect(() => {
-    const saveTimer = setTimeout(async () => {
-        // حفظ تلقائي كل 3 ثواني
-    }, 3000);
-    
-    return () => clearTimeout(saveTimer);
-}, [requests]);
+
 
             useEffect(() => {
                 if (isLoading || !currentUser) return;
