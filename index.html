@@ -2257,44 +2257,9 @@ if (!currentModule) {
 }
 
 if (currentModule === 'custody') {
-    // نمرر كل الـ props اللي يحتاجها CustodyManager
-    const custodyProps = {
-        currentUser,
-        setCurrentUser,
-        userInfo,
-        setUserInfo,
-        darkMode,
-        setDarkMode,
-        custodies,
-        setCustodies,
-        clearedCustodies,
-        setClearedCustodies,
-        predefinedExpenses,
-        setPredefinedExpenses,
-        history,
-        setHistory,
-        historyIndex,
-        setHistoryIndex,
-        custodySequence,
-        setCustodySequence,
-        expenseSequence,
-        setExpenseSequence
-    };
-    
-    // نضيف زر الرجوع في بداية CustodyManager
-    return (
-        <div>
-            <div className="fixed top-4 right-4 z-50">
-                <button 
-                    onClick={() => setCurrentModule(null)} 
-                    className="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 shadow-xl flex items-center gap-2"
-                >
-                    ← الرجوع للرئيسية
-                </button>
-            </div>
-            <CustodyManager {...custodyProps} />
-        </div>
-    );
+    // عرض نظام العهد مباشرة (الكود موجود تحت)
+    // فقط نضيف زر الرجوع
+    // الكود سيستمر للأسفل حيث يوجد كل UI نظام العهد
 }
 
 if (currentModule === 'requests') {
