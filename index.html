@@ -200,6 +200,448 @@
     );
 };
 
+// Main Dashboard Component
+const Dashboard = ({ userInfo, onNavigate, onLogout, darkMode, setDarkMode }) => {
+    const modules = [
+        { id: 'custody', name: 'نظام العهد', icon: '📋', color: 'blue' },
+        { id: 'requests', name: 'نظام الطلبات', icon: '📦', color: 'green' },
+        { id: 'accounting', name: 'المحاسبة', icon: '💰', color: 'purple', disabled: true },
+        { id: 'quotations', name: 'عروض الأسعار', icon: '📄', color: 'orange', disabled: true },
+        { id: 'jobcard', name: 'جوب كارد', icon: '🔧', color: 'red', disabled: true }
+    ];
+
+    return (
+        <div className={`min-h-screen ${darkMode ? 'dark bg-slate-900' : 'bg-gradient-to-br from-slate-50 to-slate-100'}`}>
+            <div className="max-w-7xl mx-auto p-6">
+                {/* Header */}
+                <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl shadow-xl p-6 mb-6`}>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <h1 className="text-4xl font-black text-blue-600 mb-1">نظام الإدارة المتكامل</h1>
+                            <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                                {userInfo.branchName}
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => setDarkMode(!darkMode)} 
+                                className={`p-3 rounded-xl ${darkMode ? 'bg-yellow-400 text-slate-900' : 'bg-slate-700 text-white'}`}>
+                                {darkMode ? <Sun /> : <Moon />}
+                            </button>
+                            <button onClick={onLogout} className="p-3 bg-red-600 text-white rounded-xl flex items-center gap-2">
+                                <LogOut /> خروج
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Modules Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {modules.map(module => (
+                        <button
+                            key={module.id}
+                            onClick={() => !module.disabled && onNavigate(module.id)}
+                            disabled={module.disabled}
+                            className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl shadow-xl p-8 
+                                ${module.disabled ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 cursor-pointer'} 
+                                transition-all duration-300 text-center`}
+                        >
+                            <div className="text-6xl mb-4">{module.icon}</div>
+                            <h3 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-slate-800'}`}>
+                                {module.name}
+                            </h3>
+                            {module.disabled && (
+                                <p className="text-sm text-orange-500 mt-2">قريباً</p>
+                            )}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+        const RequestsSystem = ({ userInfo, onBack, darkMode }) => {
+    const [activeModule, setActiveModule] = useState('menu');
+
+    const modules = [
+        { id: 'inventory', name: 'المخزون', icon: '📦' },
+        { id: 'purchase', name: 'طلبات المشتريات', icon: '🛒' },
+        { id: 'branch', name: 'طلبات الفروع', icon: '🔄' }
+    ];
+
+    if (activeModule === 'menu') {
+        return (
+            <div className={`min-h-screen ${darkMode ? 'dark bg-slate-900' : 'bg-gradient-to-br from-slate-50 to-slate-100'}`}>
+                <div className="max-w-7xl mx-auto p-6">
+                    <button onClick={onBack} className="mb-4 px-4 py-2 bg-slate-600 text-white rounded-lg">
+                        ← العودة للرئيسية
+                    </button>
+                    
+                    <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl shadow-xl p-6 mb-6`}>
+                        <h1 className="text-4xl font-black text-blue-600">نظام الطلبات</h1>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {modules.map(module => (
+                            <button key={module.id} onClick={() => setActiveModule(module.id)}
+                                className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl shadow-xl p-8 hover:scale-105 transition`}>
+                                <div className="text-6xl mb-4">{module.icon}</div>
+                                <h3 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-slate-800'}`}>
+                                    {module.name}
+                                </h3>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Render specific modules
+    if (activeModule === 'inventory') return <InventoryManager userInfo={userInfo} onBack={() => setActiveModule('menu')} darkMode={darkMode} />;
+    if (activeModule === 'purchase') return <PurchaseRequests userInfo={userInfo} onBack={() => setActiveModule('menu')} darkMode={darkMode} />;
+    if (activeModule === 'branch') return <BranchRequests userInfo={userInfo} onBack={() => setActiveModule('menu')} darkMode={darkMode} />;
+};
+        const InventoryManager = ({ userInfo, onBack, darkMode }) => {
+    const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState('all');
+    const [newProduct, setNewProduct] = useState({
+        name: '',
+        category_id: '',
+        price: '',
+        image_url: '',
+        jeddah_quantity: 0,
+        riyadh_quantity: 0,
+        suppliers: []
+    });
+    const [newSupplier, setNewSupplier] = useState({ name: '', phone: '' });
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    const loadData = async () => {
+        // Load categories
+        const { data: cats } = await supabase.from('categories').select('*');
+        if (cats) setCategories(cats);
+
+        // Load products
+        let query = supabase.from('products').select('*');
+        if (userInfo.branch !== 'all') {
+            query = query.eq('branch', userInfo.branch);
+        }
+        const { data: prods } = await query;
+        if (prods) setProducts(prods);
+    };
+
+    const addProduct = async () => {
+        const { data, error } = await supabase.from('products').insert([{
+            ...newProduct,
+            branch: userInfo.branch
+        }]).select();
+        
+        if (!error && data) {
+            setProducts([...products, ...data]);
+            setNewProduct({ name: '', category_id: '', price: '', image_url: '', jeddah_quantity: 0, riyadh_quantity: 0, suppliers: [] });
+        }
+    };
+
+    const updateQuantity = async (productId, branch, newQuantity) => {
+        const field = branch === 'jeddah' ? 'jeddah_quantity' : 'riyadh_quantity';
+        const { error } = await supabase.from('products').update({ [field]: newQuantity }).eq('id', productId);
+        
+        if (!error) {
+            setProducts(products.map(p => p.id === productId ? { ...p, [field]: newQuantity } : p));
+        }
+    };
+
+    return (
+        <div className={`min-h-screen ${darkMode ? 'dark bg-slate-900' : 'bg-gradient-to-br from-slate-50 to-slate-100'}`}>
+            <div className="max-w-7xl mx-auto p-6">
+                <button onClick={onBack} className="mb-4 px-4 py-2 bg-slate-600 text-white rounded-lg">
+                    ← رجوع
+                </button>
+
+                <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl shadow-xl p-6 mb-6`}>
+                    <h2 className="text-3xl font-bold text-blue-600 mb-4">📦 إدارة المخزون</h2>
+                    
+                    {/* Add Product Form */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+                        <input type="text" placeholder="اسم المنتج" value={newProduct.name}
+                            onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
+                            className={`px-4 py-2 border rounded-lg ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`} />
+                        
+                        <select value={newProduct.category_id}
+                            onChange={(e) => setNewProduct({...newProduct, category_id: e.target.value})}
+                            className={`px-4 py-2 border rounded-lg ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`}>
+                            <option value="">اختر القسم</option>
+                            {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                        </select>
+                        
+                        <input type="number" placeholder="السعر" value={newProduct.price}
+                            onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
+                            className={`px-4 py-2 border rounded-lg ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`} />
+                        
+                        <button onClick={addProduct} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            <Plus /> إضافة منتج
+                        </button>
+                    </div>
+
+                    {/* Suppliers Input */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <input type="text" placeholder="اسم المورد" value={newSupplier.name}
+                            onChange={(e) => setNewSupplier({...newSupplier, name: e.target.value})}
+                            className={`px-4 py-2 border rounded-lg ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`} />
+                        <input type="text" placeholder="رقم المورد" value={newSupplier.phone}
+                            onChange={(e) => setNewSupplier({...newSupplier, phone: e.target.value})}
+                            className={`px-4 py-2 border rounded-lg ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`} />
+                        <button onClick={() => {
+                            if (newSupplier.name && newSupplier.phone) {
+                                setNewProduct({...newProduct, suppliers: [...newProduct.suppliers, newSupplier]});
+                                setNewSupplier({ name: '', phone: '' });
+                            }
+                        }} className="px-4 py-2 bg-green-600 text-white rounded-lg">
+                            إضافة مورد
+                        </button>
+                    </div>
+                    
+                    {newProduct.suppliers.length > 0 && (
+                        <div className="mt-2 text-sm">
+                            <strong>الموردين:</strong> {newProduct.suppliers.map(s => `${s.name} (${s.phone})`).join(', ')}
+                        </div>
+                    )}
+                </div>
+
+                {/* Products List */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {products.filter(p => selectedCategory === 'all' || p.category_id === selectedCategory).map(product => (
+                        <div key={product.id} className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-xl shadow-lg p-4`}>
+                            {product.image_url && (
+                                <img src={product.image_url} alt={product.name} className="w-full h-40 object-cover rounded-lg mb-3" />
+                            )}
+                            <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-slate-800'}`}>{product.name}</h3>
+                            <p className="text-green-600 font-bold text-lg">{product.price} ريال</p>
+                            
+                            <div className="mt-3 space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm">جدة:</span>
+                                    <input type="number" value={product.jeddah_quantity}
+                                        onChange={(e) => updateQuantity(product.id, 'jeddah', parseInt(e.target.value))}
+                                        className="w-20 px-2 py-1 border rounded text-sm" />
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm">الرياض:</span>
+                                    <input type="number" value={product.riyadh_quantity}
+                                        onChange={(e) => updateQuantity(product.id, 'riyadh', parseInt(e.target.value))}
+                                        className="w-20 px-2 py-1 border rounded text-sm" />
+                                </div>
+                            </div>
+                            
+                            {product.suppliers && product.suppliers.length > 0 && (
+                                <div className="mt-3 text-xs text-slate-500">
+                                    <strong>الموردين:</strong>
+                                    {product.suppliers.map((s, i) => (
+                                        <div key={i}>• {s.name}: {s.phone}</div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+        const BranchRequests = ({ userInfo, onBack, darkMode }) => {
+    const [requests, setRequests] = useState([]);
+    const [products, setProducts] = useState([]);
+    const [activeTab, setActiveTab] = useState('current'); // current, closed
+    const [newRequest, setNewRequest] = useState({
+        product_id: null,
+        custom_description: '',
+        to_branch: userInfo.branch === 'jeddah' ? 'riyadh' : 'jeddah'
+    });
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    const loadData = async () => {
+        // Load products
+        const { data: prods } = await supabase.from('products').select('*');
+        if (prods) setProducts(prods);
+
+        // Load requests
+        const { data: reqs } = await supabase.from('branch_requests')
+            .select('*')
+            .or(`from_branch.eq.${userInfo.branch},to_branch.eq.${userInfo.branch}`)
+            .order('created_at', { ascending: false });
+        if (reqs) setRequests(reqs);
+    };
+
+    const createRequest = async () => {
+        if (!newRequest.product_id && !newRequest.custom_description) return;
+        
+        const { data, error } = await supabase.from('branch_requests').insert([{
+            ...newRequest,
+            from_branch: userInfo.branch,
+            requested_by: userInfo.name,
+            status: 'pending',
+            seq_number: requests.length + 1
+        }]).select();
+        
+        if (!error && data) {
+            setRequests([...data, ...requests]);
+            setNewRequest({ product_id: null, custom_description: '', to_branch: userInfo.branch === 'jeddah' ? 'riyadh' : 'jeddah' });
+        }
+    };
+
+    const closeRequest = async (requestId, side) => {
+        const field = side === 'sender' ? 'closed_by_sender' : 'closed_by_receiver';
+        const request = requests.find(r => r.id === requestId);
+        
+        const updates = { [field]: true };
+        if (request.closed_by_sender && side === 'receiver' || request.closed_by_receiver && side === 'sender') {
+            updates.status = 'closed';
+        }
+        
+        const { error } = await supabase.from('branch_requests').update(updates).eq('id', requestId);
+        
+        if (!error) {
+            setRequests(requests.map(r => r.id === requestId ? { ...r, ...updates } : r));
+        }
+    };
+
+    const currentRequests = requests.filter(r => r.status !== 'closed');
+    const closedRequests = requests.filter(r => r.status === 'closed');
+    const displayList = activeTab === 'current' ? currentRequests : closedRequests;
+
+    return (
+        <div className={`min-h-screen ${darkMode ? 'dark bg-slate-900' : 'bg-gradient-to-br from-slate-50 to-slate-100'}`}>
+            <div className="max-w-7xl mx-auto p-6">
+                <button onClick={onBack} className="mb-4 px-4 py-2 bg-slate-600 text-white rounded-lg">
+                    ← رجوع
+                </button>
+
+                <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl shadow-xl p-6 mb-6`}>
+                    <h2 className="text-3xl font-bold text-blue-600 mb-4">🔄 طلبات الفروع</h2>
+                    
+                    {/* New Request Form */}
+                    <div className="space-y-3">
+                        <div className="flex gap-3">
+                            <select value={newRequest.product_id || ''}
+                                onChange={(e) => setNewRequest({...newRequest, product_id: e.target.value || null, custom_description: ''})}
+                                className={`flex-1 px-4 py-2 border rounded-lg ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`}>
+                                <option value="">اختر منتج من المخزون</option>
+                                {products.map(p => (
+                                    <option key={p.id} value={p.id}>
+                                        {p.name} - جدة: {p.jeddah_quantity} | الرياض: {p.riyadh_quantity}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        
+                        <div className="text-center text-sm text-slate-500">أو</div>
+                        
+                        <textarea placeholder="وصف المنتج غير المعرف..." value={newRequest.custom_description}
+                            onChange={(e) => setNewRequest({...newRequest, custom_description: e.target.value, product_id: null})}
+                            disabled={newRequest.product_id}
+                            className={`w-full px-4 py-2 border rounded-lg ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`}
+                            rows="3" />
+                        
+                        <button onClick={createRequest} className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold">
+                            إرسال طلب إلى {newRequest.to_branch === 'jeddah' ? 'جدة' : 'الرياض'}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex gap-3 mb-4">
+                    <button onClick={() => setActiveTab('current')}
+                        className={`flex-1 px-6 py-3 rounded-lg font-bold ${activeTab === 'current' ? 'bg-blue-600 text-white' : `${darkMode ? 'bg-slate-800 text-slate-400' : 'bg-white text-slate-600'}`}`}>
+                        الطلبات الحالية ({currentRequests.length})
+                    </button>
+                    <button onClick={() => setActiveTab('closed')}
+                        className={`flex-1 px-6 py-3 rounded-lg font-bold ${activeTab === 'closed' ? 'bg-blue-600 text-white' : `${darkMode ? 'bg-slate-800 text-slate-400' : 'bg-white text-slate-600'}`}`}>
+                        الطلبات المغلقة ({closedRequests.length})
+                    </button>
+                </div>
+
+                {/* Requests List */}
+                <div className="space-y-4">
+                    {displayList.map(request => {
+                        const isSender = request.from_branch === userInfo.branch;
+                        const product = request.product_id ? products.find(p => p.id === request.product_id) : null;
+                        
+                        return (
+                            <div key={request.id} className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-xl shadow-lg p-6`}>
+                                <div className="flex justify-between items-start mb-3">
+                                    <div>
+                                        <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-slate-800'}`}>
+                                            طلب #{request.seq_number}
+                                        </h3>
+                                        <p className="text-sm text-slate-500">
+                                            من {request.from_branch === 'jeddah' ? 'جدة' : 'الرياض'} 
+                                            → {request.to_branch === 'jeddah' ? 'جدة' : 'الرياض'}
+                                        </p>
+                                    </div>
+                                    <span className={`px-3 py-1 rounded-full text-sm font-bold ${
+                                        request.status === 'closed' ? 'bg-slate-300 text-slate-700' :
+                                        'bg-blue-100 text-blue-700'
+                                    }`}>
+                                        {request.status === 'closed' ? 'مغلق' : 'نشط'}
+                                    </span>
+                                </div>
+                                
+                                <div className={`${darkMode ? 'bg-slate-700' : 'bg-slate-50'} rounded-lg p-4 mb-3`}>
+                                    {product ? (
+                                        <div>
+                                            <strong>المنتج:</strong> {product.name}
+                                            <div className="text-sm text-slate-600 mt-1">
+                                                السعر: {product.price} ريال | 
+                                                جدة: {product.jeddah_quantity} | 
+                                                الرياض: {product.riyadh_quantity}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <strong>وصف القطعة:</strong>
+                                            <p className="mt-1">{request.custom_description}</p>
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                {request.status !== 'closed' && (
+                                    <div className="flex gap-2">
+                                        <button onClick={() => closeRequest(request.id, isSender ? 'sender' : 'receiver')}
+                                            className={`flex-1 px-4 py-2 rounded-lg font-bold ${
+                                                isSender && request.closed_by_sender || !isSender && request.closed_by_receiver
+                                                ? 'bg-green-100 text-green-700 cursor-not-allowed'
+                                                : 'bg-green-600 text-white hover:bg-green-700'
+                                            }`}
+                                            disabled={isSender && request.closed_by_sender || !isSender && request.closed_by_receiver}>
+                                            {isSender && request.closed_by_sender || !isSender && request.closed_by_receiver
+                                                ? '✓ تم الإغلاق من طرفك'
+                                                : 'إغلاق الطلب'}
+                                        </button>
+                                        
+                                        {(isSender && request.closed_by_receiver || !isSender && request.closed_by_sender) && (
+                                            <div className="flex-1 text-center py-2 bg-yellow-100 text-yellow-700 rounded-lg font-bold">
+                                                بانتظار موافقة الطرف الآخر
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
+    );
+};
+        
         const CustodyManager = () => {
             const [currentUser, setCurrentUser] = useState(null);
             const [userInfo, setUserInfo] = useState(null);
@@ -758,12 +1200,26 @@ const [viewBranch, setViewBranch] = useState('all'); // 'all', 'jeddah', 'riyadh
                 setPredefinedExpenses([]);
             };
 
-            if (!currentUser) {
-                return <LoginScreen onLogin={(username, user) => {
-                    setCurrentUser(username);
-                    setUserInfo(user);
-                }} />;
-            }
+const [currentModule, setCurrentModule] = useState(null);
+
+if (!currentUser) {
+    return <LoginScreen onLogin={(username, user) => {
+        setCurrentUser(username);
+        setUserInfo(user);
+    }} />;
+}
+
+if (!currentModule) {
+    return <Dashboard userInfo={userInfo} onNavigate={setCurrentModule} onLogout={handleLogout} darkMode={darkMode} setDarkMode={setDarkMode} />;
+}
+
+if (currentModule === 'custody') {
+    return <CustodyManager onBack={() => setCurrentModule(null)} />;
+}
+
+if (currentModule === 'requests') {
+    return <RequestsSystem userInfo={userInfo} onBack={() => setCurrentModule(null)} darkMode={darkMode} />;
+}
 
             const displayList = activeTab === 'active' ? custodies : clearedCustodies;
             const sortedList = getSorted(displayList);
