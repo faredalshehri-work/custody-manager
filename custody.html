@@ -32,13 +32,30 @@
             const [wallet, setWallet] = useState(0);
             const [searchTerm, setSearchTerm] = useState('');
             const [editingCustody, setEditingCustody] = useState(null);
+            const [viewMode, setViewMode] = useState('list');
+            const [clearedFilter, setClearedFilter] = useState('all');
+            const [expandedExpenses, setExpandedExpenses] = useState({});
 
-            useEffect(() => { loadData(); }, [tab]);
+            useEffect(() => { loadData(); }, [tab, clearedFilter]);
 
             const loadData = async () => {
                 setLoading(true);
+                
+                let query = supabase.from('custodies').select('*').eq('username', user);
+                
+                if (tab === 'active') {
+                    query = query.eq('status', 'active');
+                } else {
+                    query = query.eq('status', 'cleared');
+                    if (clearedFilter === 'early') {
+                        query = query.eq('cleared_early', true);
+                    } else if (clearedFilter === 'complete') {
+                        query = query.eq('cleared_early', false);
+                    }
+                }
+                
                 const [c, all, e, w] = await Promise.all([
-                    supabase.from('custodies').select('*').eq('username', user).eq('status', tab).order('date', { ascending: false }),
+                    query.order('date', { ascending: false }),
                     supabase.from('custodies').select('*').eq('username', user),
                     supabase.from('expenses').select('*'),
                     supabase.from('wallets').select('*').eq('username', user).single()
@@ -64,7 +81,8 @@
                 
                 await supabase.from('custodies').insert({
                     username: user, serial: Date.now(), date: form.date.value,
-                    amount: amount, description: form.desc.value, status: 'active'
+                    amount: amount, description: form.desc.value, status: 'active',
+                    cleared_early: false
                 });
                 
                 if (useWallet) await updateWallet(-amount);
@@ -121,9 +139,12 @@
                 if (early && remaining > 0) {
                     if (!confirm(`تصفية مبكرة\nالمتبقي ${remaining.toFixed(2)} ر.س سيضاف للمحفظة\nمتأكد؟`)) return;
                     await updateWallet(remaining);
-                } else if (!early && !confirm('تأكيد تصفية العهدة؟')) return;
+                    await supabase.from('custodies').update({ status: 'cleared', cleared_early: true }).eq('id', id);
+                } else {
+                    if (!confirm('تأكيد تصفية العهدة؟')) return;
+                    await supabase.from('custodies').update({ status: 'cleared', cleared_early: false }).eq('id', id);
+                }
                 
-                await supabase.from('custodies').update({ status: 'cleared' }).eq('id', id);
                 loadData();
             };
 
@@ -148,6 +169,20 @@
                 }
             };
 
+            const toggleExpenses = (id) => {
+                setExpandedExpenses(prev => ({...prev, [id]: !prev[id]}));
+            };
+
+            const highlightText = (text, search) => {
+                if (!search) return text;
+                const parts = text.toString().split(new RegExp(`(${search})`, 'gi'));
+                return parts.map((part, i) => 
+                    part.toLowerCase() === search.toLowerCase() 
+                        ? <mark key={i}>{part}</mark> 
+                        : part
+                );
+            };
+
             const getExpenses = (custodyId) => expenses.filter(e => e.custody_id === custodyId);
             const getTotalExpenses = (custodyId) => getExpenses(custodyId).reduce((sum, e) => sum + e.amount, 0);
             const isComplete = (custody) => getTotalExpenses(custody.id) >= custody.amount;
@@ -167,7 +202,21 @@
                 activeCount: allCustodies.filter(c => c.status === 'active').length,
                 clearedTotal: allCustodies.filter(c => c.status === 'cleared').reduce((s, c) => s + c.amount, 0),
                 clearedCount: allCustodies.filter(c => c.status === 'cleared').length,
-                remaining: allCustodies.filter(c => c.status === 'active').reduce((s, c) => s + (c.amount - getTotalExpenses(c.id)), 0)
+                remaining: allCustodies.filter(c => c.status === 'active').reduce((s, c) => s + (c.amount - getTotalExpenses(c.id)), 0),
+                earlyCount: allCustodies.filter(c => c.status === 'cleared' && c.cleared_early).length
+            };
+
+            const exportToCSV = () => {
+                let csv = 'الرقم التسلسلي,التاريخ,الوصف,المبلغ,المصروف,المتبقي,الحالة\n';
+                allCustodies.forEach(c => {
+                    const total = getTotalExpenses(c.id);
+                    csv += `${c.serial},${c.date},${c.description},${c.amount},${total},${c.amount - total},${c.status === 'active' ? 'نشطة' : 'مصفاة'}\n`;
+                });
+                const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `عهد_${user}_${new Date().toISOString().split('T')[0]}.csv`;
+                link.click();
             };
 
             return (
@@ -177,6 +226,9 @@
                             <i className="fas fa-arrow-right"></i>
                         </button>
                         <h2><i className="fas fa-clipboard-list"></i> إدارة العهد - {user}</h2>
+                        <button className="btn-export" onClick={exportToCSV} title="تصدير Excel">
+                            <i className="fas fa-file-excel"></i>
+                        </button>
                     </div>
 
                     <div className="stats-row">
@@ -209,7 +261,7 @@
                             <div>
                                 <small>محفظة المدير</small>
                                 <strong>{wallet.toFixed(2)}</strong>
-                                <span>ر.س</span>
+                                <span>(مرحل من عهد مصفاة مبكراً)</span>
                             </div>
                         </div>
                     </div>
@@ -252,6 +304,23 @@
                             />
                             {searchTerm && <i className="fas fa-times" onClick={() => setSearchTerm('')}></i>}
                         </div>
+                        <div className="view-toggle">
+                            <button 
+                                className={viewMode === 'list' ? 'active' : ''} 
+                                onClick={() => setViewMode('list')}
+                                title="عرض أسطر">
+                                <i className="fas fa-list"></i>
+                            </button>
+                            <button 
+                                className={viewMode === 'grid' ? 'active' : ''} 
+                                onClick={() => setViewMode('grid')}
+                                title="عرض مربعات">
+                                <i className="fas fa-th"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="filter-section">
                         <div className="tab-btns">
                             <button className={tab === 'active' ? 'active' : ''} onClick={() => setTab('active')}>
                                 <i className="fas fa-folder-open"></i> النشطة ({stats.activeCount})
@@ -260,6 +329,17 @@
                                 <i className="fas fa-check-double"></i> المصفاة ({stats.clearedCount})
                             </button>
                         </div>
+                        
+                        {tab === 'cleared' && (
+                            <div className="clear-filter">
+                                <label>عرض:</label>
+                                <select value={clearedFilter} onChange={(e) => setClearedFilter(e.target.value)}>
+                                    <option value="all">الكل ({stats.clearedCount})</option>
+                                    <option value="early">المبكرة ({stats.earlyCount})</option>
+                                    <option value="complete">المكتملة ({stats.clearedCount - stats.earlyCount})</option>
+                                </select>
+                            </div>
+                        )}
                     </div>
 
                     {loading ? (
@@ -270,7 +350,7 @@
                             <p>{searchTerm ? 'لا نتائج' : 'لا عهد'}</p>
                         </div>
                     ) : (
-                        <div className="items-list">
+                        <div className={`items-list ${viewMode}`}>
                             {filteredCustodies.map(custody => {
                                 const custodyExpenses = getExpenses(custody.id);
                                 const total = getTotalExpenses(custody.id);
@@ -278,6 +358,7 @@
                                 const remaining = custody.amount - total;
                                 const percentage = (total / custody.amount * 100).toFixed(0);
                                 const isEditing = editingCustody?.id === custody.id;
+                                const isExpanded = expandedExpenses[custody.id];
 
                                 return (
                                     <div key={custody.id} className={`item-box ${complete ? 'done' : ''}`}>
@@ -289,9 +370,9 @@
                                                 </div>
                                                 <input name="desc" defaultValue={custody.description} required />
                                                 <div className="row-btns">
-                                                    <button type="submit" className="btn-ok"><i className="fas fa-check"></i></button>
+                                                    <button type="submit" className="btn-ok"><i className="fas fa-check"></i> حفظ</button>
                                                     <button type="button" className="btn-no" onClick={() => setEditingCustody(null)}>
-                                                        <i className="fas fa-times"></i>
+                                                        <i className="fas fa-times"></i> إلغاء
                                                     </button>
                                                 </div>
                                             </form>
@@ -299,9 +380,12 @@
                                             <>
                                                 <div className="item-top">
                                                     <div className="info-section">
-                                                        <span className="num">#{custody.serial}</span>
-                                                        <h4>{custody.description}</h4>
+                                                        <span className="num">#{highlightText(custody.serial, searchTerm)}</span>
+                                                        <h4>{highlightText(custody.description, searchTerm)}</h4>
                                                         <small><i className="far fa-calendar"></i> {custody.date}</small>
+                                                        {custody.cleared_early && tab === 'cleared' && (
+                                                            <span className="badge-early"><i className="fas fa-bolt"></i> مبكرة</span>
+                                                        )}
                                                     </div>
                                                     <div className="action-btns">
                                                         {tab === 'active' && !complete && (
@@ -354,27 +438,32 @@
 
                                                 {custodyExpenses.length > 0 && (
                                                     <div className="expenses-area">
-                                                        <div className="sec-title">
-                                                            <i className="fas fa-receipt"></i> المصروفات ({custodyExpenses.length})
+                                                        <div className="sec-title" onClick={() => toggleExpenses(custody.id)}>
+                                                            <span>
+                                                                <i className="fas fa-receipt"></i> المصروفات ({custodyExpenses.length})
+                                                            </span>
+                                                            <i className={`fas fa-chevron-${isExpanded ? 'up' : 'down'}`}></i>
                                                         </div>
-                                                        <div className="exp-list">
-                                                            {custodyExpenses.map(exp => (
-                                                                <div key={exp.id} className="exp-line">
-                                                                    <div className="exp-info">
-                                                                        <span className="desc">{exp.description}</span>
-                                                                        <span className="num">#{exp.serial}</span>
+                                                        {isExpanded && (
+                                                            <div className="exp-list">
+                                                                {custodyExpenses.map(exp => (
+                                                                    <div key={exp.id} className="exp-line">
+                                                                        <div className="exp-info">
+                                                                            <span className="desc">{highlightText(exp.description, searchTerm)}</span>
+                                                                            <span className="num">#{highlightText(exp.serial, searchTerm)}</span>
+                                                                        </div>
+                                                                        <div className="exp-val">
+                                                                            <strong>{exp.amount} ر.س</strong>
+                                                                            {tab === 'active' && (
+                                                                                <button onClick={() => deleteExpense(exp.id)}>
+                                                                                    <i className="fas fa-times"></i>
+                                                                                </button>
+                                                                            )}
+                                                                        </div>
                                                                     </div>
-                                                                    <div className="exp-val">
-                                                                        <strong>{exp.amount} ر.س</strong>
-                                                                        {tab === 'active' && (
-                                                                            <button onClick={() => deleteExpense(exp.id)}>
-                                                                                <i className="fas fa-times"></i>
-                                                                            </button>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </>
