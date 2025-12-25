@@ -1688,7 +1688,7 @@ const PurchaseRequests = ({ userInfo, onBack, darkMode }) => {
             const [historyIndex, setHistoryIndex] = useState(-1);
             const [custodySequence, setCustodySequence] = useState(1);
             const [expenseSequence, setExpenseSequence] = useState(1);
-            const [mainTab, setMainTab] = useState('custodies');
+            const [mainTab, setMainTab] = useState('dashboard');
 const [viewBranch, setViewBranch] = useState('all'); // 'all', 'jeddah', 'riyadh'
             const [activeTab, setActiveTab] = useState('active');
             const [sortBy, setSortBy] = useState('newest');
@@ -2356,6 +2356,9 @@ if (currentModule === 'requests') {
 
                         {/* Main Tabs */}
 <div className="flex gap-2 md:gap-3 mb-4 md:mb-6 overflow-x-auto">
+    <button onClick={() => setMainTab('dashboard')} className={`flex-1 min-w-[100px] px-4 md:px-6 py-2 md:py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 text-sm md:text-base ${mainTab === 'dashboard' ? 'bg-blue-600 text-white shadow-xl' : `${darkMode ? 'bg-slate-800 text-slate-300' : 'bg-white text-slate-600'} hover:bg-blue-50`}`}>
+        🏠 الرئيسية
+    </button>
     {isReadOnly && (
         <button onClick={() => setMainTab('summary')} className={`flex-1 min-w-[100px] px-4 md:px-6 py-2 md:py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 text-sm md:text-base ${mainTab === 'summary' ? 'bg-blue-600 text-white shadow-xl' : `${darkMode ? 'bg-slate-800 text-slate-300' : 'bg-white text-slate-600'} hover:bg-blue-50`}`}>
             <BarChart /> اجمالي العهد
@@ -2520,6 +2523,64 @@ if (currentModule === 'requests') {
                             </>
                         );
                     })()}
+                </div>
+            </div>
+        </div>
+    </div>
+)}{/* Dashboard Tab */}
+{mainTab === 'dashboard' && (
+    <div className="space-y-6">
+        <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <h1 className="text-4xl font-bold text-slate-800 mb-4">🏦 نظام إدارة العهد</h1>
+            <p className="text-slate-600 text-lg">مرحباً بك في نظام إدارة العهد الشامل</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-xl p-6 text-white cursor-pointer hover:scale-105 transition" onClick={() => setMainTab('custodies')}>
+                <div className="text-5xl mb-4">📋</div>
+                <h3 className="text-2xl font-bold mb-2">العهد</h3>
+                <p className="text-blue-100 mb-4">إدارة العهد الحالية والمصفاة</p>
+                <div className="bg-white/20 rounded-lg p-3">
+                    <div className="text-3xl font-bold">{custodies.length}</div>
+                    <div className="text-sm text-blue-100">عهدة نشطة</div>
+                </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-xl p-6 text-white cursor-pointer hover:scale-105 transition" onClick={() => setMainTab('reports')}>
+                <div className="text-5xl mb-4">📊</div>
+                <h3 className="text-2xl font-bold mb-2">التقارير</h3>
+                <p className="text-purple-100 mb-4">عرض تقارير المصروفات</p>
+                <div className="bg-white/20 rounded-lg p-3">
+                    <div className="text-3xl font-bold">{totalExpenses.toFixed(0)}</div>
+                    <div className="text-sm text-purple-100">ريال مصروفات</div>
+                </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-xl p-6 text-white cursor-pointer hover:scale-105 transition" onClick={() => setMainTab('settings')}>
+                <div className="text-5xl mb-4">⚙️</div>
+                <h3 className="text-2xl font-bold mb-2">الإعدادات</h3>
+                <p className="text-green-100 mb-4">إدارة المصاريف المعرفة</p>
+                <div className="bg-white/20 rounded-lg p-3">
+                    <div className="text-3xl font-bold">{predefinedExpenses.length}</div>
+                    <div className="text-sm text-green-100">مصروف معرّف</div>
+                </div>
+            </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-xl p-6">
+            <h2 className="text-2xl font-bold text-slate-800 mb-4">📈 نظرة عامة</h2>
+            <div className="grid grid-cols-3 gap-4">
+                <div className="bg-blue-50 rounded-xl p-4 text-center">
+                    <div className="text-sm text-blue-600 mb-1">إجمالي العهد</div>
+                    <div className="text-2xl font-bold text-blue-700">{totalCustodies.toFixed(2)} ريال</div>
+                </div>
+                <div className="bg-red-50 rounded-xl p-4 text-center">
+                    <div className="text-sm text-red-600 mb-1">إجمالي المصروفات</div>
+                    <div className="text-2xl font-bold text-red-700">{totalExpenses.toFixed(2)} ريال</div>
+                </div>
+                <div className="bg-green-50 rounded-xl p-4 text-center">
+                    <div className="text-sm text-green-600 mb-1">المتبقي</div>
+                    <div className="text-2xl font-bold text-green-700">{totalRemaining.toFixed(2)} ريال</div>
                 </div>
             </div>
         </div>
