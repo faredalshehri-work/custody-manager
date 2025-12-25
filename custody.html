@@ -18,6 +18,10 @@
         const user = localStorage.getItem('currentUser');
         if (!user) window.location.href = 'index.html';
 
+        // Get project ID from URL if exists
+        const urlParams = new URLSearchParams(window.location.search);
+        const projectIdFromUrl = urlParams.get('project');
+
         const supabase = window.supabase.createClient(
             'https://opyuncxyjdqxawddhdjn.supabase.co',
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
@@ -27,16 +31,28 @@
             const [custodies, setCustodies] = useState([]);
             const [allCustodies, setAllCustodies] = useState([]);
             const [expenses, setExpenses] = useState([]);
+            const [projects, setProjects] = useState([]);
             const [tab, setTab] = useState('active');
             const [loading, setLoading] = useState(false);
             const [wallet, setWallet] = useState(0);
             const [searchTerm, setSearchTerm] = useState('');
             const [editingCustody, setEditingCustody] = useState(null);
-            const [viewMode, setViewMode] = useState('list');
+            const [viewMode, setViewMode] = useState(localStorage.getItem('viewMode') || 'list');
             const [clearedFilter, setClearedFilter] = useState('all');
             const [expandedExpenses, setExpandedExpenses] = useState({});
+            
+            // Advanced Filters
+            const [showFilters, setShowFilters] = useState(false);
+            const [dateFrom, setDateFrom] = useState('');
+            const [dateTo, setDateTo] = useState('');
+            const [amountMin, setAmountMin] = useState('');
+            const [amountMax, setAmountMax] = useState('');
+            const [selectedProject, setSelectedProject] = useState(projectIdFromUrl || 'all');
+            const [showProjectModal, setShowProjectModal] = useState(false);
+            const [custodyToAssign, setCustodyToAssign] = useState(null);
 
-            useEffect(() => { loadData(); }, [tab, clearedFilter]);
+            useEffect(() => { loadData(); }, [tab, clearedFilter, selectedProject]);
+            useEffect(() => { localStorage.setItem('viewMode', viewMode); }, [viewMode]);
 
             const loadData = async () => {
                 setLoading(true);
@@ -54,17 +70,25 @@
                     }
                 }
                 
-                const [c, all, e, w] = await Promise.all([
+                if (selectedProject && selectedProject !== 'all' && selectedProject !== 'unassigned') {
+                    query = query.eq('project_id', parseInt(selectedProject));
+                } else if (selectedProject === 'unassigned') {
+                    query = query.is('project_id', null);
+                }
+                
+                const [c, all, e, w, p] = await Promise.all([
                     query.order('date', { ascending: false }),
                     supabase.from('custodies').select('*').eq('username', user),
                     supabase.from('expenses').select('*'),
-                    supabase.from('wallets').select('*').eq('username', user).single()
+                    supabase.from('wallets').select('*').eq('username', user).single(),
+                    supabase.from('projects').select('*').eq('username', user)
                 ]);
                 
                 setCustodies(c.data || []);
                 setAllCustodies(all.data || []);
                 setExpenses(e.data || []);
                 setWallet(w.data?.amount || 0);
+                setProjects(p.data || []);
                 setLoading(false);
             };
 
@@ -73,6 +97,7 @@
                 const form = e.target;
                 const useWallet = form.useWallet?.checked || false;
                 const amount = parseFloat(form.amount.value);
+                const projectId = form.project_id?.value || null;
                 
                 if (useWallet && wallet < amount) {
                     alert('المبلغ في المحفظة غير كافي!');
@@ -82,13 +107,23 @@
                 await supabase.from('custodies').insert({
                     username: user, serial: Date.now(), date: form.date.value,
                     amount: amount, description: form.desc.value, status: 'active',
-                    cleared_early: false
+                    cleared_early: false,
+                    project_id: projectId === 'null' ? null : parseInt(projectId)
                 });
                 
                 if (useWallet) await updateWallet(-amount);
                 
                 form.reset(); 
                 form.date.value = new Date().toISOString().split('T')[0];
+                loadData();
+            };
+
+            const assignToProject = async (custodyId, projectId) => {
+                await supabase.from('custodies').update({
+                    project_id: projectId === 'null' ? null : parseInt(projectId)
+                }).eq('id', custodyId);
+                setCustodyToAssign(null);
+                setShowProjectModal(false);
                 loadData();
             };
 
@@ -187,15 +222,31 @@
             const getTotalExpenses = (custodyId) => getExpenses(custodyId).reduce((sum, e) => sum + e.amount, 0);
             const isComplete = (custody) => getTotalExpenses(custody.id) >= custody.amount;
 
-            const filteredCustodies = custodies.filter(custody => {
-                if (!searchTerm) return true;
-                const search = searchTerm.toLowerCase();
-                const matchCustody = custody.description.toLowerCase().includes(search) || custody.serial.toString().includes(search);
-                const matchExpense = getExpenses(custody.id).some(exp => 
-                    exp.description.toLowerCase().includes(search) || exp.serial.toString().includes(search)
-                );
-                return matchCustody || matchExpense;
-            });
+            const applyFilters = (custodiesList) => {
+                return custodiesList.filter(custody => {
+                    // Search filter
+                    if (searchTerm) {
+                        const search = searchTerm.toLowerCase();
+                        const matchCustody = custody.description.toLowerCase().includes(search) || custody.serial.toString().includes(search);
+                        const matchExpense = getExpenses(custody.id).some(exp => 
+                            exp.description.toLowerCase().includes(search) || exp.serial.toString().includes(search)
+                        );
+                        if (!matchCustody && !matchExpense) return false;
+                    }
+                    
+                    // Date filter
+                    if (dateFrom && custody.date < dateFrom) return false;
+                    if (dateTo && custody.date > dateTo) return false;
+                    
+                    // Amount filter
+                    if (amountMin && custody.amount < parseFloat(amountMin)) return false;
+                    if (amountMax && custody.amount > parseFloat(amountMax)) return false;
+                    
+                    return true;
+                });
+            };
+
+            const filteredCustodies = applyFilters(custodies);
 
             const stats = {
                 activeTotal: allCustodies.filter(c => c.status === 'active').reduce((s, c) => s + c.amount, 0),
@@ -206,17 +257,112 @@
                 earlyCount: allCustodies.filter(c => c.status === 'cleared' && c.cleared_early).length
             };
 
-            const exportToCSV = () => {
-                let csv = 'الرقم التسلسلي,التاريخ,الوصف,المبلغ,المصروف,المتبقي,الحالة\n';
-                allCustodies.forEach(c => {
-                    const total = getTotalExpenses(c.id);
-                    csv += `${c.serial},${c.date},${c.description},${c.amount},${total},${c.amount - total},${c.status === 'active' ? 'نشطة' : 'مصفاة'}\n`;
-                });
-                const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `عهد_${user}_${new Date().toISOString().split('T')[0]}.csv`;
-                link.click();
+            const printReport = () => {
+                const printCustodies = filteredCustodies;
+                const totalAmount = printCustodies.reduce((s, c) => s + c.amount, 0);
+                const totalSpent = printCustodies.reduce((s, c) => s + getTotalExpenses(c.id), 0);
+                const totalRemaining = totalAmount - totalSpent;
+
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html dir="rtl">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>تقرير العهد - ${user}</title>
+                        <style>
+                            body { font-family: 'Segoe UI', Tahoma, Arial; direction: rtl; padding: 20px; }
+                            .header { text-align: center; border-bottom: 3px solid #0084ff; padding-bottom: 20px; margin-bottom: 30px; }
+                            .header h1 { color: #0084ff; margin: 10px 0; }
+                            .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 30px 0; }
+                            .stat-box { background: #f0f7ff; padding: 15px; border-radius: 8px; text-align: center; }
+                            .stat-box .label { font-size: 0.85rem; color: #65676b; }
+                            .stat-box .value { font-size: 1.5rem; font-weight: bold; color: #0084ff; margin: 5px 0; }
+                            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                            th, td { padding: 12px; text-align: right; border-bottom: 1px solid #ddd; font-size: 0.9rem; }
+                            th { background: #0084ff; color: white; }
+                            .footer { margin-top: 40px; text-align: center; color: #65676b; font-size: 0.9rem; }
+                            @media print {
+                                .no-print { display: none; }
+                                @page { margin: 1cm; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="header">
+                            <h1>📋 تقرير العهد</h1>
+                            <h2>${user}</h2>
+                            <p>${new Date().toLocaleDateString('ar-SA')}</p>
+                        </div>
+                        
+                        <div class="stats">
+                            <div class="stat-box">
+                                <div class="label">عدد العهد</div>
+                                <div class="value">${printCustodies.length}</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="label">إجمالي المبالغ</div>
+                                <div class="value">${totalAmount.toFixed(2)}</div>
+                                <div class="label">ر.س</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="label">المصروف</div>
+                                <div class="value">${totalSpent.toFixed(2)}</div>
+                                <div class="label">ر.س</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="label">المتبقي</div>
+                                <div class="value">${totalRemaining.toFixed(2)}</div>
+                                <div class="label">ر.س</div>
+                            </div>
+                        </div>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>الوصف</th>
+                                    <th>التاريخ</th>
+                                    <th>المبلغ</th>
+                                    <th>المصروف</th>
+                                    <th>المتبقي</th>
+                                    <th>النسبة</th>
+                                    <th>الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${printCustodies.map((c, i) => {
+                                    const spent = getTotalExpenses(c.id);
+                                    const remaining = c.amount - spent;
+                                    const percentage = (spent / c.amount * 100).toFixed(1);
+                                    return `
+                                        <tr>
+                                            <td>${i + 1}</td>
+                                            <td>${c.description}</td>
+                                            <td>${c.date}</td>
+                                            <td>${c.amount.toFixed(2)}</td>
+                                            <td>${spent.toFixed(2)}</td>
+                                            <td>${remaining.toFixed(2)}</td>
+                                            <td>${percentage}%</td>
+                                            <td>${c.status === 'active' ? '🟢 نشطة' : '✅ مصفاة'}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+
+                        <div class="footer">
+                            <p>تم الطباعة في: ${new Date().toLocaleString('ar-SA')}</p>
+                            <p>نظام إدارة العهد</p>
+                        </div>
+
+                        <button class="no-print" onclick="window.print()" style="position: fixed; top: 20px; left: 20px; padding: 10px 20px; background: #0084ff; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem;">
+                            🖨️ طباعة
+                        </button>
+                    </body>
+                    </html>
+                `);
+                printWindow.document.close();
             };
 
             return (
@@ -226,8 +372,8 @@
                             <i className="fas fa-arrow-right"></i>
                         </button>
                         <h2><i className="fas fa-clipboard-list"></i> إدارة العهد - {user}</h2>
-                        <button className="btn-export" onClick={exportToCSV} title="تصدير Excel">
-                            <i className="fas fa-file-excel"></i>
+                        <button className="btn-export" onClick={printReport} title="طباعة">
+                            <i className="fas fa-print"></i>
                         </button>
                     </div>
 
@@ -283,6 +429,15 @@
                                 <label><i className="fas fa-align-right"></i> الوصف</label>
                                 <input name="desc" placeholder="وصف العهدة" required />
                             </div>
+                            <div>
+                                <label><i className="fas fa-project-diagram"></i> المشروع (اختياري)</label>
+                                <select name="project_id">
+                                    <option value="null">بدون مشروع</option>
+                                    {projects.filter(p => p.status === 'active').map(p => (
+                                        <option key={p.id} value={p.id}>{p.name}</option>
+                                    ))}
+                                </select>
+                            </div>
                             {wallet > 0 && (
                                 <label className="wallet-option">
                                     <input name="useWallet" type="checkbox" />
@@ -304,6 +459,10 @@
                             />
                             {searchTerm && <i className="fas fa-times" onClick={() => setSearchTerm('')}></i>}
                         </div>
+                        <button className="btn-filter" onClick={() => setShowFilters(!showFilters)}>
+                            <i className="fas fa-filter"></i>
+                            {(dateFrom || dateTo || amountMin || amountMax) && <span className="filter-badge">!</span>}
+                        </button>
                         <div className="view-toggle">
                             <button 
                                 className={viewMode === 'list' ? 'active' : ''} 
@@ -320,6 +479,38 @@
                         </div>
                     </div>
 
+                    {showFilters && (
+                        <div className="filters-panel">
+                            <h4><i className="fas fa-sliders-h"></i> فلاتر متقدمة</h4>
+                            <div className="filters-grid">
+                                <div>
+                                    <label>من تاريخ</label>
+                                    <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+                                </div>
+                                <div>
+                                    <label>إلى تاريخ</label>
+                                    <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+                                </div>
+                                <div>
+                                    <label>أقل مبلغ</label>
+                                    <input type="number" step="0.01" value={amountMin} onChange={(e) => setAmountMin(e.target.value)} placeholder="0.00" />
+                                </div>
+                                <div>
+                                    <label>أعلى مبلغ</label>
+                                    <input type="number" step="0.01" value={amountMax} onChange={(e) => setAmountMax(e.target.value)} placeholder="0.00" />
+                                </div>
+                            </div>
+                            <button className="btn-clear-filters" onClick={() => {
+                                setDateFrom('');
+                                setDateTo('');
+                                setAmountMin('');
+                                setAmountMax('');
+                            }}>
+                                <i className="fas fa-times-circle"></i> مسح الفلاتر
+                            </button>
+                        </div>
+                    )}
+
                     <div className="filter-section">
                         <div className="tab-btns">
                             <button className={tab === 'active' ? 'active' : ''} onClick={() => setTab('active')}>
@@ -330,15 +521,20 @@
                             </button>
                         </div>
                         
+                        <select value={selectedProject} onChange={(e) => setSelectedProject(e.target.value)} className="project-select">
+                            <option value="all">كل المشاريع</option>
+                            <option value="unassigned">بدون مشروع</option>
+                            {projects.map(p => (
+                                <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                        </select>
+
                         {tab === 'cleared' && (
-                            <div className="clear-filter">
-                                <label>عرض:</label>
-                                <select value={clearedFilter} onChange={(e) => setClearedFilter(e.target.value)}>
-                                    <option value="all">الكل ({stats.clearedCount})</option>
-                                    <option value="early">المبكرة ({stats.earlyCount})</option>
-                                    <option value="complete">المكتملة ({stats.clearedCount - stats.earlyCount})</option>
-                                </select>
-                            </div>
+                            <select value={clearedFilter} onChange={(e) => setClearedFilter(e.target.value)} className="clear-filter-select">
+                                <option value="all">الكل ({stats.clearedCount})</option>
+                                <option value="early">المبكرة ({stats.earlyCount})</option>
+                                <option value="complete">المكتملة ({stats.clearedCount - stats.earlyCount})</option>
+                            </select>
                         )}
                     </div>
 
@@ -347,7 +543,7 @@
                     ) : filteredCustodies.length === 0 ? (
                         <div className="no-data">
                             <i className="fas fa-inbox"></i>
-                            <p>{searchTerm ? 'لا نتائج' : 'لا عهد'}</p>
+                            <p>{searchTerm || dateFrom || dateTo || amountMin || amountMax ? 'لا نتائج للفلاتر' : 'لا عهد'}</p>
                         </div>
                     ) : (
                         <div className={`items-list ${viewMode}`}>
@@ -359,6 +555,7 @@
                                 const percentage = (total / custody.amount * 100).toFixed(0);
                                 const isEditing = editingCustody?.id === custody.id;
                                 const isExpanded = expandedExpenses[custody.id];
+                                const custodyProject = projects.find(p => p.id === custody.project_id);
 
                                 return (
                                     <div key={custody.id} className={`item-box ${complete ? 'done' : ''}`}>
@@ -383,11 +580,19 @@
                                                         <span className="num">#{highlightText(custody.serial, searchTerm)}</span>
                                                         <h4>{highlightText(custody.description, searchTerm)}</h4>
                                                         <small><i className="far fa-calendar"></i> {custody.date}</small>
-                                                        {custody.cleared_early && tab === 'cleared' && (
-                                                            <span className="badge-early"><i className="fas fa-bolt"></i> مبكرة</span>
-                                                        )}
+                                                        <div className="badges">
+                                                            {custody.cleared_early && tab === 'cleared' && (
+                                                                <span className="badge-early"><i className="fas fa-bolt"></i> مبكرة</span>
+                                                            )}
+                                                            {custodyProject && (
+                                                                <span className="badge-project"><i className="fas fa-project-diagram"></i> {custodyProject.name}</span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                     <div className="action-btns">
+                                                        <button className="icon-btn" onClick={() => { setCustodyToAssign(custody); setShowProjectModal(true); }} title="ربط بمشروع">
+                                                            <i className="fas fa-link"></i>
+                                                        </button>
                                                         {tab === 'active' && !complete && (
                                                             <button className="icon-btn clear-btn" onClick={() => clearCustody(custody.id, true)} title="تصفية مبكرة">
                                                                 <i className="fas fa-bolt"></i>
@@ -471,6 +676,30 @@
                                     </div>
                                 );
                             })}
+                        </div>
+                    )}
+
+                    {showProjectModal && custodyToAssign && (
+                        <div className="modal-overlay" onClick={() => setShowProjectModal(false)}>
+                            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                <h3><i className="fas fa-link"></i> ربط بمشروع</h3>
+                                <p>العهدة: <strong>{custodyToAssign.description}</strong></p>
+                                <div className="project-list">
+                                    <div className="project-option" onClick={() => assignToProject(custodyToAssign.id, 'null')}>
+                                        <i className="fas fa-times-circle"></i>
+                                        <span>إزالة من المشروع</span>
+                                    </div>
+                                    {projects.filter(p => p.status === 'active').map(p => (
+                                        <div key={p.id} className="project-option" onClick={() => assignToProject(custodyToAssign.id, p.id)}>
+                                            <i className="fas fa-project-diagram"></i>
+                                            <span>{p.name}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <button className="btn-no" onClick={() => setShowProjectModal(false)}>
+                                    <i className="fas fa-times"></i> إلغاء
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>
