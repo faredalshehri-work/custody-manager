@@ -2250,109 +2250,93 @@ if (currentModule === 'requests') {
     return <RequestsSystem userInfo={userInfo} onBack={() => setCurrentModule(null)} darkMode={darkMode} />;
 }
 
-// إذا currentModule === 'custody'، الكود يستمر تحت عادي
+// القائمة الرئيسية
+if (currentModule === null) {
+    return (
+        <div className={`min-h-screen ${darkMode ? 'dark bg-slate-900' : 'bg-gradient-to-br from-slate-50 to-slate-100'}`}>
+            <div className="max-w-7xl mx-auto p-6">
+                {/* Header */}
+                <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl shadow-xl p-6 mb-6`}>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <h1 className="text-4xl font-black text-blue-600 mb-1">القائمة الرئيسية</h1>
+                            <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                                {userInfo.branchName} - {currentUser}
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <button onClick={() => setDarkMode(!darkMode)} 
+                                className={`p-3 rounded-xl ${darkMode ? 'bg-slate-700 text-yellow-400' : 'bg-slate-100 text-slate-700'}`}>
+                                {darkMode ? <Sun /> : <Moon />}
+                            </button>
+                            <button onClick={() => { setCurrentUser(null); setUserInfo(null); }} 
+                                className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 flex items-center gap-2">
+                                <LogOut /> خروج
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-            const displayList = activeTab === 'active' ? custodies : clearedCustodies;
-            const sortedList = getSorted(displayList);
-            const totalCustodies = custodies.reduce((s, c) => s + c.amount, 0);
-            const totalExpenses = custodies.reduce((s, c) => s + calcCustodyExpenses(c), 0);
-            const totalRemaining = totalCustodies - totalExpenses;
-            
-            const clearedTotalAmount = clearedCustodies.reduce((s, c) => s + c.amount, 0);
-            const clearedTotalExpenses = clearedCustodies.reduce((s, c) => s + calcCustodyExpenses(c), 0);
-            const clearedTotalRemaining = clearedTotalAmount - clearedTotalExpenses;
-            const clearedTotalExpenseCount = clearedCustodies.reduce((s, c) => s + c.expenses.length, 0);
-            
-            const reportData = mainTab === 'reports' ? getReportData() : null;
-
-            const isReadOnly = userInfo.role === 'viewer';
-
-            return (
-                <div className={`min-h-screen ${darkMode ? 'dark bg-slate-900' : 'bg-gradient-to-br from-slate-50 to-slate-100'} transition-colors duration-300`}>
-                    {isLoading && (
-                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                            <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 flex flex-col items-center gap-4">
-                                <div className="loading-spinner"></div>
-                                <p className="text-lg font-bold text-slate-800 dark:text-white">جاري تحميل البيانات...</p>
+                {/* القوائم الرئيسية */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* نظام العهد */}
+                    <div onClick={() => setCurrentModule('custody')} 
+                        className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl shadow-xl p-8 cursor-pointer hover:scale-105 transition transform`}>
+                        <div className="text-center">
+                            <div className="text-6xl mb-4">🏦</div>
+                            <h2 className={`text-3xl font-black mb-2 ${darkMode ? 'text-white' : 'text-slate-800'}`}>
+                                نظام إدارة العهد
+                            </h2>
+                            <p className={`text-lg ${darkMode ? 'text-slate-400' : 'text-slate-600'} mb-4`}>
+                                إدارة العهد والمصروفات
+                            </p>
+                            <div className="flex justify-center gap-4 mt-6">
+                                <div className={`${darkMode ? 'bg-slate-700' : 'bg-blue-50'} rounded-lg px-4 py-2`}>
+                                    <div className={`text-sm ${darkMode ? 'text-slate-400' : 'text-blue-600'}`}>العهد</div>
+                                    <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-blue-700'}`}>📋</div>
+                                </div>
+                                <div className={`${darkMode ? 'bg-slate-700' : 'bg-purple-50'} rounded-lg px-4 py-2`}>
+                                    <div className={`text-sm ${darkMode ? 'text-slate-400' : 'text-purple-600'}`}>التقارير</div>
+                                    <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-purple-700'}`}>📊</div>
+                                </div>
                             </div>
                         </div>
-                    )}
-
-                    <div className="fixed top-2 left-2 md:top-4 md:left-4 z-40 flex flex-col gap-2">
-                        {isSaving && (
-                            <div className="bg-blue-600 text-white px-3 py-2 md:px-4 rounded-lg shadow-lg flex items-center gap-2 animate-pulse text-sm">
-                                <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
-                                جاري الحفظ...
-                            </div>
-                        )}
-                        {!isSaving && lastSaved && (
-                            <div className="bg-green-600 text-white px-3 py-2 md:px-4 rounded-lg shadow-lg text-xs md:text-sm">
-                                آخر حفظ: {lastSaved.toLocaleTimeString('ar-SA')}
-                            </div>
-                        )}
                     </div>
 
-                    <div className="max-w-7xl mx-auto p-3 md:p-6">
-                        {/* Header */}
-                        <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl shadow-xl p-4 md:p-6 mb-4 md:mb-6`}>
-                            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                                <div className="text-center md:text-right">
-                                    <h1 className="text-2xl md:text-4xl font-black text-blue-600 mb-1">نظام إدارة العهد</h1>
-                                    <p className={`text-xs md:text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Custody Management System</p>
+                    {/* نظام الطلبات */}
+                    <div onClick={() => setCurrentModule('requests')} 
+                        className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl shadow-xl p-8 cursor-pointer hover:scale-105 transition transform`}>
+                        <div className="text-center">
+                            <div className="text-6xl mb-4">📦</div>
+                            <h2 className={`text-3xl font-black mb-2 ${darkMode ? 'text-white' : 'text-slate-800'}`}>
+                                نظام الطلبات
+                            </h2>
+                            <p className={`text-lg ${darkMode ? 'text-slate-400' : 'text-slate-600'} mb-4`}>
+                                المخزون وطلبات المشتريات والفروع
+                            </p>
+                            <div className="flex justify-center gap-2 mt-6">
+                                <div className={`${darkMode ? 'bg-slate-700' : 'bg-green-50'} rounded-lg px-3 py-2`}>
+                                    <div className={`text-xs ${darkMode ? 'text-slate-400' : 'text-green-600'}`}>المخزون</div>
+                                    <div className="text-xl">📦</div>
                                 </div>
-                                
-                                <div className={`text-center px-4 md:px-6 py-2 md:py-3 rounded-xl ${darkMode ? 'bg-slate-700' : 'bg-blue-50'}`}>
-                                    <div className={`text-xl md:text-3xl font-black ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                                        {userInfo.branchName}
-                                    </div>
-                                    {isReadOnly && (
-                                        <div className="text-xs md:text-sm text-orange-600 font-bold mt-1">وضع القراءة فقط</div>
-                                    )}
+                                <div className={`${darkMode ? 'bg-slate-700' : 'bg-orange-50'} rounded-lg px-3 py-2`}>
+                                    <div className={`text-xs ${darkMode ? 'text-slate-400' : 'text-orange-600'}`}>المشتريات</div>
+                                    <div className="text-xl">🛒</div>
                                 </div>
-
-                                <div className="flex items-center gap-2">
-                                    <button 
-                                        onClick={() => setDarkMode(!darkMode)}
-                                        className={`p-2 md:p-3 rounded-xl ${darkMode ? 'bg-yellow-400 text-slate-900' : 'bg-slate-700 text-white'} hover:scale-110 transition`}
-                                    >
-                                        {darkMode ? <Sun /> : <Moon />}
-                                    </button>
-                                    <button 
-                                        onClick={handleLogout}
-                                        className="p-2 md:p-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition flex items-center gap-2"
-                                    >
-                                        <LogOut />
-                                        <span className="hidden md:inline">خروج</span>
-                                    </button>
+                                <div className={`${darkMode ? 'bg-slate-700' : 'bg-blue-50'} rounded-lg px-3 py-2`}>
+                                    <div className={`text-xs ${darkMode ? 'text-slate-400' : 'text-blue-600'}`}>الفروع</div>
+                                    <div className="text-xl">🔄</div>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
 
-                        {/* Search and Undo/Redo Bar */}
-                        {!isReadOnly && (
-                            <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-xl shadow-lg p-3 md:p-4 mb-4 flex flex-wrap gap-2 items-center justify-between`}>
-                                <div className="flex gap-2">
-                                    <button onClick={undo} disabled={historyIndex <= 0} className={`px-3 py-2 ${darkMode ? 'bg-slate-700' : 'bg-slate-200'} rounded-lg disabled:opacity-30 flex items-center gap-2 text-sm`}>
-                                        <Undo /> <span className="hidden md:inline">تراجع</span>
-                                    </button>
-                                    <button onClick={redo} disabled={historyIndex >= history.length - 1} className={`px-3 py-2 ${darkMode ? 'bg-slate-700' : 'bg-slate-200'} rounded-lg disabled:opacity-30 flex items-center gap-2 text-sm`}>
-                                        <Redo /> <span className="hidden md:inline">إعادة</span>
-                                    </button>
-                                </div>
-                                
-                                <div className="flex flex-wrap gap-2 items-center">
-                                    <input type="number" placeholder="رقم العهدة" value={searchCustody} onChange={(e) => setSearchCustody(e.target.value)} className={`w-24 md:w-32 px-2 md:px-3 py-2 border rounded-lg text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`} />
-                                    <button onClick={searchForCustody} className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-1 text-sm">
-                                        <Search /> <span className="hidden md:inline">بحث عهدة</span>
-                                    </button>
-                                    
-                                    <input type="number" placeholder="رقم المصروف" value={searchExpense} onChange={(e) => setSearchExpense(e.target.value)} className={`w-24 md:w-32 px-2 md:px-3 py-2 border rounded-lg text-sm ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : ''}`} />
-                                    <button onClick={searchForExpense} className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-1 text-sm">
-                                        <Search /> <span className="hidden md:inline">بحث مصروف</span>
-                                    </button>
-                                </div>
-                            </div>
-                        )}
+// نظام العهد (لو currentModule === 'custody')
 
                         {/* Main Tabs */}
 <div className="flex gap-2 md:gap-3 mb-4 md:mb-6 overflow-x-auto">
@@ -2602,6 +2586,11 @@ if (currentModule === 'requests') {
 )}
 
                             <>
+                                {/* زر الرجوع للقائمة الرئيسية */}
+<button onClick={() => setCurrentModule(null)} 
+    className="mb-4 px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 flex items-center gap-2">
+    ← القائمة الرئيسية
+</button>
                                 <div className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl shadow-xl p-4 md:p-6 mb-4 md:mb-6`}>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6">
                                         <div className="bg-blue-50 dark:bg-blue-900 rounded-xl p-3 md:p-4 text-center">
