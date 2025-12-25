@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>مرحباً <span id="username"></span> 👋</h2>
+            <button class="btn btn-danger" onclick="logout()">تسجيل خروج</button>
+        </div>
+        <div class="dashboard">
+            <div class="card" onclick="navigate('custody.html')">
+                <div class="icon">📋</div>
+                <h3>العهد</h3>
+                <p>إدارة العهد والمصروفات</p>
+            </div>
+            <div class="card" onclick="alert('قريباً...')">
+                <div class="icon">📦</div>
+                <h3>المخزون</h3>
+                <p>إدارة المخزون والمواد</p>
+            </div>
+            <div class="card" onclick="alert('قريباً...')">
+                <div class="icon">💰</div>
+                <h3>المحاسبة</h3>
+                <p>التقارير المالية</p>
+            </div>
+            <div class="card" onclick="alert('قريباً...')">
+                <div class="icon">📨</div>
+                <h3>طلبات الفروع</h3>
+                <p>التواصل بين الفروع</p>
+            </div>
+        </div>
+    </div>
+    <script>
+        const user = localStorage.getItem('currentUser');
+        if (!user) window.location.href = 'index.html';
+        document.getElementById('username').textContent = user;
+        
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        }
+        
+        function navigate(page) {
+            window.location.href = page;
+        }
+    </script>
+</body>
+</html>

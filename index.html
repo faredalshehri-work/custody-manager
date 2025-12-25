@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - نظام إدارة العهد</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="login">
+        <h1>🏢 نظام إدارة العهد</h1>
+        <button onclick="login('فريد - جدة')" class="btn-primary">فريد - جدة 🏢</button>
+        <button onclick="login('يزيد - الرياض')" class="btn-primary">يزيد - الرياض 🏢</button>
+    </div>
+    <script>
+        function login(username) {
+            localStorage.setItem('currentUser', username);
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+</body>
+</html>

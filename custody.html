@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة العهد</title>
+    <link rel="stylesheet" href="style.css">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const user = localStorage.getItem('currentUser');
+        if (!user) window.location.href = 'index.html';
+
+        const supabase = window.supabase.createClient(
+            'https://opyuncxyjdqxawddhdjn.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
+        );
+
+        function CustodyApp() {
+            const [custodies, setCustodies] = useState([]);
+            const [expenses, setExpenses] = useState([]);
+            const [tab, setTab] = useState('active');
+            const [loading, setLoading] = useState(false);
+
+            useEffect(() => { loadData(); }, [tab]);
+
+            const loadData = async () => {
+                setLoading(true);
+                const { data: c } = await supabase.from('custodies').select('*').eq('username', user).eq('status', tab).order('date', { ascending: false });
+                const { data: e } = await supabase.from('expenses').select('*');
+                setCustodies(c || []);
+                setExpenses(e || []);
+                setLoading(false);
+            };
+
+            const addCustody = async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                await supabase.from('custodies').insert({
+                    username: user, serial: Date.now(), date: form.date.value,
+                    amount: parseFloat(form.amount.value), description: form.desc.value, status: 'active'
+                });
+                form.reset(); 
+                form.date.value = new Date().toISOString().split('T')[0];
+                loadData();
+            };
+
+            const addExpense = async (custodyId, amount, desc) => {
+                await supabase.from('expenses').insert({
+                    custody_id: custodyId, serial: Date.now(), amount: parseFloat(amount), description: desc
+                });
+                loadData();
+            };
+
+            const clearCustody = async (id) => {
+                if (confirm('هل أنت متأكد من تصفية هذه العهدة؟')) {
+                    await supabase.from('custodies').update({ status: 'cleared' }).eq('id', id);
+                    loadData();
+                }
+            };
+
+            const deleteCustody = async (id) => {
+                if (confirm('هل أنت متأكد من حذف هذه العهدة؟ (سيتم حذف جميع المصروفات المرتبطة)')) {
+                    await supabase.from('custodies').delete().eq('id', id);
+                    loadData();
+                }
+            };
+
+            const deleteExpense = async (id) => {
+                if (confirm('هل أنت متأكد من حذف هذا المصروف؟')) {
+                    await supabase.from('expenses').delete().eq('id', id);
+                    loadData();
+                }
+            };
+
+            const getExpenses = (custodyId) => expenses.filter(e => e.custody_id === custodyId);
+            const getTotalExpenses = (custodyId) => getExpenses(custodyId).reduce((sum, e) => sum + e.amount, 0);
+            const isComplete = (custody) => getTotalExpenses(custody.id) >= custody.amount;
+
+            const stats = {
+                activeTotal: custodies.filter(c => c.status === 'active').reduce((s, c) => s + c.amount, 0),
+                activeCount: custodies.filter(c => c.status === 'active').length,
+                clearedTotal: custodies.filter(c => c.status === 'cleared').reduce((s, c) => s + c.amount, 0),
+                clearedCount: custodies.filter(c => c.status === 'cleared').length,
+                remaining: custodies.filter(c => c.status === 'active').reduce((s, c) => s + (c.amount - getTotalExpenses(c.id)), 0)
+            };
+
+            return (
+                <div className="container">
+                    <div className="header">
+                        <button className="btn" onClick={() => window.location.href = 'dashboard.html'}>← العودة</button>
+                        <h2>📋 إدارة العهد - {user}</h2>
+                    </div>
+
+                    <div className="stats-container">
+                        <div className="stat-card active">
+                            <div className="stat-label">العهد النشطة</div>
+                            <div className="stat-value">{stats.activeCount}</div>
+                            <div className="stat-amount">{stats.activeTotal.toFixed(2)} ر.س</div>
+                        </div>
+                        <div className="stat-card cleared">
+                            <div className="stat-label">العهد المصفاة</div>
+                            <div className="stat-value">{stats.clearedCount}</div>
+                            <div className="stat-amount">{stats.clearedTotal.toFixed(2)} ر.س</div>
+                        </div>
+                        <div className="stat-card remaining">
+                            <div className="stat-label">المتبقي</div>
+                            <div className="stat-value">💰</div>
+                            <div className="stat-amount">{stats.remaining.toFixed(2)} ر.س</div>
+                        </div>
+                    </div>
+
+                    <div className="form-card">
+                        <h3>➕ إضافة عهدة جديدة</h3>
+                        <form onSubmit={addCustody}>
+                            <div className="form-row">
+                                <input name="date" type="date" defaultValue={new Date().toISOString().split('T')[0]} required />
+                                <input name="amount" type="number" step="0.01" placeholder="القيمة (ر.س)" required />
+                            </div>
+                            <input name="desc" placeholder="وصف العهدة" required />
+                            <button className="btn btn-success" type="submit">إضافة عهدة</button>
+                        </form>
+                    </div>
+
+                    <div className="tabs">
+                        <button className={`tab ${tab === 'active' ? 'active' : ''}`} onClick={() => setTab('active')}>
+                            العهد النشطة ({stats.activeCount})
+                        </button>
+                        <button className={`tab ${tab === 'cleared' ? 'active' : ''}`} onClick={() => setTab('cleared')}>
+                            العهد المصفاة ({stats.clearedCount})
+                        </button>
+                    </div>
+
+                    {loading ? (
+                        <div className="empty-state">جاري التحميل...</div>
+                    ) : custodies.length === 0 ? (
+                        <div className="empty-state">لا توجد عهد {tab === 'active' ? 'نشطة' : 'مصفاة'} حالياً</div>
+                    ) : (
+                        <div className="custody-list">
+                            {custodies.map(custody => {
+                                const custodyExpenses = getExpenses(custody.id);
+                                const total = getTotalExpenses(custody.id);
+                                const complete = isComplete(custody);
+                                const remaining = custody.amount - total;
+                                const percentage = (total / custody.amount * 100).toFixed(0);
+
+                                return (
+                                    <div key={custody.id} className={`custody-item ${complete ? 'completed' : ''}`}>
+                                        <div className="custody-header">
+                                            <div className="custody-title">
+                                                <span className="serial-badge">#{custody.serial}</span>
+                                                <strong>{custody.description}</strong>
+                                                {complete && <span className="complete-badge">✓ مكتملة</span>}
+                                            </div>
+                                            <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+                                                <div className="custody-date">{custody.date}</div>
+                                                <button className="btn-icon btn-danger" onClick={() => deleteCustody(custody.id)} title="حذف العهدة">🗑️</button>
+                                            </div>
+                                        </div>
+
+                                        <div className="custody-progress">
+                                            <div className="progress-bar">
+                                                <div className="progress-fill" style={{width: `${Math.min(percentage, 100)}%`}}></div>
+                                            </div>
+                                            <div className="progress-info">
+                                                <span>المصروف: {total.toFixed(2)} ر.س ({percentage}%)</span>
+                                                <span>المتبقي: {remaining.toFixed(2)} ر.س</span>
+                                                <span>الإجمالي: {custody.amount} ر.س</span>
+                                            </div>
+                                        </div>
+
+                                        {complete && tab === 'active' && (
+                                            <button className="btn btn-success btn-full" onClick={() => clearCustody(custody.id)}>
+                                                ✓ تصفية العهدة
+                                            </button>
+                                        )}
+
+                                        {tab === 'active' && (
+                                            <>
+                                                <form className="expense-form" onSubmit={(e) => {
+                                                    e.preventDefault();
+                                                    addExpense(custody.id, e.target.amount.value, e.target.desc.value);
+                                                    e.target.reset();
+                                                }}>
+                                                    <input name="amount" type="number" step="0.01" placeholder="قيمة المصروف" required />
+                                                    <input name="desc" placeholder="وصف المصروف" required />
+                                                    <button className="btn" type="submit">إضافة</button>
+                                                </form>
+
+                                                {custodyExpenses.length > 0 && (
+                                                    <div className="expenses-list">
+                                                        <h4>المصروفات ({custodyExpenses.length}):</h4>
+                                                        {custodyExpenses.map(exp => (
+                                                            <div key={exp.id} className="expense-item">
+                                                                <span className="expense-desc">
+                                                                    <span className="expense-serial">#{exp.serial}</span>
+                                                                    {exp.description}
+                                                                </span>
+                                                                <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+                                                                    <span className="expense-amount">{exp.amount} ر.س</span>
+                                                                    <button className="btn-icon btn-danger-small" onClick={() => deleteExpense(exp.id)} title="حذف المصروف">🗑️</button>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
+
+                                        {tab === 'cleared' && custodyExpenses.length > 0 && (
+                                            <div className="expenses-list">
+                                                <h4>المصروفات ({custodyExpenses.length}):</h4>
+                                                {custodyExpenses.map(exp => (
+                                                    <div key={exp.id} className="expense-item">
+                                                        <span className="expense-desc">
+                                                            <span className="expense-serial">#{exp.serial}</span>
+                                                            {exp.description}
+                                                        </span>
+                                                        <span className="expense-amount">{exp.amount} ر.س</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<CustodyApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
