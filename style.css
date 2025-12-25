@@ -375,6 +375,7 @@ mark {
     border-radius: 10px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     border-right: 4px solid transparent;
+    overflow: hidden; /* Prevent content overflow */
 }
 
 .item-box.done {
@@ -519,6 +520,11 @@ mark {
     margin-top: 15px;
     padding-top: 15px;
     border-top: 1px dashed #ddd;
+}
+
+/* Fix for grid view */
+.items-list.grid .add-expense {
+    grid-template-columns: 1fr;
 }
 
 .add-expense input {
@@ -814,6 +820,32 @@ mark {
         flex-direction: column;
         align-items: stretch;
     }
+}
+
+
+/* Quick Project Form */
+.quick-project-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px;
+    background: #e8f5e9;
+    border-radius: 8px;
+    border-right: 3px solid #4caf50;
+}
+
+.quick-project-form input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #4caf50;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.quick-project-form input:focus {
+    outline: none;
+    border-color: #2e7d32;
+    background: white;
 }
 
 /* Projects Styles */
@@ -1261,5 +1293,23 @@ mark {
     .expenses-area {
         border-top: 1px solid #ddd;
         padding-top: 10px;
+    }
+}
+
+/* Additional Mobile Fixes */
+@media (max-width: 768px) {
+    .quick-project-form {
+        padding: 12px;
+    }
+    
+    .quick-project-form input {
+        font-size: 0.85rem;
+        padding: 8px 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .quick-project-form input {
+        font-size: 0.8rem;
     }
 }
