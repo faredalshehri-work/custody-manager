@@ -10,6 +10,15 @@ body {
     color: #1c1e21;
 }
 
+/* Highlight Search */
+mark {
+    background: #ffeb3b;
+    color: #000;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
 /* Layout */
 .app-container {
     max-width: 1200px;
@@ -29,6 +38,7 @@ body {
 }
 
 .top-bar h2 {
+    flex: 1;
     font-size: 1.3rem;
     color: #1c1e21;
     font-weight: 600;
@@ -38,7 +48,7 @@ body {
     color: #0084ff;
 }
 
-.btn-back {
+.btn-back, .btn-export {
     background: #f0f2f5;
     border: none;
     padding: 10px 15px;
@@ -48,8 +58,12 @@ body {
     color: #65676b;
 }
 
-.btn-back:hover {
+.btn-back:hover, .btn-export:hover {
     background: #e4e6eb;
+}
+
+.btn-export {
+    color: #1d6f42;
 }
 
 /* Stats */
@@ -78,6 +92,7 @@ body {
     align-items: center;
     justify-content: center;
     border-radius: 10px;
+    flex-shrink: 0;
 }
 
 .stat-box.blue i { background: #e3f2fd; color: #1976d2; }
@@ -103,7 +118,7 @@ body {
 }
 
 .stat-box span {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     color: #65676b;
 }
 
@@ -172,7 +187,7 @@ body {
     background: #e8f5e9;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .wallet-option input {
@@ -203,13 +218,12 @@ body {
     display: flex;
     gap: 12px;
     margin-bottom: 15px;
-    flex-wrap: wrap;
+    align-items: center;
 }
 
 .search-field {
     flex: 1;
     position: relative;
-    min-width: 250px;
 }
 
 .search-field input {
@@ -238,6 +252,39 @@ body {
     cursor: pointer;
 }
 
+.view-toggle {
+    display: flex;
+    gap: 5px;
+    background: white;
+    padding: 5px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.view-toggle button {
+    background: transparent;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #65676b;
+    font-size: 1rem;
+}
+
+.view-toggle button.active {
+    background: #0084ff;
+    color: white;
+}
+
+/* Filter Section */
+.filter-section {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
 .tab-btns {
     display: flex;
     gap: 8px;
@@ -263,6 +310,30 @@ body {
     margin-left: 5px;
 }
 
+.clear-filter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.clear-filter label {
+    font-size: 0.85rem;
+    color: #65676b;
+}
+
+.clear-filter select {
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
 /* Loading & Empty */
 .loader, .no-data {
     background: white;
@@ -284,10 +355,17 @@ body {
     color: #bbb;
 }
 
-/* Items List */
-.items-list {
+/* Items List - List View */
+.items-list.list {
     display: flex;
     flex-direction: column;
+    gap: 12px;
+}
+
+/* Items List - Grid View */
+.items-list.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: 12px;
 }
 
@@ -311,6 +389,10 @@ body {
     margin-bottom: 15px;
 }
 
+.info-section {
+    flex: 1;
+}
+
 .info-section h4 {
     font-size: 1.1rem;
     margin: 5px 0;
@@ -324,15 +406,33 @@ body {
     border-radius: 12px;
     font-size: 0.75rem;
     font-weight: 600;
+    display: inline-block;
 }
 
 .info-section small {
     color: #65676b;
     font-size: 0.85rem;
+    display: block;
+    margin-top: 5px;
 }
 
 .info-section small i {
     margin-left: 5px;
+}
+
+.badge-early {
+    display: inline-block;
+    background: #fff3e0;
+    color: #f57c00;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 5px;
+}
+
+.badge-early i {
+    margin-left: 3px;
 }
 
 .action-btns {
@@ -383,6 +483,7 @@ body {
 .fill {
     height: 100%;
     background: linear-gradient(90deg, #0084ff, #00a2ff);
+    transition: width 0.3s;
 }
 
 .nums {
@@ -440,7 +541,7 @@ body {
     background: #0073e6;
 }
 
-/* Expenses */
+/* Expenses - Accordion */
 .expenses-area {
     margin-top: 15px;
 }
@@ -449,18 +550,35 @@ body {
     font-size: 0.9rem;
     color: #1c1e21;
     font-weight: 600;
-    margin-bottom: 10px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.sec-title i {
+.sec-title:hover {
+    background: #f0f2f5;
+}
+
+.sec-title i.fa-receipt {
     color: #0084ff;
     margin-left: 5px;
+}
+
+.sec-title i.fa-chevron-up,
+.sec-title i.fa-chevron-down {
+    color: #65676b;
+    font-size: 0.8rem;
 }
 
 .exp-list {
     display: flex;
     flex-direction: column;
     gap: 6px;
+    margin-top: 10px;
 }
 
 .exp-line {
@@ -476,6 +594,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    flex: 1;
 }
 
 .exp-info .desc {
@@ -685,5 +804,14 @@ body {
     
     .stats-row {
         grid-template-columns: 1fr;
+    }
+    
+    .items-list.grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .filter-section {
+        flex-direction: column;
+        align-items: stretch;
     }
 }
