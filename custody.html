@@ -24,45 +24,98 @@
 
         function CustodyApp() {
             const [custodies, setCustodies] = useState([]);
+            const [allCustodies, setAllCustodies] = useState([]);
             const [expenses, setExpenses] = useState([]);
             const [tab, setTab] = useState('active');
             const [loading, setLoading] = useState(false);
+            const [wallet, setWallet] = useState(0);
 
             useEffect(() => { loadData(); }, [tab]);
 
             const loadData = async () => {
                 setLoading(true);
                 const { data: c } = await supabase.from('custodies').select('*').eq('username', user).eq('status', tab).order('date', { ascending: false });
+                const { data: all } = await supabase.from('custodies').select('*').eq('username', user);
                 const { data: e } = await supabase.from('expenses').select('*');
+                const { data: w } = await supabase.from('wallets').select('*').eq('username', user).single();
+                
                 setCustodies(c || []);
+                setAllCustodies(all || []);
                 setExpenses(e || []);
+                setWallet(w?.amount || 0);
                 setLoading(false);
             };
 
             const addCustody = async (e) => {
                 e.preventDefault();
                 const form = e.target;
+                const useWallet = form.useWallet?.checked || false;
+                const amount = parseFloat(form.amount.value);
+                
+                if (useWallet && wallet < amount) {
+                    alert('المبلغ في المحفظة غير كافي!');
+                    return;
+                }
+                
                 await supabase.from('custodies').insert({
                     username: user, serial: Date.now(), date: form.date.value,
-                    amount: parseFloat(form.amount.value), description: form.desc.value, status: 'active'
+                    amount: amount, description: form.desc.value, status: 'active'
                 });
+                
+                if (useWallet) {
+                    await updateWallet(-amount);
+                }
+                
                 form.reset(); 
                 form.date.value = new Date().toISOString().split('T')[0];
                 loadData();
             };
 
+            const updateWallet = async (amount) => {
+                const newAmount = wallet + amount;
+                const { data: existing } = await supabase.from('wallets').select('*').eq('username', user).single();
+                
+                if (existing) {
+                    await supabase.from('wallets').update({ amount: newAmount }).eq('username', user);
+                } else {
+                    await supabase.from('wallets').insert({ username: user, amount: newAmount });
+                }
+                setWallet(newAmount);
+            };
+
             const addExpense = async (custodyId, amount, desc) => {
+                const custody = custodies.find(c => c.id === custodyId);
+                const currentTotal = getTotalExpenses(custodyId);
+                const newTotal = currentTotal + parseFloat(amount);
+                
+                if (newTotal > custody.amount) {
+                    alert(`⚠️ تحذير!\nمبلغ المصروف يتجاوز مبلغ العهدة\n\nالمتبقي: ${(custody.amount - currentTotal).toFixed(2)} ر.س\nالمطلوب: ${amount} ر.س`);
+                    return;
+                }
+                
                 await supabase.from('expenses').insert({
                     custody_id: custodyId, serial: Date.now(), amount: parseFloat(amount), description: desc
                 });
                 loadData();
             };
 
-            const clearCustody = async (id) => {
-                if (confirm('هل أنت متأكد من تصفية هذه العهدة؟')) {
-                    await supabase.from('custodies').update({ status: 'cleared' }).eq('id', id);
-                    loadData();
+            const clearCustody = async (id, early = false) => {
+                const custody = allCustodies.find(c => c.id === id);
+                const remaining = custody.amount - getTotalExpenses(id);
+                
+                if (early && remaining > 0) {
+                    if (!confirm(`تصفية مبكرة للعهدة\nالمتبقي: ${remaining.toFixed(2)} ر.س سيضاف إلى محفظتك\nهل أنت متأكد؟`)) {
+                        return;
+                    }
+                    await updateWallet(remaining);
+                } else if (!early) {
+                    if (!confirm('هل أنت متأكد من تصفية هذه العهدة؟')) {
+                        return;
+                    }
                 }
+                
+                await supabase.from('custodies').update({ status: 'cleared' }).eq('id', id);
+                loadData();
             };
 
             const deleteCustody = async (id) => {
@@ -84,11 +137,11 @@
             const isComplete = (custody) => getTotalExpenses(custody.id) >= custody.amount;
 
             const stats = {
-                activeTotal: custodies.filter(c => c.status === 'active').reduce((s, c) => s + c.amount, 0),
-                activeCount: custodies.filter(c => c.status === 'active').length,
-                clearedTotal: custodies.filter(c => c.status === 'cleared').reduce((s, c) => s + c.amount, 0),
-                clearedCount: custodies.filter(c => c.status === 'cleared').length,
-                remaining: custodies.filter(c => c.status === 'active').reduce((s, c) => s + (c.amount - getTotalExpenses(c.id)), 0)
+                activeTotal: allCustodies.filter(c => c.status === 'active').reduce((s, c) => s + c.amount, 0),
+                activeCount: allCustodies.filter(c => c.status === 'active').length,
+                clearedTotal: allCustodies.filter(c => c.status === 'cleared').reduce((s, c) => s + c.amount, 0),
+                clearedCount: allCustodies.filter(c => c.status === 'cleared').length,
+                remaining: allCustodies.filter(c => c.status === 'active').reduce((s, c) => s + (c.amount - getTotalExpenses(c.id)), 0)
             };
 
             return (
@@ -114,6 +167,11 @@
                             <div className="stat-value">💰</div>
                             <div className="stat-amount">{stats.remaining.toFixed(2)} ر.س</div>
                         </div>
+                        <div className="stat-card wallet">
+                            <div className="stat-label">محفظة المدير</div>
+                            <div className="stat-value">👛</div>
+                            <div className="stat-amount">{wallet.toFixed(2)} ر.س</div>
+                        </div>
                     </div>
 
                     <div className="form-card">
@@ -124,6 +182,14 @@
                                 <input name="amount" type="number" step="0.01" placeholder="القيمة (ر.س)" required />
                             </div>
                             <input name="desc" placeholder="وصف العهدة" required />
+                            {wallet > 0 && (
+                                <div style={{marginTop: 10, padding: 10, background: '#e8f5e9', borderRadius: 8}}>
+                                    <label style={{display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer'}}>
+                                        <input name="useWallet" type="checkbox" />
+                                        <span>استخدام المبلغ من محفظة المدير ({wallet.toFixed(2)} ر.س)</span>
+                                    </label>
+                                </div>
+                            )}
                             <button className="btn btn-success" type="submit">إضافة عهدة</button>
                         </form>
                     </div>
@@ -175,9 +241,9 @@
                                             </div>
                                         </div>
 
-                                        {complete && tab === 'active' && (
-                                            <button className="btn btn-success btn-full" onClick={() => clearCustody(custody.id)}>
-                                                ✓ تصفية العهدة
+                                        {tab === 'active' && (
+                                            <button className="btn btn-success btn-full" onClick={() => clearCustody(custody.id, !complete)}>
+                                                {complete ? '✓ تصفية العهدة' : '⚡ تصفية مبكرة (إرجاع المتبقي للمحفظة)'}
                                             </button>
                                         )}
 
