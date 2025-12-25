@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة العهد</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -29,20 +30,24 @@
             const [tab, setTab] = useState('active');
             const [loading, setLoading] = useState(false);
             const [wallet, setWallet] = useState(0);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [editingCustody, setEditingCustody] = useState(null);
 
             useEffect(() => { loadData(); }, [tab]);
 
             const loadData = async () => {
                 setLoading(true);
-                const { data: c } = await supabase.from('custodies').select('*').eq('username', user).eq('status', tab).order('date', { ascending: false });
-                const { data: all } = await supabase.from('custodies').select('*').eq('username', user);
-                const { data: e } = await supabase.from('expenses').select('*');
-                const { data: w } = await supabase.from('wallets').select('*').eq('username', user).single();
+                const [c, all, e, w] = await Promise.all([
+                    supabase.from('custodies').select('*').eq('username', user).eq('status', tab).order('date', { ascending: false }),
+                    supabase.from('custodies').select('*').eq('username', user),
+                    supabase.from('expenses').select('*'),
+                    supabase.from('wallets').select('*').eq('username', user).single()
+                ]);
                 
-                setCustodies(c || []);
-                setAllCustodies(all || []);
-                setExpenses(e || []);
-                setWallet(w?.amount || 0);
+                setCustodies(c.data || []);
+                setAllCustodies(all.data || []);
+                setExpenses(e.data || []);
+                setWallet(w.data?.amount || 0);
                 setLoading(false);
             };
 
@@ -62,12 +67,23 @@
                     amount: amount, description: form.desc.value, status: 'active'
                 });
                 
-                if (useWallet) {
-                    await updateWallet(-amount);
-                }
+                if (useWallet) await updateWallet(-amount);
                 
                 form.reset(); 
                 form.date.value = new Date().toISOString().split('T')[0];
+                loadData();
+            };
+
+            const updateCustody = async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                await supabase.from('custodies').update({
+                    date: form.date.value,
+                    amount: parseFloat(form.amount.value),
+                    description: form.desc.value
+                }).eq('id', editingCustody.id);
+                
+                setEditingCustody(null);
                 loadData();
             };
 
@@ -80,11 +96,10 @@
                 } else {
                     await supabase.from('wallets').insert({ username: user, amount: newAmount });
                 }
-                setWallet(newAmount);
             };
 
             const addExpense = async (custodyId, amount, desc) => {
-                const custody = custodies.find(c => c.id === custodyId);
+                const custody = allCustodies.find(c => c.id === custodyId);
                 const currentTotal = getTotalExpenses(custodyId);
                 const newTotal = currentTotal + parseFloat(amount);
                 
@@ -104,29 +119,30 @@
                 const remaining = custody.amount - getTotalExpenses(id);
                 
                 if (early && remaining > 0) {
-                    if (!confirm(`تصفية مبكرة للعهدة\nالمتبقي: ${remaining.toFixed(2)} ر.س سيضاف إلى محفظتك\nهل أنت متأكد؟`)) {
-                        return;
-                    }
+                    if (!confirm(`تصفية مبكرة\nالمتبقي ${remaining.toFixed(2)} ر.س سيضاف للمحفظة\nمتأكد؟`)) return;
                     await updateWallet(remaining);
-                } else if (!early) {
-                    if (!confirm('هل أنت متأكد من تصفية هذه العهدة؟')) {
-                        return;
-                    }
-                }
+                } else if (!early && !confirm('تأكيد تصفية العهدة؟')) return;
                 
                 await supabase.from('custodies').update({ status: 'cleared' }).eq('id', id);
                 loadData();
             };
 
+            const restoreCustody = async (id) => {
+                if (confirm('إرجاع العهدة للنشطة؟')) {
+                    await supabase.from('custodies').update({ status: 'active' }).eq('id', id);
+                    loadData();
+                }
+            };
+
             const deleteCustody = async (id) => {
-                if (confirm('هل أنت متأكد من حذف هذه العهدة؟ (سيتم حذف جميع المصروفات المرتبطة)')) {
+                if (confirm('حذف العهدة نهائياً؟')) {
                     await supabase.from('custodies').delete().eq('id', id);
                     loadData();
                 }
             };
 
             const deleteExpense = async (id) => {
-                if (confirm('هل أنت متأكد من حذف هذا المصروف؟')) {
+                if (confirm('حذف المصروف؟')) {
                     await supabase.from('expenses').delete().eq('id', id);
                     loadData();
                 }
@@ -135,6 +151,16 @@
             const getExpenses = (custodyId) => expenses.filter(e => e.custody_id === custodyId);
             const getTotalExpenses = (custodyId) => getExpenses(custodyId).reduce((sum, e) => sum + e.amount, 0);
             const isComplete = (custody) => getTotalExpenses(custody.id) >= custody.amount;
+
+            const filteredCustodies = custodies.filter(custody => {
+                if (!searchTerm) return true;
+                const search = searchTerm.toLowerCase();
+                const matchCustody = custody.description.toLowerCase().includes(search) || custody.serial.toString().includes(search);
+                const matchExpense = getExpenses(custody.id).some(exp => 
+                    exp.description.toLowerCase().includes(search) || exp.serial.toString().includes(search)
+                );
+                return matchCustody || matchExpense;
+            });
 
             const stats = {
                 activeTotal: allCustodies.filter(c => c.status === 'active').reduce((s, c) => s + c.amount, 0),
@@ -145,153 +171,213 @@
             };
 
             return (
-                <div className="container">
-                    <div className="header">
-                        <button className="btn" onClick={() => window.location.href = 'dashboard.html'}>← العودة</button>
-                        <h2>📋 إدارة العهد - {user}</h2>
+                <div className="app-container">
+                    <div className="top-bar">
+                        <button className="btn-back" onClick={() => window.location.href = 'dashboard.html'}>
+                            <i className="fas fa-arrow-right"></i>
+                        </button>
+                        <h2><i className="fas fa-clipboard-list"></i> إدارة العهد - {user}</h2>
                     </div>
 
-                    <div className="stats-container">
-                        <div className="stat-card active">
-                            <div className="stat-label">العهد النشطة</div>
-                            <div className="stat-value">{stats.activeCount}</div>
-                            <div className="stat-amount">{stats.activeTotal.toFixed(2)} ر.س</div>
-                        </div>
-                        <div className="stat-card cleared">
-                            <div className="stat-label">العهد المصفاة</div>
-                            <div className="stat-value">{stats.clearedCount}</div>
-                            <div className="stat-amount">{stats.clearedTotal.toFixed(2)} ر.س</div>
-                        </div>
-                        <div className="stat-card remaining">
-                            <div className="stat-label">المتبقي</div>
-                            <div className="stat-value">💰</div>
-                            <div className="stat-amount">{stats.remaining.toFixed(2)} ر.س</div>
-                        </div>
-                        <div className="stat-card wallet">
-                            <div className="stat-label">محفظة المدير</div>
-                            <div className="stat-value">👛</div>
-                            <div className="stat-amount">{wallet.toFixed(2)} ر.س</div>
-                        </div>
-                    </div>
-
-                    <div className="form-card">
-                        <h3>➕ إضافة عهدة جديدة</h3>
-                        <form onSubmit={addCustody}>
-                            <div className="form-row">
-                                <input name="date" type="date" defaultValue={new Date().toISOString().split('T')[0]} required />
-                                <input name="amount" type="number" step="0.01" placeholder="القيمة (ر.س)" required />
+                    <div className="stats-row">
+                        <div className="stat-box blue">
+                            <i className="fas fa-file-invoice-dollar"></i>
+                            <div>
+                                <small>العهد النشطة</small>
+                                <strong>{stats.activeCount}</strong>
+                                <span>{stats.activeTotal.toFixed(2)} ر.س</span>
                             </div>
-                            <input name="desc" placeholder="وصف العهدة" required />
-                            {wallet > 0 && (
-                                <div style={{marginTop: 10, padding: 10, background: '#e8f5e9', borderRadius: 8}}>
-                                    <label style={{display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer'}}>
-                                        <input name="useWallet" type="checkbox" />
-                                        <span>استخدام المبلغ من محفظة المدير ({wallet.toFixed(2)} ر.س)</span>
-                                    </label>
+                        </div>
+                        <div className="stat-box green">
+                            <i className="fas fa-check-circle"></i>
+                            <div>
+                                <small>العهد المصفاة</small>
+                                <strong>{stats.clearedCount}</strong>
+                                <span>{stats.clearedTotal.toFixed(2)} ر.س</span>
+                            </div>
+                        </div>
+                        <div className="stat-box cyan">
+                            <i className="fas fa-coins"></i>
+                            <div>
+                                <small>المتبقي</small>
+                                <strong>{stats.remaining.toFixed(2)}</strong>
+                                <span>ر.س</span>
+                            </div>
+                        </div>
+                        <div className="stat-box orange">
+                            <i className="fas fa-wallet"></i>
+                            <div>
+                                <small>محفظة المدير</small>
+                                <strong>{wallet.toFixed(2)}</strong>
+                                <span>ر.س</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="panel">
+                        <h3><i className="fas fa-plus-circle"></i> إضافة عهدة جديدة</h3>
+                        <form onSubmit={addCustody} className="neat-form">
+                            <div className="row-2">
+                                <div>
+                                    <label><i className="fas fa-calendar"></i> التاريخ</label>
+                                    <input name="date" type="date" defaultValue={new Date().toISOString().split('T')[0]} required />
                                 </div>
+                                <div>
+                                    <label><i className="fas fa-money-bill-wave"></i> المبلغ</label>
+                                    <input name="amount" type="number" step="0.01" placeholder="0.00" required />
+                                </div>
+                            </div>
+                            <div>
+                                <label><i className="fas fa-align-right"></i> الوصف</label>
+                                <input name="desc" placeholder="وصف العهدة" required />
+                            </div>
+                            {wallet > 0 && (
+                                <label className="wallet-option">
+                                    <input name="useWallet" type="checkbox" />
+                                    <span><i className="fas fa-wallet"></i> استخدام من المحفظة ({wallet.toFixed(2)} ر.س)</span>
+                                </label>
                             )}
-                            <button className="btn btn-success" type="submit">إضافة عهدة</button>
+                            <button type="submit" className="btn-main"><i className="fas fa-save"></i> إضافة</button>
                         </form>
                     </div>
 
-                    <div className="tabs">
-                        <button className={`tab ${tab === 'active' ? 'active' : ''}`} onClick={() => setTab('active')}>
-                            العهد النشطة ({stats.activeCount})
-                        </button>
-                        <button className={`tab ${tab === 'cleared' ? 'active' : ''}`} onClick={() => setTab('cleared')}>
-                            العهد المصفاة ({stats.clearedCount})
-                        </button>
+                    <div className="controls-row">
+                        <div className="search-field">
+                            <i className="fas fa-search"></i>
+                            <input 
+                                type="text" 
+                                placeholder="بحث..." 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                            {searchTerm && <i className="fas fa-times" onClick={() => setSearchTerm('')}></i>}
+                        </div>
+                        <div className="tab-btns">
+                            <button className={tab === 'active' ? 'active' : ''} onClick={() => setTab('active')}>
+                                <i className="fas fa-folder-open"></i> النشطة ({stats.activeCount})
+                            </button>
+                            <button className={tab === 'cleared' ? 'active' : ''} onClick={() => setTab('cleared')}>
+                                <i className="fas fa-check-double"></i> المصفاة ({stats.clearedCount})
+                            </button>
+                        </div>
                     </div>
 
                     {loading ? (
-                        <div className="empty-state">جاري التحميل...</div>
-                    ) : custodies.length === 0 ? (
-                        <div className="empty-state">لا توجد عهد {tab === 'active' ? 'نشطة' : 'مصفاة'} حالياً</div>
+                        <div className="loader"><i className="fas fa-spinner fa-spin"></i> تحميل...</div>
+                    ) : filteredCustodies.length === 0 ? (
+                        <div className="no-data">
+                            <i className="fas fa-inbox"></i>
+                            <p>{searchTerm ? 'لا نتائج' : 'لا عهد'}</p>
+                        </div>
                     ) : (
-                        <div className="custody-list">
-                            {custodies.map(custody => {
+                        <div className="items-list">
+                            {filteredCustodies.map(custody => {
                                 const custodyExpenses = getExpenses(custody.id);
                                 const total = getTotalExpenses(custody.id);
                                 const complete = isComplete(custody);
                                 const remaining = custody.amount - total;
                                 const percentage = (total / custody.amount * 100).toFixed(0);
+                                const isEditing = editingCustody?.id === custody.id;
 
                                 return (
-                                    <div key={custody.id} className={`custody-item ${complete ? 'completed' : ''}`}>
-                                        <div className="custody-header">
-                                            <div className="custody-title">
-                                                <span className="serial-badge">#{custody.serial}</span>
-                                                <strong>{custody.description}</strong>
-                                                {complete && <span className="complete-badge">✓ مكتملة</span>}
-                                            </div>
-                                            <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
-                                                <div className="custody-date">{custody.date}</div>
-                                                <button className="btn-icon btn-danger" onClick={() => deleteCustody(custody.id)} title="حذف العهدة">🗑️</button>
-                                            </div>
-                                        </div>
-
-                                        <div className="custody-progress">
-                                            <div className="progress-bar">
-                                                <div className="progress-fill" style={{width: `${Math.min(percentage, 100)}%`}}></div>
-                                            </div>
-                                            <div className="progress-info">
-                                                <span>المصروف: {total.toFixed(2)} ر.س ({percentage}%)</span>
-                                                <span>المتبقي: {remaining.toFixed(2)} ر.س</span>
-                                                <span>الإجمالي: {custody.amount} ر.س</span>
-                                            </div>
-                                        </div>
-
-                                        {tab === 'active' && (
-                                            <button className="btn btn-success btn-full" onClick={() => clearCustody(custody.id, !complete)}>
-                                                {complete ? '✓ تصفية العهدة' : '⚡ تصفية مبكرة (إرجاع المتبقي للمحفظة)'}
-                                            </button>
-                                        )}
-
-                                        {tab === 'active' && (
+                                    <div key={custody.id} className={`item-box ${complete ? 'done' : ''}`}>
+                                        {isEditing ? (
+                                            <form onSubmit={updateCustody} className="edit-mode">
+                                                <div className="row-2">
+                                                    <input name="date" type="date" defaultValue={custody.date} required />
+                                                    <input name="amount" type="number" step="0.01" defaultValue={custody.amount} required />
+                                                </div>
+                                                <input name="desc" defaultValue={custody.description} required />
+                                                <div className="row-btns">
+                                                    <button type="submit" className="btn-ok"><i className="fas fa-check"></i></button>
+                                                    <button type="button" className="btn-no" onClick={() => setEditingCustody(null)}>
+                                                        <i className="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        ) : (
                                             <>
-                                                <form className="expense-form" onSubmit={(e) => {
-                                                    e.preventDefault();
-                                                    addExpense(custody.id, e.target.amount.value, e.target.desc.value);
-                                                    e.target.reset();
-                                                }}>
-                                                    <input name="amount" type="number" step="0.01" placeholder="قيمة المصروف" required />
-                                                    <input name="desc" placeholder="وصف المصروف" required />
-                                                    <button className="btn" type="submit">إضافة</button>
-                                                </form>
+                                                <div className="item-top">
+                                                    <div className="info-section">
+                                                        <span className="num">#{custody.serial}</span>
+                                                        <h4>{custody.description}</h4>
+                                                        <small><i className="far fa-calendar"></i> {custody.date}</small>
+                                                    </div>
+                                                    <div className="action-btns">
+                                                        {tab === 'active' && !complete && (
+                                                            <button className="icon-btn clear-btn" onClick={() => clearCustody(custody.id, true)} title="تصفية مبكرة">
+                                                                <i className="fas fa-bolt"></i>
+                                                            </button>
+                                                        )}
+                                                        {tab === 'cleared' && (
+                                                            <button className="icon-btn restore-btn" onClick={() => restoreCustody(custody.id)} title="إرجاع">
+                                                                <i className="fas fa-undo"></i>
+                                                            </button>
+                                                        )}
+                                                        <button className="icon-btn edit-btn" onClick={() => setEditingCustody(custody)} title="تعديل">
+                                                            <i className="fas fa-edit"></i>
+                                                        </button>
+                                                        <button className="icon-btn del-btn" onClick={() => deleteCustody(custody.id)} title="حذف">
+                                                            <i className="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div className="progress-wrap">
+                                                    <div className="bar">
+                                                        <div className="fill" style={{width: `${Math.min(percentage, 100)}%`}}></div>
+                                                    </div>
+                                                    <div className="nums">
+                                                        <span>المصروف: {total.toFixed(2)} ({percentage}%)</span>
+                                                        <span>المتبقي: {remaining.toFixed(2)}</span>
+                                                        <span>الإجمالي: {custody.amount}</span>
+                                                    </div>
+                                                </div>
+
+                                                {complete && tab === 'active' && (
+                                                    <button className="btn-done" onClick={() => clearCustody(custody.id, false)}>
+                                                        <i className="fas fa-check-circle"></i> تصفية
+                                                    </button>
+                                                )}
+
+                                                {tab === 'active' && (
+                                                    <form className="add-expense" onSubmit={(e) => {
+                                                        e.preventDefault();
+                                                        addExpense(custody.id, e.target.amount.value, e.target.desc.value);
+                                                        e.target.reset();
+                                                    }}>
+                                                        <input name="amount" type="number" step="0.01" placeholder="المبلغ" required />
+                                                        <input name="desc" placeholder="وصف" required />
+                                                        <button type="submit"><i className="fas fa-plus"></i></button>
+                                                    </form>
+                                                )}
 
                                                 {custodyExpenses.length > 0 && (
-                                                    <div className="expenses-list">
-                                                        <h4>المصروفات ({custodyExpenses.length}):</h4>
-                                                        {custodyExpenses.map(exp => (
-                                                            <div key={exp.id} className="expense-item">
-                                                                <span className="expense-desc">
-                                                                    <span className="expense-serial">#{exp.serial}</span>
-                                                                    {exp.description}
-                                                                </span>
-                                                                <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
-                                                                    <span className="expense-amount">{exp.amount} ر.س</span>
-                                                                    <button className="btn-icon btn-danger-small" onClick={() => deleteExpense(exp.id)} title="حذف المصروف">🗑️</button>
+                                                    <div className="expenses-area">
+                                                        <div className="sec-title">
+                                                            <i className="fas fa-receipt"></i> المصروفات ({custodyExpenses.length})
+                                                        </div>
+                                                        <div className="exp-list">
+                                                            {custodyExpenses.map(exp => (
+                                                                <div key={exp.id} className="exp-line">
+                                                                    <div className="exp-info">
+                                                                        <span className="desc">{exp.description}</span>
+                                                                        <span className="num">#{exp.serial}</span>
+                                                                    </div>
+                                                                    <div className="exp-val">
+                                                                        <strong>{exp.amount} ر.س</strong>
+                                                                        {tab === 'active' && (
+                                                                            <button onClick={() => deleteExpense(exp.id)}>
+                                                                                <i className="fas fa-times"></i>
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        ))}
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                 )}
                                             </>
-                                        )}
-
-                                        {tab === 'cleared' && custodyExpenses.length > 0 && (
-                                            <div className="expenses-list">
-                                                <h4>المصروفات ({custodyExpenses.length}):</h4>
-                                                {custodyExpenses.map(exp => (
-                                                    <div key={exp.id} className="expense-item">
-                                                        <span className="expense-desc">
-                                                            <span className="expense-serial">#{exp.serial}</span>
-                                                            {exp.description}
-                                                        </span>
-                                                        <span className="expense-amount">{exp.amount} ر.س</span>
-                                                    </div>
-                                                ))}
-                                            </div>
                                         )}
                                     </div>
                                 );
