@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة المخزون</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const user = localStorage.getItem('currentUser');
+        if (!user) window.location.href = 'index.html';
+
+        const supabase = window.supabase.createClient(
+            'https://opyuncxyjdqxawddhdjn.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
+        );
+
+        function InventoryApp() {
+            const [tab, setTab] = useState('categories'); // categories, materials, products
+            const [viewMode, setViewMode] = useState(localStorage.getItem('invViewMode') || 'grid');
+            const [categories, setCategories] = useState([]);
+            const [materials, setMaterials] = useState([]);
+            const [products, setProducts] = useState([]);
+            const [productMaterials, setProductMaterials] = useState([]);
+            const [selectedCategory, setSelectedCategory] = useState('all');
+            const [searchTerm, setSearchTerm] = useState('');
+            
+            // Modals
+            const [showCategoryModal, setShowCategoryModal] = useState(false);
+            const [showMaterialModal, setShowMaterialModal] = useState(false);
+            const [showProductModal, setShowProductModal] = useState(false);
+            const [showMaterialsSelector, setShowMaterialsSelector] = useState(false);
+            
+            // Edit states
+            const [editingCategory, setEditingCategory] = useState(null);
+            const [editingMaterial, setEditingMaterial] = useState(null);
+            const [editingProduct, setEditingProduct] = useState(null);
+            const [currentProduct, setCurrentProduct] = useState(null);
+
+            useEffect(() => { loadData(); }, []);
+            useEffect(() => { localStorage.setItem('invViewMode', viewMode); }, [viewMode]);
+
+            const loadData = async () => {
+                const [c, m, p, pm] = await Promise.all([
+                    supabase.from('inventory_categories').select('*').eq('username', user).order('created_at', { ascending: false }),
+                    supabase.from('inventory_materials').select('*').eq('username', user).order('created_at', { ascending: false }),
+                    supabase.from('inventory_products').select('*').eq('username', user).order('created_at', { ascending: false }),
+                    supabase.from('product_materials').select('*')
+                ]);
+                
+                setCategories(c.data || []);
+                setMaterials(m.data || []);
+                setProducts(p.data || []);
+                setProductMaterials(pm.data || []);
+            };
+
+            // Categories
+            const addCategory = async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                
+                if (editingCategory) {
+                    await supabase.from('inventory_categories').update({
+                        name: form.name.value,
+                        description: form.description.value,
+                        image_url: form.image_url.value
+                    }).eq('id', editingCategory.id);
+                } else {
+                    await supabase.from('inventory_categories').insert({
+                        username: user,
+                        name: form.name.value,
+                        description: form.description.value,
+                        image_url: form.image_url.value
+                    });
+                }
+                
+                form.reset();
+                setShowCategoryModal(false);
+                setEditingCategory(null);
+                loadData();
+            };
+
+            const deleteCategory = async (id) => {
+                if (confirm('حذف القسم؟ (سيتم حذف جميع المواد والمنتجات المرتبطة)')) {
+                    await supabase.from('inventory_categories').delete().eq('id', id);
+                    loadData();
+                }
+            };
+
+            // Materials
+            const addMaterial = async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                
+                if (editingMaterial) {
+                    await supabase.from('inventory_materials').update({
+                        category_id: parseInt(form.category_id.value),
+                        name: form.name.value,
+                        description: form.description.value,
+                        price: parseFloat(form.price.value),
+                        image_url: form.image_url.value
+                    }).eq('id', editingMaterial.id);
+                } else {
+                    await supabase.from('inventory_materials').insert({
+                        username: user,
+                        category_id: parseInt(form.category_id.value),
+                        name: form.name.value,
+                        description: form.description.value,
+                        price: parseFloat(form.price.value),
+                        image_url: form.image_url.value
+                    });
+                }
+                
+                form.reset();
+                setShowMaterialModal(false);
+                setEditingMaterial(null);
+                loadData();
+            };
+
+            const deleteMaterial = async (id) => {
+                if (confirm('حذف المادة؟')) {
+                    await supabase.from('inventory_materials').delete().eq('id', id);
+                    loadData();
+                }
+            };
+
+            // Products
+            const addProduct = async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                
+                if (editingProduct) {
+                    await supabase.from('inventory_products').update({
+                        category_id: parseInt(form.category_id.value),
+                        name: form.name.value,
+                        description: form.description.value,
+                        selling_price: parseFloat(form.selling_price.value),
+                        image_url: form.image_url.value
+                    }).eq('id', editingProduct.id);
+                } else {
+                    const { data } = await supabase.from('inventory_products').insert({
+                        username: user,
+                        category_id: parseInt(form.category_id.value),
+                        name: form.name.value,
+                        description: form.description.value,
+                        selling_price: parseFloat(form.selling_price.value),
+                        image_url: form.image_url.value
+                    }).select();
+                    
+                    if (data && data[0]) {
+                        setCurrentProduct(data[0]);
+                    }
+                }
+                
+                form.reset();
+                setShowProductModal(false);
+                setEditingProduct(null);
+                loadData();
+            };
+
+            const deleteProduct = async (id) => {
+                if (confirm('حذف المنتج؟')) {
+                    await supabase.from('inventory_products').delete().eq('id', id);
+                    loadData();
+                }
+            };
+
+            // Product Materials
+            const addMaterialToProduct = async (productId, materialId, quantity = 1) => {
+                const { data: existing } = await supabase.from('product_materials')
+                    .select('*')
+                    .eq('product_id', productId)
+                    .eq('material_id', materialId)
+                    .single();
+
+                if (existing) {
+                    await supabase.from('product_materials').update({
+                        quantity: existing.quantity + quantity
+                    }).eq('id', existing.id);
+                } else {
+                    await supabase.from('product_materials').insert({
+                        product_id: productId,
+                        material_id: materialId,
+                        quantity: quantity
+                    });
+                }
+                loadData();
+            };
+
+            const removeMaterialFromProduct = async (id) => {
+                if (confirm('إزالة المادة من المنتج؟')) {
+                    await supabase.from('product_materials').delete().eq('id', id);
+                    loadData();
+                }
+            };
+
+            const updateMaterialQuantity = async (id, quantity) => {
+                await supabase.from('product_materials').update({ quantity: parseFloat(quantity) }).eq('id', id);
+                loadData();
+            };
+
+            // Calculations
+            const getProductCost = (productId) => {
+                const pms = productMaterials.filter(pm => pm.product_id === productId);
+                return pms.reduce((sum, pm) => {
+                    const material = materials.find(m => m.id === pm.material_id);
+                    return sum + (material ? material.price * pm.quantity : 0);
+                }, 0);
+            };
+
+            const getProductMaterials = (productId) => {
+                return productMaterials.filter(pm => pm.product_id === productId);
+            };
+
+            // Filtering
+            const filteredItems = () => {
+                let items = [];
+                
+                if (tab === 'categories') {
+                    items = categories;
+                } else if (tab === 'materials') {
+                    items = materials;
+                    if (selectedCategory !== 'all') {
+                        items = items.filter(m => m.category_id === parseInt(selectedCategory));
+                    }
+                } else if (tab === 'products') {
+                    items = products;
+                    if (selectedCategory !== 'all') {
+                        items = items.filter(p => p.category_id === parseInt(selectedCategory));
+                    }
+                }
+                
+                if (searchTerm) {
+                    const search = searchTerm.toLowerCase();
+                    items = items.filter(item => 
+                        item.name.toLowerCase().includes(search) || 
+                        (item.description && item.description.toLowerCase().includes(search))
+                    );
+                }
+                
+                return items;
+            };
+
+            const getCategoryName = (categoryId) => {
+                const cat = categories.find(c => c.id === categoryId);
+                return cat ? cat.name : 'غير محدد';
+            };
+
+            return (
+                <div className="app-container">
+                    <div className="top-bar">
+                        <button className="btn-back" onClick={() => window.location.href = 'dashboard.html'}>
+                            <i className="fas fa-arrow-right"></i>
+                        </button>
+                        <h2><i className="fas fa-warehouse"></i> إدارة المخزون - {user}</h2>
+                        <button className="btn-export" onClick={() => {
+                            if (tab === 'categories') setShowCategoryModal(true);
+                            else if (tab === 'materials') setShowMaterialModal(true);
+                            else if (tab === 'products') setShowProductModal(true);
+                        }}>
+                            <i className="fas fa-plus"></i>
+                        </button>
+                    </div>
+
+                    <div className="stats-row">
+                        <div className="stat-box blue">
+                            <i className="fas fa-layer-group"></i>
+                            <div>
+                                <small>الأقسام</small>
+                                <strong>{categories.length}</strong>
+                            </div>
+                        </div>
+                        <div className="stat-box green">
+                            <i className="fas fa-box"></i>
+                            <div>
+                                <small>المواد</small>
+                                <strong>{materials.length}</strong>
+                            </div>
+                        </div>
+                        <div className="stat-box cyan">
+                            <i className="fas fa-shopping-bag"></i>
+                            <div>
+                                <small>المنتجات</small>
+                                <strong>{products.length}</strong>
+                            </div>
+                        </div>
+                        <div className="stat-box orange">
+                            <i className="fas fa-dollar-sign"></i>
+                            <div>
+                                <small>قيمة المواد</small>
+                                <strong>{materials.reduce((s, m) => s + m.price, 0).toFixed(0)}</strong>
+                                <span>ر.س</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="controls-row">
+                        <div className="search-field">
+                            <i className="fas fa-search"></i>
+                            <input 
+                                type="text" 
+                                placeholder="بحث..." 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                            {searchTerm && <i className="fas fa-times" onClick={() => setSearchTerm('')}></i>}
+                        </div>
+                        <div className="view-toggle">
+                            <button 
+                                className={viewMode === 'list' ? 'active' : ''} 
+                                onClick={() => setViewMode('list')}
+                                title="عرض أسطر">
+                                <i className="fas fa-list"></i>
+                            </button>
+                            <button 
+                                className={viewMode === 'grid' ? 'active' : ''} 
+                                onClick={() => setViewMode('grid')}
+                                title="عرض مربعات">
+                                <i className="fas fa-th"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="filter-section">
+                        <div className="tab-btns">
+                            <button className={tab === 'categories' ? 'active' : ''} onClick={() => setTab('categories')}>
+                                <i className="fas fa-layer-group"></i> الأقسام ({categories.length})
+                            </button>
+                            <button className={tab === 'materials' ? 'active' : ''} onClick={() => setTab('materials')}>
+                                <i className="fas fa-box"></i> المواد ({materials.length})
+                            </button>
+                            <button className={tab === 'products' ? 'active' : ''} onClick={() => setTab('products')}>
+                                <i className="fas fa-shopping-bag"></i> المنتجات ({products.length})
+                            </button>
+                        </div>
+                        
+                        {(tab === 'materials' || tab === 'products') && categories.length > 0 && (
+                            <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="project-select">
+                                <option value="all">كل الأقسام</option>
+                                {categories.map(c => (
+                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                ))}
+                            </select>
+                        )}
+                    </div>
+
+                    {filteredItems().length === 0 ? (
+                        <div className="no-data">
+                            <i className="fas fa-inbox"></i>
+                            <p>{searchTerm ? 'لا نتائج' : `لا يوجد ${tab === 'categories' ? 'أقسام' : tab === 'materials' ? 'مواد' : 'منتجات'} حالياً`}</p>
+                            <button className="btn-main" onClick={() => {
+                                if (tab === 'categories') setShowCategoryModal(true);
+                                else if (tab === 'materials') setShowMaterialModal(true);
+                                else if (tab === 'products') setShowProductModal(true);
+                            }}>
+                                <i className="fas fa-plus"></i> إضافة
+                            </button>
+                        </div>
+                    ) : (
+                        <div className={`inventory-grid ${viewMode}`}>
+                            {tab === 'categories' && filteredItems().map(category => (
+                                <div key={category.id} className="inventory-card">
+                                    {category.image_url && (
+                                        <div className="inv-image">
+                                            <img src={category.image_url} alt={category.name} />
+                                        </div>
+                                    )}
+                                    <div className="inv-content">
+                                        <h3><i className="fas fa-layer-group"></i> {category.name}</h3>
+                                        {category.description && <p>{category.description}</p>}
+                                        <div className="inv-stats">
+                                            <span><i className="fas fa-box"></i> {materials.filter(m => m.category_id === category.id).length} مادة</span>
+                                            <span><i className="fas fa-shopping-bag"></i> {products.filter(p => p.category_id === category.id).length} منتج</span>
+                                        </div>
+                                    </div>
+                                    <div className="inv-actions">
+                                        <button className="icon-btn edit-btn" onClick={() => { setEditingCategory(category); setShowCategoryModal(true); }}>
+                                            <i className="fas fa-edit"></i>
+                                        </button>
+                                        <button className="icon-btn del-btn" onClick={() => deleteCategory(category.id)}>
+                                            <i className="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+
+                            {tab === 'materials' && filteredItems().map(material => (
+                                <div key={material.id} className="inventory-card">
+                                    {material.image_url && (
+                                        <div className="inv-image">
+                                            <img src={material.image_url} alt={material.name} />
+                                        </div>
+                                    )}
+                                    <div className="inv-content">
+                                        <span className="inv-badge">{getCategoryName(material.category_id)}</span>
+                                        <h3><i className="fas fa-box"></i> {material.name}</h3>
+                                        {material.description && <p>{material.description}</p>}
+                                        <div className="inv-price">
+                                            <strong>{material.price} ر.س</strong>
+                                        </div>
+                                    </div>
+                                    <div className="inv-actions">
+                                        <button className="icon-btn edit-btn" onClick={() => { setEditingMaterial(material); setShowMaterialModal(true); }}>
+                                            <i className="fas fa-edit"></i>
+                                        </button>
+                                        <button className="icon-btn del-btn" onClick={() => deleteMaterial(material.id)}>
+                                            <i className="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+
+                            {tab === 'products' && filteredItems().map(product => {
+                                const cost = getProductCost(product.id);
+                                const profit = product.selling_price - cost;
+                                const profitMargin = product.selling_price > 0 ? (profit / product.selling_price * 100).toFixed(1) : 0;
+                                const pms = getProductMaterials(product.id);
+
+                                return (
+                                    <div key={product.id} className="inventory-card product-card">
+                                        {product.image_url && (
+                                            <div className="inv-image">
+                                                <img src={product.image_url} alt={product.name} />
+                                            </div>
+                                        )}
+                                        <div className="inv-content">
+                                            <span className="inv-badge">{getCategoryName(product.category_id)}</span>
+                                            <h3><i className="fas fa-shopping-bag"></i> {product.name}</h3>
+                                            {product.description && <p>{product.description}</p>}
+                                            
+                                            <div className="product-pricing">
+                                                <div className="price-row">
+                                                    <span className="label">سعر البيع:</span>
+                                                    <strong className="selling-price">{product.selling_price.toFixed(2)} ر.س</strong>
+                                                </div>
+                                                <div className="price-row">
+                                                    <span className="label">التكلفة:</span>
+                                                    <strong className="cost-price">{cost.toFixed(2)} ر.س</strong>
+                                                </div>
+                                                <div className="price-row profit">
+                                                    <span className="label">الربح:</span>
+                                                    <strong>{profit.toFixed(2)} ر.س ({profitMargin}%)</strong>
+                                                </div>
+                                            </div>
+
+                                            {pms.length > 0 && (
+                                                <div className="product-materials-list">
+                                                    <div className="sec-title"><i className="fas fa-box"></i> المواد ({pms.length})</div>
+                                                    {pms.map(pm => {
+                                                        const mat = materials.find(m => m.id === pm.material_id);
+                                                        if (!mat) return null;
+                                                        return (
+                                                            <div key={pm.id} className="material-item">
+                                                                <div>
+                                                                    <span className="mat-name">{mat.name}</span>
+                                                                    <span className="mat-qty">x{pm.quantity}</span>
+                                                                </div>
+                                                                <div className="mat-actions">
+                                                                    <span className="mat-price">{(mat.price * pm.quantity).toFixed(2)} ر.س</span>
+                                                                    <button className="btn-icon-small" onClick={() => removeMaterialFromProduct(pm.id)}>
+                                                                        <i className="fas fa-times"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+
+                                            <button className="btn-add-materials" onClick={() => { setCurrentProduct(product); setShowMaterialsSelector(true); }}>
+                                                <i className="fas fa-plus"></i> إضافة مواد
+                                            </button>
+                                        </div>
+                                        <div className="inv-actions">
+                                            <button className="icon-btn edit-btn" onClick={() => { setEditingProduct(product); setShowProductModal(true); }}>
+                                                <i className="fas fa-edit"></i>
+                                            </button>
+                                            <button className="icon-btn del-btn" onClick={() => deleteProduct(product.id)}>
+                                                <i className="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {/* Category Modal */}
+                    {showCategoryModal && (
+                        <div className="modal-overlay" onClick={() => { setShowCategoryModal(false); setEditingCategory(null); }}>
+                            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                <h3><i className="fas fa-layer-group"></i> {editingCategory ? 'تعديل' : 'إضافة'} قسم</h3>
+                                <form onSubmit={addCategory} className="neat-form">
+                                    <div>
+                                        <label>اسم القسم *</label>
+                                        <input name="name" defaultValue={editingCategory?.name} required />
+                                    </div>
+                                    <div>
+                                        <label>الوصف</label>
+                                        <textarea name="description" rows="3" defaultValue={editingCategory?.description}></textarea>
+                                    </div>
+                                    <div>
+                                        <label>رابط الصورة</label>
+                                        <input name="image_url" type="url" placeholder="https://example.com/image.jpg" defaultValue={editingCategory?.image_url} />
+                                    </div>
+                                    <div className="row-btns">
+                                        <button type="submit" className="btn-ok"><i className="fas fa-save"></i> حفظ</button>
+                                        <button type="button" className="btn-no" onClick={() => { setShowCategoryModal(false); setEditingCategory(null); }}>
+                                            <i className="fas fa-times"></i> إلغاء
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Material Modal */}
+                    {showMaterialModal && (
+                        <div className="modal-overlay" onClick={() => { setShowMaterialModal(false); setEditingMaterial(null); }}>
+                            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                <h3><i className="fas fa-box"></i> {editingMaterial ? 'تعديل' : 'إضافة'} مادة</h3>
+                                <form onSubmit={addMaterial} className="neat-form">
+                                    <div>
+                                        <label>القسم *</label>
+                                        <select name="category_id" defaultValue={editingMaterial?.category_id} required>
+                                            <option value="">اختر القسم</option>
+                                            {categories.map(c => (
+                                                <option key={c.id} value={c.id}>{c.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label>اسم المادة *</label>
+                                        <input name="name" defaultValue={editingMaterial?.name} required />
+                                    </div>
+                                    <div>
+                                        <label>الوصف</label>
+                                        <textarea name="description" rows="2" defaultValue={editingMaterial?.description}></textarea>
+                                    </div>
+                                    <div>
+                                        <label>السعر (ر.س) *</label>
+                                        <input name="price" type="number" step="0.01" defaultValue={editingMaterial?.price} required />
+                                    </div>
+                                    <div>
+                                        <label>رابط الصورة</label>
+                                        <input name="image_url" type="url" placeholder="https://example.com/image.jpg" defaultValue={editingMaterial?.image_url} />
+                                    </div>
+                                    <div className="row-btns">
+                                        <button type="submit" className="btn-ok"><i className="fas fa-save"></i> حفظ</button>
+                                        <button type="button" className="btn-no" onClick={() => { setShowMaterialModal(false); setEditingMaterial(null); }}>
+                                            <i className="fas fa-times"></i> إلغاء
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Product Modal */}
+                    {showProductModal && (
+                        <div className="modal-overlay" onClick={() => { setShowProductModal(false); setEditingProduct(null); }}>
+                            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                <h3><i className="fas fa-shopping-bag"></i> {editingProduct ? 'تعديل' : 'إضافة'} منتج</h3>
+                                <form onSubmit={addProduct} className="neat-form">
+                                    <div>
+                                        <label>القسم *</label>
+                                        <select name="category_id" defaultValue={editingProduct?.category_id} required>
+                                            <option value="">اختر القسم</option>
+                                            {categories.map(c => (
+                                                <option key={c.id} value={c.id}>{c.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label>اسم المنتج *</label>
+                                        <input name="name" defaultValue={editingProduct?.name} required />
+                                    </div>
+                                    <div>
+                                        <label>الوصف</label>
+                                        <textarea name="description" rows="2" defaultValue={editingProduct?.description}></textarea>
+                                    </div>
+                                    <div>
+                                        <label>سعر البيع (ر.س) *</label>
+                                        <input name="selling_price" type="number" step="0.01" defaultValue={editingProduct?.selling_price} required />
+                                    </div>
+                                    <div>
+                                        <label>رابط الصورة</label>
+                                        <input name="image_url" type="url" placeholder="https://example.com/image.jpg" defaultValue={editingProduct?.image_url} />
+                                    </div>
+                                    <div className="row-btns">
+                                        <button type="submit" className="btn-ok"><i className="fas fa-save"></i> حفظ</button>
+                                        <button type="button" className="btn-no" onClick={() => { setShowProductModal(false); setEditingProduct(null); }}>
+                                            <i className="fas fa-times"></i> إلغاء
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Materials Selector Modal */}
+                    {showMaterialsSelector && currentProduct && (
+                        <div className="modal-overlay" onClick={() => { setShowMaterialsSelector(false); setCurrentProduct(null); }}>
+                            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                <h3><i className="fas fa-box"></i> إضافة مواد للمنتج</h3>
+                                <p><strong>{currentProduct.name}</strong></p>
+                                <div className="materials-selector">
+                                    {materials.length === 0 ? (
+                                        <p>لا توجد مواد متاحة</p>
+                                    ) : (
+                                        materials.map(material => (
+                                            <div key={material.id} className="material-selector-item" onClick={() => {
+                                                const qty = prompt('الكمية:', '1');
+                                                if (qty && parseFloat(qty) > 0) {
+                                                    addMaterialToProduct(currentProduct.id, material.id, parseFloat(qty));
+                                                    setShowMaterialsSelector(false);
+                                                    setCurrentProduct(null);
+                                                }
+                                            }}>
+                                                <div>
+                                                    <strong>{material.name}</strong>
+                                                    <small>{getCategoryName(material.category_id)}</small>
+                                                </div>
+                                                <span className="material-price">{material.price} ر.س</span>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                                <button className="btn-no" onClick={() => { setShowMaterialsSelector(false); setCurrentProduct(null); }}>
+                                    <i className="fas fa-times"></i> إلغاء
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<InventoryApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
