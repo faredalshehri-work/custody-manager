@@ -50,6 +50,8 @@
             const [selectedProject, setSelectedProject] = useState(projectIdFromUrl || 'all');
             const [showProjectModal, setShowProjectModal] = useState(false);
             const [custodyToAssign, setCustodyToAssign] = useState(null);
+            const [showQuickProject, setShowQuickProject] = useState(false);
+            const [quickProjectForm, setQuickProjectForm] = useState(null);
 
             useEffect(() => { loadData(); }, [tab, clearedFilter, selectedProject]);
             useEffect(() => { localStorage.setItem('viewMode', viewMode); }, [viewMode]);
@@ -97,7 +99,26 @@
                 const form = e.target;
                 const useWallet = form.useWallet?.checked || false;
                 const amount = parseFloat(form.amount.value);
-                const projectId = form.project_id?.value || null;
+                let projectId = form.project_id?.value || null;
+                
+                // If creating new project
+                if (projectId === 'new') {
+                    if (!quickProjectForm || !quickProjectForm.name) {
+                        alert('أدخل اسم المشروع أولاً');
+                        return;
+                    }
+                    
+                    const { data: newProject } = await supabase.from('projects').insert({
+                        username: user,
+                        name: quickProjectForm.name,
+                        description: quickProjectForm.description || '',
+                        status: 'active',
+                        start_date: new Date().toISOString().split('T')[0]
+                    }).select();
+                    
+                    projectId = newProject[0].id;
+                    setQuickProjectForm(null);
+                }
                 
                 if (useWallet && wallet < amount) {
                     alert('المبلغ في المحفظة غير كافي!');
@@ -108,13 +129,14 @@
                     username: user, serial: Date.now(), date: form.date.value,
                     amount: amount, description: form.desc.value, status: 'active',
                     cleared_early: false,
-                    project_id: projectId === 'null' ? null : parseInt(projectId)
+                    project_id: projectId === 'null' || projectId === 'new' ? null : parseInt(projectId)
                 });
                 
                 if (useWallet) await updateWallet(-amount);
                 
                 form.reset(); 
                 form.date.value = new Date().toISOString().split('T')[0];
+                setShowQuickProject(false);
                 loadData();
             };
 
@@ -431,13 +453,38 @@
                             </div>
                             <div>
                                 <label><i className="fas fa-project-diagram"></i> المشروع (اختياري)</label>
-                                <select name="project_id">
+                                <select name="project_id" onChange={(e) => {
+                                    if (e.target.value === 'new') {
+                                        setShowQuickProject(true);
+                                    } else {
+                                        setShowQuickProject(false);
+                                        setQuickProjectForm(null);
+                                    }
+                                }}>
                                     <option value="null">بدون مشروع</option>
+                                    <option value="new">➕ مشروع جديد</option>
                                     {projects.filter(p => p.status === 'active').map(p => (
                                         <option key={p.id} value={p.id}>{p.name}</option>
                                     ))}
                                 </select>
                             </div>
+                            {showQuickProject && (
+                                <div className="quick-project-form">
+                                    <input 
+                                        type="text" 
+                                        placeholder="اسم المشروع الجديد *" 
+                                        value={quickProjectForm?.name || ''}
+                                        onChange={(e) => setQuickProjectForm({...quickProjectForm, name: e.target.value})}
+                                        required
+                                    />
+                                    <input 
+                                        type="text" 
+                                        placeholder="وصف المشروع (اختياري)" 
+                                        value={quickProjectForm?.description || ''}
+                                        onChange={(e) => setQuickProjectForm({...quickProjectForm, description: e.target.value})}
+                                    />
+                                </div>
+                            )}
                             {wallet > 0 && (
                                 <label className="wallet-option">
                                     <input name="useWallet" type="checkbox" />
