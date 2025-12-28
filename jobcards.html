@@ -112,6 +112,11 @@
                     supabase.from('job_cards').select('*, department:job_departments(name, prefix), vehicle:vehicle_types(name), product:product_types(name)').eq('username', user).order('created_at', { ascending: false })
                 ]);
                 
+                console.log('Departments:', d.data);
+                console.log('Vehicle Types:', v.data);
+                console.log('Product Types:', p.data);
+                console.log('Job Cards:', j.data);
+                
                 setDepartments(d.data || []);
                 setVehicleTypes(v.data || []);
                 setProductTypes(p.data || []);
@@ -123,31 +128,53 @@
                 e.preventDefault();
                 const form = e.target;
                 
-                if (editingDept) {
-                    await supabase.from('job_departments').update({
-                        name: form.name.value,
-                        prefix: form.prefix.value.toUpperCase(),
-                        description: form.description.value
-                    }).eq('id', editingDept.id);
-                } else {
-                    await supabase.from('job_departments').insert({
-                        username: user,
-                        name: form.name.value,
-                        prefix: form.prefix.value.toUpperCase(),
-                        description: form.description.value
-                    });
+                try {
+                    if (editingDept) {
+                        const { error } = await supabase.from('job_departments').update({
+                            name: form.name.value,
+                            prefix: form.prefix.value.toUpperCase(),
+                            description: form.description.value
+                        }).eq('id', editingDept.id);
+                        
+                        if (error) {
+                            console.error('Update error:', error);
+                            alert('خطأ في التحديث: ' + error.message);
+                            return;
+                        }
+                    } else {
+                        const { error } = await supabase.from('job_departments').insert({
+                            username: user,
+                            name: form.name.value,
+                            prefix: form.prefix.value.toUpperCase(),
+                            description: form.description.value
+                        });
+                        
+                        if (error) {
+                            console.error('Insert error:', error);
+                            alert('خطأ في الإضافة: ' + error.message);
+                            return;
+                        }
+                    }
+                    
+                    form.reset();
+                    setShowDeptModal(false);
+                    setEditingDept(null);
+                    await loadData();
+                } catch (err) {
+                    console.error('Exception:', err);
+                    alert('حدث خطأ: ' + err.message);
                 }
-                
-                form.reset();
-                setShowDeptModal(false);
-                setEditingDept(null);
-                loadData();
             };
 
             const deleteDepartment = async (id) => {
                 if (confirm('حذف القسم؟ (سيتم حذف جميع أوامر العمل المرتبطة)')) {
-                    await supabase.from('job_departments').delete().eq('id', id);
-                    loadData();
+                    const { error } = await supabase.from('job_departments').delete().eq('id', id);
+                    if (error) {
+                        console.error('Delete error:', error);
+                        alert('خطأ في الحذف: ' + error.message);
+                        return;
+                    }
+                    await loadData();
                 }
             };
 
@@ -156,27 +183,49 @@
                 e.preventDefault();
                 const form = e.target;
                 
-                if (editingVehicle) {
-                    await supabase.from('vehicle_types').update({
-                        name: form.name.value
-                    }).eq('id', editingVehicle.id);
-                } else {
-                    await supabase.from('vehicle_types').insert({
-                        username: user,
-                        name: form.name.value
-                    });
+                try {
+                    if (editingVehicle) {
+                        const { error } = await supabase.from('vehicle_types').update({
+                            name: form.name.value
+                        }).eq('id', editingVehicle.id);
+                        
+                        if (error) {
+                            console.error('Update error:', error);
+                            alert('خطأ في التحديث: ' + error.message);
+                            return;
+                        }
+                    } else {
+                        const { error } = await supabase.from('vehicle_types').insert({
+                            username: user,
+                            name: form.name.value
+                        });
+                        
+                        if (error) {
+                            console.error('Insert error:', error);
+                            alert('خطأ في الإضافة: ' + error.message);
+                            return;
+                        }
+                    }
+                    
+                    form.reset();
+                    setShowVehicleModal(false);
+                    setEditingVehicle(null);
+                    await loadData();
+                } catch (err) {
+                    console.error('Exception:', err);
+                    alert('حدث خطأ: ' + err.message);
                 }
-                
-                form.reset();
-                setShowVehicleModal(false);
-                setEditingVehicle(null);
-                loadData();
             };
 
             const deleteVehicleType = async (id) => {
                 if (confirm('حذف نوع السيارة؟')) {
-                    await supabase.from('vehicle_types').delete().eq('id', id);
-                    loadData();
+                    const { error } = await supabase.from('vehicle_types').delete().eq('id', id);
+                    if (error) {
+                        console.error('Delete error:', error);
+                        alert('خطأ في الحذف: ' + error.message);
+                        return;
+                    }
+                    await loadData();
                 }
             };
 
@@ -185,29 +234,51 @@
                 e.preventDefault();
                 const form = e.target;
                 
-                if (editingProduct) {
-                    await supabase.from('product_types').update({
-                        name: form.name.value,
-                        department_id: form.department_id.value || null
-                    }).eq('id', editingProduct.id);
-                } else {
-                    await supabase.from('product_types').insert({
-                        username: user,
-                        name: form.name.value,
-                        department_id: form.department_id.value || null
-                    });
+                try {
+                    if (editingProduct) {
+                        const { error } = await supabase.from('product_types').update({
+                            name: form.name.value,
+                            department_id: form.department_id.value || null
+                        }).eq('id', editingProduct.id);
+                        
+                        if (error) {
+                            console.error('Update error:', error);
+                            alert('خطأ في التحديث: ' + error.message);
+                            return;
+                        }
+                    } else {
+                        const { error } = await supabase.from('product_types').insert({
+                            username: user,
+                            name: form.name.value,
+                            department_id: form.department_id.value || null
+                        });
+                        
+                        if (error) {
+                            console.error('Insert error:', error);
+                            alert('خطأ في الإضافة: ' + error.message);
+                            return;
+                        }
+                    }
+                    
+                    form.reset();
+                    setShowProductModal(false);
+                    setEditingProduct(null);
+                    await loadData();
+                } catch (err) {
+                    console.error('Exception:', err);
+                    alert('حدث خطأ: ' + err.message);
                 }
-                
-                form.reset();
-                setShowProductModal(false);
-                setEditingProduct(null);
-                loadData();
             };
 
             const deleteProductType = async (id) => {
                 if (confirm('حذف نوع المنتج؟')) {
-                    await supabase.from('product_types').delete().eq('id', id);
-                    loadData();
+                    const { error } = await supabase.from('product_types').delete().eq('id', id);
+                    if (error) {
+                        console.error('Delete error:', error);
+                        alert('خطأ في الحذف: ' + error.message);
+                        return;
+                    }
+                    await loadData();
                 }
             };
 
@@ -243,61 +314,88 @@
                 e.preventDefault();
                 const form = e.target;
                 
-                const deptId = form.department_id.value;
-                const startDate = form.start_date.value;
-                const workDays = parseInt(form.work_days.value);
-                const expectedEndDate = calculateEndDate(startDate, workDays);
-                const serialNumber = await getNextSerialNumber(deptId);
-                
-                await supabase.from('job_cards').insert({
-                    username: user,
-                    department_id: deptId,
-                    serial_number: serialNumber,
-                    client_name: form.client_name.value,
-                    client_company: form.client_company.value || null,
-                    client_phone: form.client_phone.value || null,
-                    client_email: form.client_email.value || null,
-                    vehicle_type_id: form.vehicle_type_id.value || null,
-                    product_type_id: form.product_type_id.value || null,
-                    start_date: startDate,
-                    work_days: workDays,
-                    expected_end_date: expectedEndDate,
-                    notes: form.notes.value || null,
-                    status: 'active'
-                });
-                
-                form.reset();
-                setShowJobCardModal(false);
-                loadData();
+                try {
+                    const deptId = form.department_id.value;
+                    const startDate = form.start_date.value;
+                    const workDays = parseInt(form.work_days.value);
+                    const expectedEndDate = calculateEndDate(startDate, workDays);
+                    const serialNumber = await getNextSerialNumber(deptId);
+                    
+                    const { error } = await supabase.from('job_cards').insert({
+                        username: user,
+                        department_id: deptId,
+                        serial_number: serialNumber,
+                        client_name: form.client_name.value,
+                        client_company: form.client_company.value || null,
+                        client_phone: form.client_phone.value || null,
+                        client_email: form.client_email.value || null,
+                        vehicle_type_id: form.vehicle_type_id.value || null,
+                        product_type_id: form.product_type_id.value || null,
+                        start_date: startDate,
+                        work_days: workDays,
+                        expected_end_date: expectedEndDate,
+                        notes: form.notes.value || null,
+                        status: 'active'
+                    });
+                    
+                    if (error) {
+                        console.error('Insert error:', error);
+                        alert('خطأ في إنشاء أمر العمل: ' + error.message);
+                        return;
+                    }
+                    
+                    form.reset();
+                    setShowJobCardModal(false);
+                    await loadData();
+                } catch (err) {
+                    console.error('Exception:', err);
+                    alert('حدث خطأ: ' + err.message);
+                }
             };
 
             const closeJobCard = async (jobCard) => {
-                const actualEndDate = today();
-                const delay = calculateDelayDays(jobCard.expected_end_date, actualEndDate);
-                const early = calculateEarlyDays(jobCard.expected_end_date, actualEndDate);
-                
-                let completionStatus = 'on_time';
-                if (delay > 0) {
-                    completionStatus = 'late';
-                } else if (early > 0) {
-                    completionStatus = 'early';
+                try {
+                    const actualEndDate = today();
+                    const delay = calculateDelayDays(jobCard.expected_end_date, actualEndDate);
+                    const early = calculateEarlyDays(jobCard.expected_end_date, actualEndDate);
+                    
+                    let completionStatus = 'on_time';
+                    if (delay > 0) {
+                        completionStatus = 'late';
+                    } else if (early > 0) {
+                        completionStatus = 'early';
+                    }
+                    
+                    const { error } = await supabase.from('job_cards').update({
+                        status: 'closed',
+                        actual_end_date: actualEndDate,
+                        completion_status: completionStatus,
+                        delay_days: delay > 0 ? delay : 0,
+                        closed_at: new Date().toISOString()
+                    }).eq('id', jobCard.id);
+                    
+                    if (error) {
+                        console.error('Close error:', error);
+                        alert('خطأ في إغلاق أمر العمل: ' + error.message);
+                        return;
+                    }
+                    
+                    await loadData();
+                } catch (err) {
+                    console.error('Exception:', err);
+                    alert('حدث خطأ: ' + err.message);
                 }
-                
-                await supabase.from('job_cards').update({
-                    status: 'closed',
-                    actual_end_date: actualEndDate,
-                    completion_status: completionStatus,
-                    delay_days: delay > 0 ? delay : 0,
-                    closed_at: new Date().toISOString()
-                }).eq('id', jobCard.id);
-                
-                loadData();
             };
 
             const deleteJobCard = async (id) => {
                 if (confirm('حذف أمر العمل؟')) {
-                    await supabase.from('job_cards').delete().eq('id', id);
-                    loadData();
+                    const { error } = await supabase.from('job_cards').delete().eq('id', id);
+                    if (error) {
+                        console.error('Delete error:', error);
+                        alert('خطأ في الحذف: ' + error.message);
+                        return;
+                    }
+                    await loadData();
                 }
             };
 
