@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أوامر العمل</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const user = localStorage.getItem('currentUser');
+        if (!user) window.location.href = 'index.html';
+
+        const supabase = window.supabase.createClient(
+            'https://opyuncxyjdqxawddhdjn.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
+        );
+
+        // Date utilities
+        const formatDate = (date) => {
+            if (!date) return '';
+            const d = new Date(date);
+            return d.toLocaleDateString('en-CA'); // YYYY-MM-DD
+        };
+
+        const today = () => formatDate(new Date());
+
+        const calculateEndDate = (startDate, workDays) => {
+            let current = new Date(startDate);
+            let counted = 0;
+            
+            while (counted < workDays) {
+                current.setDate(current.getDate() + 1);
+                // Skip Friday (5 in JS, where 0=Sunday)
+                if (current.getDay() !== 5) {
+                    counted++;
+                }
+            }
+            return formatDate(current);
+        };
+
+        const calculateDelayDays = (expectedDate, actualDate) => {
+            if (!actualDate || actualDate <= expectedDate) return 0;
+            
+            let current = new Date(expectedDate);
+            let actual = new Date(actualDate);
+            let counted = 0;
+            
+            while (current < actual) {
+                current.setDate(current.getDate() + 1);
+                if (current.getDay() !== 5) {
+                    counted++;
+                }
+            }
+            return counted;
+        };
+
+        const calculateEarlyDays = (expectedDate, actualDate) => {
+            if (!actualDate || actualDate >= expectedDate) return 0;
+            
+            let current = new Date(actualDate);
+            let expected = new Date(expectedDate);
+            let counted = 0;
+            
+            while (current < expected) {
+                current.setDate(current.getDate() + 1);
+                if (current.getDay() !== 5) {
+                    counted++;
+                }
+            }
+            return counted;
+        };
+
+        function JobCardsApp() {
+            const [view, setView] = useState('dashboard'); // dashboard, departments, vehicles, products, jobcards
+            const [activeTab, setActiveTab] = useState('active'); // active, pending, closed
+            
+            const [departments, setDepartments] = useState([]);
+            const [vehicleTypes, setVehicleTypes] = useState([]);
+            const [productTypes, setProductTypes] = useState([]);
+            const [jobCards, setJobCards] = useState([]);
+            
+            const [showDeptModal, setShowDeptModal] = useState(false);
+            const [showVehicleModal, setShowVehicleModal] = useState(false);
+            const [showProductModal, setShowProductModal] = useState(false);
+            const [showJobCardModal, setShowJobCardModal] = useState(false);
+            
+            const [editingDept, setEditingDept] = useState(null);
+            const [editingVehicle, setEditingVehicle] = useState(null);
+            const [editingProduct, setEditingProduct] = useState(null);
+            
+            const [selectedDeptForProduct, setSelectedDeptForProduct] = useState(null);
+            
+            const [filterDept, setFilterDept] = useState('all');
+            const [filterSort, setFilterSort] = useState('newest'); // newest, oldest
+            const [searchTerm, setSearchTerm] = useState('');
+
+            useEffect(() => { loadData(); }, []);
+
+            const loadData = async () => {
+                const [d, v, p, j] = await Promise.all([
+                    supabase.from('job_departments').select('*').eq('username', user).order('created_at', { ascending: false }),
+                    supabase.from('vehicle_types').select('*').eq('username', user).order('name'),
+                    supabase.from('product_types').select('*').eq('username', user).order('name'),
+                    supabase.from('job_cards').select('*, department:job_departments(name, prefix), vehicle:vehicle_types(name), product:product_types(name)').eq('username', user).order('created_at', { ascending: false })
+                ]);
+                
+                setDepartments(d.data || []);
+                setVehicleTypes(v.data || []);
+                setProductTypes(p.data || []);
+                setJobCards(j.data || []);
+            };
+
+            // Departments
+            const addDepartment = async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                
+                if (editingDept) {
+                    await supabase.from('job_departments').update({
+                        name: form.name.value,
+                        prefix: form.prefix.value.toUpperCase(),
+                        description: form.description.value
+                    }).eq('id', editingDept.id);
+                } else {
+                    await supabase.from('job_departments').insert({
+                        username: user,
+                        name: form.name.value,
+                        prefix: form.prefix.value.toUpperCase(),
+                        description: form.description.value
+                    });
+                }
+                
+                form.reset();
+                setShowDeptModal(false);
+                setEditingDept(null);
+                loadData();
+            };
+
+            const deleteDepartment = async (id) => {
+                if (confirm('حذف القسم؟ (سيتم حذف جميع أوامر العمل المرتبطة)')) {
+                    await supabase.from('job_departments').delete().eq('id', id);
+                    loadData();
+                }
+            };
+
+            // Vehicle Types
+            const addVehicleType = async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                
+                if (editingVehicle) {
+                    await supabase.from('vehicle_types').update({
+                        name: form.name.value
+                    }).eq('id', editingVehicle.id);
+                } else {
+                    await supabase.from('vehicle_types').insert({
+                        username: user,
+                        name: form.name.value
+                    });
+                }
+                
+                form.reset();
+                setShowVehicleModal(false);
+                setEditingVehicle(null);
+                loadData();
+            };
+
+            const deleteVehicleType = async (id) => {
+                if (confirm('حذف نوع السيارة؟')) {
+                    await supabase.from('vehicle_types').delete().eq('id', id);
+                    loadData();
+                }
+            };
+
+            // Product Types
+            const addProductType = async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                
+                if (editingProduct) {
+                    await supabase.from('product_types').update({
+                        name: form.name.value,
+                        department_id: form.department_id.value || null
+                    }).eq('id', editingProduct.id);
+                } else {
+                    await supabase.from('product_types').insert({
+                        username: user,
+                        name: form.name.value,
+                        department_id: form.department_id.value || null
+                    });
+                }
+                
+                form.reset();
+                setShowProductModal(false);
+                setEditingProduct(null);
+                loadData();
+            };
+
+            const deleteProductType = async (id) => {
+                if (confirm('حذف نوع المنتج؟')) {
+                    await supabase.from('product_types').delete().eq('id', id);
+                    loadData();
+                }
+            };
+
+            // Job Cards
+            const getNextSerialNumber = async (deptId) => {
+                const dept = departments.find(d => d.id === parseInt(deptId));
+                if (!dept) return '';
+                
+                const now = new Date();
+                const mm = String(now.getMonth() + 1).padStart(2, '0');
+                const yy = String(now.getFullYear()).slice(-2);
+                const prefix = `JOB-${dept.prefix}-${mm}${yy}`;
+                
+                const { data } = await supabase
+                    .from('job_cards')
+                    .select('serial_number')
+                    .eq('username', user)
+                    .like('serial_number', `${prefix}%`)
+                    .order('serial_number', { ascending: false })
+                    .limit(1);
+                
+                if (!data || data.length === 0) {
+                    return `${prefix}-001`;
+                }
+                
+                const lastSerial = data[0].serial_number;
+                const lastNum = parseInt(lastSerial.split('-').pop());
+                const nextNum = String(lastNum + 1).padStart(3, '0');
+                return `${prefix}-${nextNum}`;
+            };
+
+            const addJobCard = async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                
+                const deptId = form.department_id.value;
+                const startDate = form.start_date.value;
+                const workDays = parseInt(form.work_days.value);
+                const expectedEndDate = calculateEndDate(startDate, workDays);
+                const serialNumber = await getNextSerialNumber(deptId);
+                
+                await supabase.from('job_cards').insert({
+                    username: user,
+                    department_id: deptId,
+                    serial_number: serialNumber,
+                    client_name: form.client_name.value,
+                    client_company: form.client_company.value || null,
+                    client_phone: form.client_phone.value || null,
+                    client_email: form.client_email.value || null,
+                    vehicle_type_id: form.vehicle_type_id.value || null,
+                    product_type_id: form.product_type_id.value || null,
+                    start_date: startDate,
+                    work_days: workDays,
+                    expected_end_date: expectedEndDate,
+                    notes: form.notes.value || null,
+                    status: 'active'
+                });
+                
+                form.reset();
+                setShowJobCardModal(false);
+                loadData();
+            };
+
+            const closeJobCard = async (jobCard) => {
+                const actualEndDate = today();
+                const delay = calculateDelayDays(jobCard.expected_end_date, actualEndDate);
+                const early = calculateEarlyDays(jobCard.expected_end_date, actualEndDate);
+                
+                let completionStatus = 'on_time';
+                if (delay > 0) {
+                    completionStatus = 'late';
+                } else if (early > 0) {
+                    completionStatus = 'early';
+                }
+                
+                await supabase.from('job_cards').update({
+                    status: 'closed',
+                    actual_end_date: actualEndDate,
+                    completion_status: completionStatus,
+                    delay_days: delay > 0 ? delay : 0,
+                    closed_at: new Date().toISOString()
+                }).eq('id', jobCard.id);
+                
+                loadData();
+            };
+
+            const deleteJobCard = async (id) => {
+                if (confirm('حذف أمر العمل؟')) {
+                    await supabase.from('job_cards').delete().eq('id', id);
+                    loadData();
+                }
+            };
+
+            // Filters
+            const getFilteredJobCards = () => {
+                let filtered = jobCards;
+                
+                // Filter by tab
+                const todayDate = today();
+                if (activeTab === 'active') {
+                    filtered = filtered.filter(j => j.status === 'active' && j.expected_end_date >= todayDate);
+                } else if (activeTab === 'pending') {
+                    filtered = filtered.filter(j => j.status === 'active' && j.expected_end_date < todayDate);
+                } else if (activeTab === 'closed') {
+                    filtered = filtered.filter(j => j.status === 'closed');
+                }
+                
+                // Filter by department
+                if (filterDept !== 'all') {
+                    filtered = filtered.filter(j => j.department_id === parseInt(filterDept));
+                }
+                
+                // Search
+                if (searchTerm) {
+                    const search = searchTerm.toLowerCase();
+                    filtered = filtered.filter(j => 
+                        j.serial_number.toLowerCase().includes(search) ||
+                        j.client_name.toLowerCase().includes(search) ||
+                        (j.client_company && j.client_company.toLowerCase().includes(search))
+                    );
+                }
+                
+                // Sort
+                if (filterSort === 'newest') {
+                    filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                } else if (filterSort === 'oldest') {
+                    filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                }
+                
+                return filtered;
+            };
+
+            const getStatusBadge = (jobCard) => {
+                if (jobCard.status !== 'closed') return null;
+                
+                const status = jobCard.completion_status;
+                const delay = jobCard.delay_days || 0;
+                
+                if (status === 'late') {
+                    if (delay >= 6) {
+                        return { text: `متأخر ${delay} يوم`, color: 'badge-red' };
+                    } else if (delay >= 7) {
+                        return { text: `متأخر ${delay} يوم`, color: 'badge-orange' };
+                    }
+                } else if (status === 'early') {
+                    const early = calculateEarlyDays(jobCard.expected_end_date, jobCard.actual_end_date);
+                    return { text: `منجز مبكراً (${early} يوم)`, color: 'badge-dark-green' };
+                } else if (status === 'on_time') {
+                    return { text: 'منجز في وقته', color: 'badge-light-green' };
+                }
+                
+                return null;
+            };
+
+            const JobCardItem = ({ jobCard }) => {
+                const badge = getStatusBadge(jobCard);
+                const isOverdue = jobCard.status === 'active' && jobCard.expected_end_date < today();
+                
+                return (
+                    <div className={`job-card-item ${jobCard.status === 'closed' ? 'closed' : ''}`}>
+                        <div className="job-card-header">
+                            <div className="job-serial">
+                                <i className="fas fa-clipboard-list"></i> {jobCard.serial_number}
+                            </div>
+                            {badge && (
+                                <span className={`status-badge ${badge.color}`}>{badge.text}</span>
+                            )}
+                            {isOverdue && (
+                                <span className="status-badge badge-warning">
+                                    <i className="fas fa-exclamation-triangle"></i> منتهي - يحتاج تأكيد
+                                </span>
+                            )}
+                        </div>
+                        
+                        <div className="job-card-body">
+                            <div className="job-info-row">
+                                <strong>{jobCard.client_name}</strong>
+                                {jobCard.client_company && <span className="company-name">{jobCard.client_company}</span>}
+                            </div>
+                            
+                            <div className="job-details-grid">
+                                <div className="job-detail">
+                                    <i className="fas fa-folder"></i>
+                                    <span>{jobCard.department?.name}</span>
+                                </div>
+                                {jobCard.vehicle && (
+                                    <div className="job-detail">
+                                        <i className="fas fa-truck"></i>
+                                        <span>{jobCard.vehicle.name}</span>
+                                    </div>
+                                )}
+                                {jobCard.product && (
+                                    <div className="job-detail">
+                                        <i className="fas fa-box"></i>
+                                        <span>{jobCard.product.name}</span>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            <div className="job-dates">
+                                <div className="date-item">
+                                    <small>تاريخ البدء:</small>
+                                    <strong>{new Date(jobCard.start_date).toLocaleDateString('ar-SA')}</strong>
+                                </div>
+                                <div className="date-item">
+                                    <small>الانتهاء المتوقع:</small>
+                                    <strong>{new Date(jobCard.expected_end_date).toLocaleDateString('ar-SA')}</strong>
+                                </div>
+                                {jobCard.actual_end_date && (
+                                    <div className="date-item">
+                                        <small>تاريخ الإغلاق:</small>
+                                        <strong>{new Date(jobCard.actual_end_date).toLocaleDateString('ar-SA')}</strong>
+                                    </div>
+                                )}
+                                <div className="date-item">
+                                    <small>مدة العمل:</small>
+                                    <strong>{jobCard.work_days} يوم</strong>
+                                </div>
+                            </div>
+                            
+                            {jobCard.notes && (
+                                <div className="job-notes">
+                                    <small><i className="fas fa-sticky-note"></i> {jobCard.notes}</small>
+                                </div>
+                            )}
+                        </div>
+                        
+                        <div className="job-card-actions">
+                            {jobCard.status === 'active' && (
+                                <button className="btn-ok" onClick={() => closeJobCard(jobCard)}>
+                                    <i className="fas fa-check"></i> إغلاق
+                                </button>
+                            )}
+                            <button className="btn-icon-del" onClick={() => deleteJobCard(jobCard.id)}>
+                                <i className="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="app-container">
+                    <div className="top-bar">
+                        <button className="btn-back" onClick={() => {
+                            if (view === 'dashboard') {
+                                window.location.href = 'dashboard.html';
+                            } else {
+                                setView('dashboard');
+                            }
+                        }}>
+                            <i className="fas fa-arrow-right"></i>
+                        </button>
+                        <h2><i className="fas fa-clipboard-list"></i> أوامر العمل - {user}</h2>
+                        {view === 'dashboard' && (
+                            <button className="btn-export" onClick={() => setShowJobCardModal(true)}>
+                                <i className="fas fa-plus"></i> أمر عمل جديد
+                            </button>
+                        )}
+                    </div>
+
+                    {view === 'dashboard' ? (
+                        <>
+                            <div className="stats-row">
+                                <div className="stat-box blue" onClick={() => setActiveTab('active')}>
+                                    <i className="fas fa-tasks"></i>
+                                    <div>
+                                        <small>نشطة</small>
+                                        <strong>{jobCards.filter(j => j.status === 'active' && j.expected_end_date >= today()).length}</strong>
+                                    </div>
+                                </div>
+                                <div className="stat-box orange" onClick={() => setActiveTab('pending')}>
+                                    <i className="fas fa-exclamation-circle"></i>
+                                    <div>
+                                        <small>منتهية - محتاجة تأكيد</small>
+                                        <strong>{jobCards.filter(j => j.status === 'active' && j.expected_end_date < today()).length}</strong>
+                                    </div>
+                                </div>
+                                <div className="stat-box green" onClick={() => setActiveTab('closed')}>
+                                    <i className="fas fa-check-circle"></i>
+                                    <div>
+                                        <small>مغلقة</small>
+                                        <strong>{jobCards.filter(j => j.status === 'closed').length}</strong>
+                                    </div>
+                                </div>
+                                <div className="stat-box cyan">
+                                    <i className="fas fa-layer-group"></i>
+                                    <div>
+                                        <small>الأقسام</small>
+                                        <strong>{departments.length}</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="quick-links" style={{display: 'flex', gap: '10px', marginBottom: '20px'}}>
+                                <button className="btn-main" onClick={() => setView('departments')}>
+                                    <i className="fas fa-layer-group"></i> إدارة الأقسام
+                                </button>
+                                <button className="btn-main" onClick={() => setView('vehicles')}>
+                                    <i className="fas fa-truck"></i> أنواع السيارات
+                                </button>
+                                <button className="btn-main" onClick={() => setView('products')}>
+                                    <i className="fas fa-box"></i> أنواع المنتجات
+                                </button>
+                            </div>
+
+                            <div className="tab-btns" style={{marginBottom: '15px'}}>
+                                <button className={activeTab === 'active' ? 'active' : ''} onClick={() => setActiveTab('active')}>
+                                    <i className="fas fa-tasks"></i> نشطة
+                                </button>
+                                <button className={activeTab === 'pending' ? 'active' : ''} onClick={() => setActiveTab('pending')}>
+                                    <i className="fas fa-exclamation-circle"></i> منتهية
+                                </button>
+                                <button className={activeTab === 'closed' ? 'active' : ''} onClick={() => setActiveTab('closed')}>
+                                    <i className="fas fa-check-circle"></i> مغلقة
+                                </button>
+                            </div>
+
+                            <div className="controls-row" style={{marginBottom: '20px'}}>
+                                <div className="search-field">
+                                    <i className="fas fa-search"></i>
+                                    <input type="text" placeholder="بحث..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                                    {searchTerm && <i className="fas fa-times" onClick={() => setSearchTerm('')}></i>}
+                                </div>
+                                <select value={filterDept} onChange={(e) => setFilterDept(e.target.value)} className="filter-select">
+                                    <option value="all">كل الأقسام</option>
+                                    {departments.map(d => (
+                                        <option key={d.id} value={d.id}>{d.name}</option>
+                                    ))}
+                                </select>
+                                <select value={filterSort} onChange={(e) => setFilterSort(e.target.value)} className="filter-select">
+                                    <option value="newest">الأحدث</option>
+                                    <option value="oldest">الأقدم</option>
+                                </select>
+                            </div>
+
+                            {getFilteredJobCards().length === 0 ? (
+                                <div className="no-data">
+                                    <i className="fas fa-clipboard-list"></i>
+                                    <p>لا توجد أوامر عمل</p>
+                                    <button className="btn-main" onClick={() => setShowJobCardModal(true)}>
+                                        <i className="fas fa-plus"></i> إنشاء أمر عمل
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="job-cards-grid">
+                                    {getFilteredJobCards().map(jc => (
+                                        <JobCardItem key={jc.id} jobCard={jc} />
+                                    ))}
+                                </div>
+                            )}
+                        </>
+                    ) : view === 'departments' ? (
+                        <>
+                            <div className="section-header">
+                                <h3><i className="fas fa-layer-group"></i> الأقسام</h3>
+                                <button className="btn-main" onClick={() => setShowDeptModal(true)}>
+                                    <i className="fas fa-plus"></i> قسم جديد
+                                </button>
+                            </div>
+                            <div className="list-container">
+                                {departments.map(d => (
+                                    <div key={d.id} className="list-item">
+                                        <div className="list-item-content">
+                                            <strong>{d.name}</strong>
+                                            <div style={{display: 'flex', gap: '15px', fontSize: '0.9rem', color: '#65676b'}}>
+                                                <span>الكود: <code>{d.prefix}</code></span>
+                                                {d.description && <span>{d.description}</span>}
+                                            </div>
+                                        </div>
+                                        <div className="list-item-actions">
+                                            <button className="icon-btn edit-btn" onClick={() => { setEditingDept(d); setShowDeptModal(true); }}>
+                                                <i className="fas fa-edit"></i>
+                                            </button>
+                                            <button className="icon-btn del-btn" onClick={() => deleteDepartment(d.id)}>
+                                                <i className="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </>
+                    ) : view === 'vehicles' ? (
+                        <>
+                            <div className="section-header">
+                                <h3><i className="fas fa-truck"></i> أنواع السيارات</h3>
+                                <button className="btn-main" onClick={() => setShowVehicleModal(true)}>
+                                    <i className="fas fa-plus"></i> نوع جديد
+                                </button>
+                            </div>
+                            <div className="list-container">
+                                {vehicleTypes.map(v => (
+                                    <div key={v.id} className="list-item">
+                                        <div className="list-item-content">
+                                            <strong>{v.name}</strong>
+                                        </div>
+                                        <div className="list-item-actions">
+                                            <button className="icon-btn edit-btn" onClick={() => { setEditingVehicle(v); setShowVehicleModal(true); }}>
+                                                <i className="fas fa-edit"></i>
+                                            </button>
+                                            <button className="icon-btn del-btn" onClick={() => deleteVehicleType(v.id)}>
+                                                <i className="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </>
+                    ) : view === 'products' ? (
+                        <>
+                            <div className="section-header">
+                                <h3><i className="fas fa-box"></i> أنواع المنتجات</h3>
+                                <button className="btn-main" onClick={() => setShowProductModal(true)}>
+                                    <i className="fas fa-plus"></i> نوع جديد
+                                </button>
+                            </div>
+                            <div className="list-container">
+                                {productTypes.map(p => {
+                                    const dept = departments.find(d => d.id === p.department_id);
+                                    return (
+                                        <div key={p.id} className="list-item">
+                                            <div className="list-item-content">
+                                                <strong>{p.name}</strong>
+                                                {dept && <small style={{color: '#0084ff'}}>({dept.name})</small>}
+                                            </div>
+                                            <div className="list-item-actions">
+                                                <button className="icon-btn edit-btn" onClick={() => { setEditingProduct(p); setShowProductModal(true); }}>
+                                                    <i className="fas fa-edit"></i>
+                                                </button>
+                                                <button className="icon-btn del-btn" onClick={() => deleteProductType(p.id)}>
+                                                    <i className="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </>
+                    ) : null}
+
+                    {/* Department Modal */}
+                    {showDeptModal && (
+                        <div className="modal-overlay" onClick={() => { setShowDeptModal(false); setEditingDept(null); }}>
+                            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                <h3><i className="fas fa-layer-group"></i> {editingDept ? 'تعديل' : 'إضافة'} قسم</h3>
+                                <form onSubmit={addDepartment} className="neat-form">
+                                    <div>
+                                        <label>اسم القسم *</label>
+                                        <input name="name" defaultValue={editingDept?.name} required placeholder="مثال: صناديق التبريد" />
+                                    </div>
+                                    <div>
+                                        <label>كود القسم (Prefix) *</label>
+                                        <input name="prefix" defaultValue={editingDept?.prefix} required placeholder="مثال: VTR" style={{textTransform: 'uppercase'}} />
+                                        <small style={{color: '#65676b'}}>مثال: VTR، VAMB، VCH</small>
+                                    </div>
+                                    <div>
+                                        <label>الوصف</label>
+                                        <textarea name="description" rows="2" defaultValue={editingDept?.description} placeholder="وصف اختياري"></textarea>
+                                    </div>
+                                    <div className="row-btns">
+                                        <button type="submit" className="btn-ok"><i className="fas fa-save"></i> حفظ</button>
+                                        <button type="button" className="btn-no" onClick={() => { setShowDeptModal(false); setEditingDept(null); }}>
+                                            <i className="fas fa-times"></i> إلغاء
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Vehicle Modal */}
+                    {showVehicleModal && (
+                        <div className="modal-overlay" onClick={() => { setShowVehicleModal(false); setEditingVehicle(null); }}>
+                            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                <h3><i className="fas fa-truck"></i> {editingVehicle ? 'تعديل' : 'إضافة'} نوع سيارة</h3>
+                                <form onSubmit={addVehicleType} className="neat-form">
+                                    <div>
+                                        <label>اسم السيارة *</label>
+                                        <input name="name" defaultValue={editingVehicle?.name} required placeholder="مثال: هينو 300" />
+                                    </div>
+                                    <div className="row-btns">
+                                        <button type="submit" className="btn-ok"><i className="fas fa-save"></i> حفظ</button>
+                                        <button type="button" className="btn-no" onClick={() => { setShowVehicleModal(false); setEditingVehicle(null); }}>
+                                            <i className="fas fa-times"></i> إلغاء
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Product Modal */}
+                    {showProductModal && (
+                        <div className="modal-overlay" onClick={() => { setShowProductModal(false); setEditingProduct(null); }}>
+                            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                <h3><i className="fas fa-box"></i> {editingProduct ? 'تعديل' : 'إضافة'} نوع منتج</h3>
+                                <form onSubmit={addProductType} className="neat-form">
+                                    <div>
+                                        <label>اسم المنتج *</label>
+                                        <input name="name" defaultValue={editingProduct?.name} required placeholder="مثال: وحدة تبريد 0-5 درجة" />
+                                    </div>
+                                    <div>
+                                        <label>القسم (اختياري)</label>
+                                        <select name="department_id" defaultValue={editingProduct?.department_id || ''}>
+                                            <option value="">بدون قسم محدد</option>
+                                            {departments.map(d => (
+                                                <option key={d.id} value={d.id}>{d.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="row-btns">
+                                        <button type="submit" className="btn-ok"><i className="fas fa-save"></i> حفظ</button>
+                                        <button type="button" className="btn-no" onClick={() => { setShowProductModal(false); setEditingProduct(null); }}>
+                                            <i className="fas fa-times"></i> إلغاء
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Job Card Modal */}
+                    {showJobCardModal && (
+                        <div className="modal-overlay" onClick={() => setShowJobCardModal(false)}>
+                            <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
+                                <h3><i className="fas fa-clipboard-list"></i> أمر عمل جديد</h3>
+                                <form onSubmit={addJobCard} className="neat-form">
+                                    <div>
+                                        <label>القسم *</label>
+                                        <select name="department_id" required>
+                                            <option value="">اختر القسم</option>
+                                            {departments.map(d => (
+                                                <option key={d.id} value={d.id}>{d.name} ({d.prefix})</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    
+                                    <div className="row-2">
+                                        <div>
+                                            <label>اسم العميل *</label>
+                                            <input name="client_name" required />
+                                        </div>
+                                        <div>
+                                            <label>الشركة</label>
+                                            <input name="client_company" />
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="row-2">
+                                        <div>
+                                            <label>الجوال</label>
+                                            <input name="client_phone" type="tel" />
+                                        </div>
+                                        <div>
+                                            <label>الإيميل</label>
+                                            <input name="client_email" type="email" />
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="row-2">
+                                        <div>
+                                            <label>نوع السيارة</label>
+                                            <select name="vehicle_type_id">
+                                                <option value="">اختر...</option>
+                                                {vehicleTypes.map(v => (
+                                                    <option key={v.id} value={v.id}>{v.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label>نوع المنتج</label>
+                                            <select name="product_type_id">
+                                                <option value="">اختر...</option>
+                                                {productTypes.map(p => (
+                                                    <option key={p.id} value={p.id}>{p.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="row-2">
+                                        <div>
+                                            <label>تاريخ البدء *</label>
+                                            <input name="start_date" type="date" defaultValue={today()} required />
+                                        </div>
+                                        <div>
+                                            <label>عدد أيام العمل *</label>
+                                            <input name="work_days" type="number" min="1" defaultValue="15" required />
+                                            <small style={{color: '#65676b'}}>سيتم استبعاد أيام الجمعة تلقائياً</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label>ملاحظات</label>
+                                        <textarea name="notes" rows="3"></textarea>
+                                    </div>
+                                    
+                                    <div className="row-btns">
+                                        <button type="submit" className="btn-ok"><i className="fas fa-save"></i> حفظ</button>
+                                        <button type="button" className="btn-no" onClick={() => setShowJobCardModal(false)}>
+                                            <i className="fas fa-times"></i> إلغاء
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<JobCardsApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
