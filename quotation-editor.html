@@ -172,7 +172,240 @@ td {
 
 <body lang=EN-US link="#0563C1" vlink="#954F72" style='word-wrap:break-word'>
 
-<div class="page-container">
+<!-- شريط الأدوات المتقدم -->
+<div style="position: sticky; top: 0; z-index: 1000; background: linear-gradient(135deg, #0070C0 0%, #003d7a 100%); padding: 15px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); color: white;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h2 style="margin: 0; font-size: 20px;">🎨 محرر VOLGA المتقدم</h2>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="saveAsTemplate()" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">💾 حفظ قالب</button>
+            <button onclick="window.print()" style="padding: 8px 16px; background: white; color: #0070C0; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">🖨️ طباعة</button>
+        </div>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: center; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px;">
+        <!-- تنسيق النص -->
+        <div style="display: flex; gap: 5px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
+            <small style="opacity: 0.9; align-self: center;">النص:</small>
+            <button onclick="document.execCommand('bold')" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">B</button>
+            <button onclick="document.execCommand('italic')" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-style: italic;">I</button>
+            <button onclick="document.execCommand('underline')" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; text-decoration: underline;">U</button>
+        </div>
+        <!-- حجم الخط -->
+        <div style="display: flex; gap: 5px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
+            <small style="opacity: 0.9; align-self: center;">الحجم:</small>
+            <select onchange="applyFontSize(this.value)" style="padding: 6px; border: none; border-radius: 4px;">
+                <option value="8">8pt</option>
+                <option value="10">10pt</option>
+                <option value="12" selected>12pt</option>
+                <option value="14">14pt</option>
+                <option value="16">16pt</option>
+                <option value="18">18pt</option>
+                <option value="20">20pt</option>
+            </select>
+        </div>
+        <!-- الألوان -->
+        <div style="display: flex; gap: 5px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
+            <small style="opacity: 0.9; align-self: center;">اللون:</small>
+            <input type="color" id="textColorPicker" value="#000000" onchange="document.execCommand('foreColor', false, this.value)" style="width: 40px; height: 32px; border: none; cursor: pointer; border-radius: 4px;">
+            <input type="color" id="bgColorPicker" value="#ffffff" onchange="document.execCommand('backColor', false, this.value)" style="width: 40px; height: 32px; border: none; cursor: pointer; border-radius: 4px;" title="لون الخلفية">
+        </div>
+        <!-- الجداول -->
+        <div style="display: flex; gap: 5px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
+            <button onclick="addRow()" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">➕ صف</button>
+            <button onclick="addColumn()" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">➕ عمود</button>
+        </div>
+        <!-- التنسيق المتقدم -->
+        <div style="display: flex; gap: 5px; padding: 0 10px;">
+            <button onclick="toggleAdvanced()" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">⚙️ تنسيق متقدم</button>
+        </div>
+    </div>
+</div>
+
+<!-- اللوحة الجانبية للتنسيق المتقدم -->
+<div id="advancedPanel" style="display: none; position: fixed; left: 0; top: 0; width: 300px; height: 100vh; background: white; box-shadow: -2px 0 20px rgba(0,0,0,0.3); padding: 20px; overflow-y: auto; z-index: 2000;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 3px solid #0070C0;">
+        <h3 style="color: #0070C0; margin: 0;">⚙️ التنسيق المتقدم</h3>
+        <button onclick="toggleAdvanced()" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">✖</button>
+    </div>
+    
+    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+        <label style="display: block; font-weight: bold; margin-bottom: 10px; color: #333;">📏 تباعد السطور</label>
+        <input type="range" min="0.5" max="3" step="0.1" value="1.2" oninput="document.getElementById('editorPage').style.lineHeight = this.value; document.getElementById('lineDisplay').textContent = this.value" style="width: 100%;">
+        <span id="lineDisplay" style="font-weight: bold; color: #0070C0;">1.2</span>
+    </div>
+    
+    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+        <label style="display: block; font-weight: bold; margin-bottom: 10px; color: #333;">📐 المسافة الخارجية (Margin)</label>
+        <input type="range" min="0" max="50" step="1" value="0" oninput="applyMargin(this.value)" style="width: 100%;">
+        <span id="marginDisplay" style="font-weight: bold; color: #0070C0;">0pt</span>
+    </div>
+    
+    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+        <label style="display: block; font-weight: bold; margin-bottom: 10px; color: #333;">🔲 حدود الجداول</label>
+        <select onchange="updateBorders(this.value)" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;">
+            <option value="1" selected>1px</option>
+            <option value="2">2px</option>
+            <option value="3">3px</option>
+            <option value="0">بدون حدود</option>
+        </select>
+    </div>
+    
+    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+        <label style="display: block; font-weight: bold; margin-bottom: 10px; color: #333;">🎨 نمط الجدول</label>
+        <button onclick="applyStyle('simple')" style="width: 100%; padding: 12px; margin-bottom: 8px; background: #0070C0; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">⚪ بسيط</button>
+        <button onclick="applyStyle('striped')" style="width: 100%; padding: 12px; margin-bottom: 8px; background: #0070C0; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">📊 مخطط</button>
+        <button onclick="applyStyle('bordered')" style="width: 100%; padding: 12px; background: #0070C0; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">🔲 محدد</button>
+    </div>
+</div>
+
+<script>
+function toggleAdvanced() {
+    const panel = document.getElementById('advancedPanel');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+function applyFontSize(size) {
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        const span = document.createElement('span');
+        span.style.fontSize = size + 'pt';
+        try {
+            const range = selection.getRangeAt(0);
+            range.surroundContents(span);
+        } catch(e) {
+            document.execCommand('fontSize', false, '7');
+            const fontElements = document.getElementsByTagName('font');
+            for (let i = 0; i < fontElements.length; i++) {
+                if (fontElements[i].size === '7') {
+                    fontElements[i].removeAttribute('size');
+                    fontElements[i].style.fontSize = size + 'pt';
+                }
+            }
+        }
+    }
+}
+
+function addRow() {
+    const selection = window.getSelection();
+    let element = selection.anchorNode;
+    while (element && element.tagName !== 'TABLE') {
+        element = element.parentElement;
+    }
+    if (element && element.tagName === 'TABLE') {
+        const row = element.insertRow();
+        const colCount = element.rows[0].cells.length;
+        for (let i = 0; i < colCount; i++) {
+            const cell = row.insertCell();
+            cell.contentEditable = 'true';
+            cell.style.border = '1px solid #ddd';
+            cell.style.padding = '8px';
+            cell.textContent = 'خلية جديدة';
+        }
+        showToast('✅ تم إضافة صف جديد!');
+    } else {
+        alert('⚠️ يرجى تحديد جدول أولاً');
+    }
+}
+
+function addColumn() {
+    const selection = window.getSelection();
+    let element = selection.anchorNode;
+    while (element && element.tagName !== 'TABLE') {
+        element = element.parentElement;
+    }
+    if (element && element.tagName === 'TABLE') {
+        const rows = element.rows;
+        for (let i = 0; i < rows.length; i++) {
+            const cell = rows[i].insertCell();
+            cell.contentEditable = 'true';
+            cell.style.border = '1px solid #ddd';
+            cell.style.padding = '8px';
+            cell.textContent = 'خلية جديدة';
+        }
+        showToast('✅ تم إضافة عمود جديد!');
+    } else {
+        alert('⚠️ يرجى تحديد جدول أولاً');
+    }
+}
+
+function applyMargin(value) {
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        const element = selection.anchorNode.parentElement;
+        element.style.margin = value + 'pt';
+    }
+    document.getElementById('marginDisplay').textContent = value + 'pt';
+}
+
+function updateBorders(width) {
+    const tables = document.querySelectorAll('.page-container table');
+    tables.forEach(table => {
+        table.style.border = width + 'px solid #ddd';
+        const cells = table.querySelectorAll('td, th');
+        cells.forEach(cell => {
+            cell.style.border = width + 'px solid #ddd';
+        });
+    });
+    showToast('✅ تم تحديث حدود الجداول!');
+}
+
+function applyStyle(style) {
+    const tables = document.querySelectorAll('.page-container table');
+    tables.forEach(table => {
+        const rows = table.querySelectorAll('tr');
+        rows.forEach((row, index) => {
+            row.style.background = '';
+        });
+        
+        if (style === 'striped') {
+            rows.forEach((row, index) => {
+                if (index % 2 === 0) {
+                    row.style.background = '#f8f9fa';
+                }
+            });
+        } else if (style === 'bordered') {
+            table.style.border = '2px solid #0070C0';
+            const cells = table.querySelectorAll('td, th');
+            cells.forEach(cell => {
+                cell.style.border = '1px solid #0070C0';
+            });
+        }
+    });
+    showToast('✅ تم تطبيق النمط!');
+}
+
+function saveAsTemplate() {
+    const name = prompt('اسم القالب:', 'قالب VOLGA - ' + new Date().toLocaleDateString('ar-SA'));
+    if (name) {
+        const template = {
+            id: Date.now(),
+            name: name,
+            content: document.querySelector('.page-container').innerHTML,
+            created: new Date().toLocaleString('ar-SA')
+        };
+        let templates = JSON.parse(localStorage.getItem('volga_templates') || '[]');
+        templates.push(template);
+        localStorage.setItem('volga_templates', JSON.stringify(templates));
+        showToast('✅ تم حفظ القالب بنجاح!');
+    }
+}
+
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position: fixed; bottom: 30px; left: 30px; background: #28a745; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); z-index: 3000; font-weight: bold; animation: slideIn 0.3s;';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+// جعل كل العناصر قابلة للتحرير
+document.querySelectorAll('.page-container p, .page-container td, .page-container span').forEach(el => {
+    if (!el.classList.contains('editable') && el.contentEditable !== 'true') {
+        el.contentEditable = 'true';
+    }
+});
+</script>
+
+<div class="page-container" id="editorPage">
 
     <!-- Editor Header -->
     <div class="editor-header">
