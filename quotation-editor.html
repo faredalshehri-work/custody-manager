@@ -1,28 +1,28 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>محرر عرض السعر</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
             font-family: 'Times New Roman', serif;
             background: #f5f5f5;
             padding: 20px;
+            font-size: 12pt;
         }
+        
         .editor-container {
-            max-width: 1200px;
+            max-width: 210mm;
             margin: 0 auto;
             background: white;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }
+        
         .editor-header {
             display: flex;
             justify-content: space-between;
@@ -31,13 +31,14 @@
             padding-bottom: 10px;
             border-bottom: 2px solid #0070C0;
         }
-        .editor-header h2 {
-            color: #0070C0;
-        }
+        
+        .editor-header h2 { color: #0070C0; }
+        
         .editor-actions {
             display: flex;
             gap: 10px;
         }
+        
         .btn {
             padding: 10px 25px;
             border: none;
@@ -46,21 +47,13 @@
             font-size: 14px;
             font-weight: bold;
         }
-        .btn-save {
-            background: #28a745;
-            color: white;
-        }
-        .btn-cancel {
-            background: #dc3545;
-            color: white;
-        }
-        .btn-preview {
-            background: #0070C0;
-            color: white;
-        }
         
-        /* قالب عرض السعر - مطابق 100% */
-        .quotation-template {
+        .btn-save { background: #28a745; color: white; }
+        .btn-cancel { background: #dc3545; color: white; }
+        .btn-preview { background: #0070C0; color: white; }
+        
+        /* قالب عرض السعر */
+        .quotation-page {
             width: 210mm;
             min-height: 297mm;
             margin: 20px auto;
@@ -76,49 +69,75 @@
             padding: 2px 5px;
             min-width: 50px;
             display: inline-block;
+            cursor: text;
         }
+        
         .editable:focus {
             outline: 2px solid #0070C0;
             background: #fff;
         }
         
-        /* استايلات الجداول من القالب الأصلي */
-        table {
-            border-collapse: collapse;
-            width: 100%;
+        /* الجداول */
+        table { border-collapse: collapse; width: 100%; }
+        td { padding: 5.4pt; vertical-align: top; }
+        
+        .header-table td { border: solid windowtext 1.0pt; }
+        .info-table td { border: solid #BFBFBF 1.0pt; }
+        .price-table td { border: solid #BFBFBF 1.0pt; }
+        
+        /* هيدر الصفحة */
+        .page-header {
+            position: relative;
+            margin-bottom: 20pt;
         }
-        td {
-            padding: 5.4pt;
-            vertical-align: top;
+        
+        .logo {
+            position: absolute;
+            right: 0;
+            top: -20pt;
+            max-width: 150px;
+            height: auto;
         }
-        .header-table td {
-            border: solid windowtext 1.0pt;
+        
+        /* الصور */
+        .cert-images {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20pt 0;
+            flex-wrap: wrap;
         }
-        .info-table td {
-            border: solid #BFBFBF 1.0pt;
+        
+        .cert-placeholder {
+            width: 60px;
+            height: 60px;
+            border: 2px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8pt;
+            color: #999;
+            background: #f9f9f9;
+        }
+        
+        /* الفواصل */
+        .divider {
+            border-bottom: 1px solid #000;
+            margin: 10pt 0;
         }
         
         @media print {
-            body {
-                background: white;
-                padding: 0;
-            }
-            .editor-container {
-                box-shadow: none;
-                padding: 0;
-            }
-            .editor-header,
-            .editor-actions {
-                display: none !important;
-            }
-            .quotation-template {
-                box-shadow: none;
-                margin: 0;
-            }
-            .editable {
-                background: transparent !important;
-                border: none !important;
-            }
+            body { background: white; padding: 0; }
+            .editor-container { box-shadow: none; padding: 0; }
+            .editor-header, .editor-actions { display: none !important; }
+            .quotation-page { box-shadow: none; margin: 0; page-break-after: always; }
+            .editable { background: transparent !important; border: none !important; }
+            .cert-placeholder { border: none; background: none; color: transparent; }
+        }
+        
+        @page {
+            size: A4;
+            margin: 0.5in;
         }
     </style>
 </head>
@@ -128,14 +147,19 @@
             <h2>✏️ محرر عرض السعر</h2>
             <div class="editor-actions">
                 <button class="btn btn-save" onclick="saveQuotation()">💾 حفظ</button>
-                <button class="btn btn-preview" onclick="window.print()">🖨️ طباعة/معاينة</button>
-                <button class="btn btn-cancel" onclick="cancel()">❌ إلغاء</button>
+                <button class="btn btn-preview" onclick="window.print()">🖨️ طباعة/PDF</button>
+                <button class="btn btn-cancel" onclick="goBack()">❌ إلغاء</button>
             </div>
         </div>
 
-        <div class="quotation-template" id="quotationTemplate">
+        <div class="quotation-page">
+            <!-- الهيدر مع الشعار -->
+            <div class="page-header">
+                <img src="https://volga.sa/images/logo_en_911566.png" alt="VOLGA" class="logo">
+            </div>
+
             <!-- جدول الهيدر -->
-            <table class="header-table" style="width:534.25pt;margin-left:6.75pt;margin-right:6.75pt">
+            <table class="header-table" style="width:534.25pt;margin-bottom:10pt">
                 <tr style="height:15.8pt">
                     <td style="width:67.65pt">
                         <p style="margin:0"><b><u><span style="font-size:10.0pt">Ref:</span></u></b></p>
@@ -146,7 +170,7 @@
                         </p>
                     </td>
                     <td style="width:244.1pt">
-                        <p style="margin:0;text-align:right"><b><u><span style="font-size:9.0pt">&nbsp;</span></u></b></p>
+                        <p style="margin:0;text-align:right">&nbsp;</p>
                     </td>
                     <td style="width:100.45pt">
                         <p style="margin:0;text-align:right">
@@ -164,18 +188,19 @@
                         </p>
                     </td>
                     <td style="width:100.45pt">
-                        <p style="margin:0;text-align:right" dir="rtl"><span lang="AR-SA">الصلاحية:</span></p>
+                        <p style="margin:0;text-align:right"><span>الصلاحية:</span></p>
                     </td>
                 </tr>
             </table>
 
+            <!-- العنوان -->
             <p style="margin-left:2.0in;text-indent:.5in;margin-top:10pt">
                 <u><span style="font-size:22.0pt;color:#0070C0">Quotation </span></u>
-                <u><span lang="AR-SA" dir="RTL" style="font-size:20.0pt;color:#0070C0">عرض سعر</span></u>
+                <u><span style="font-size:20.0pt;color:#0070C0">عرض سعر</span></u>
             </p>
 
             <!-- جدول معلومات العميل -->
-            <table class="info-table" style="width:529.9pt;margin-left:6.75pt;margin-right:6.75pt;margin-top:20pt">
+            <table class="info-table" style="width:529.9pt;margin-top:20pt">
                 <tr style="height:12.3pt">
                     <td style="width:33.65pt">
                         <p style="margin:0"><b><u><span style="font-size:10.0pt">To:</span></u></b></p>
@@ -186,7 +211,7 @@
                         </p>
                     </td>
                     <td style="width:49.6pt">
-                        <p style="margin:0"><span lang="AR-SA" dir="RTL" style="font-size:11.0pt">إلى:</span></p>
+                        <p style="margin:0"><span style="font-size:11.0pt">إلى:</span></p>
                     </td>
                 </tr>
                 <tr style="height:12.3pt">
@@ -199,163 +224,296 @@
                         </p>
                     </td>
                     <td style="width:49.6pt">
-                        <p style="margin:0"><span lang="AR-SA" dir="RTL" style="font-size:11.0pt">العنوان:</span></p>
+                        <p style="margin:0"><span style="font-size:11.0pt">العنوان:</span></p>
                     </td>
                 </tr>
             </table>
 
-            <p style="margin:0;margin-top:20pt">&nbsp;</p>
+            <p style="margin:20pt 0">&nbsp;</p>
 
-            <!-- المواصفات الفنية -->
-            <div style="text-align:right">
-                <table dir="rtl" style="margin-left:-5.45pt">
-                    <tr>
-                        <td style="width:250.95pt">
-                            <p dir="RTL" style="text-align:right">
-                                <strong><span lang="AR-SA" style="font-size:14.0pt;color:#0070C0">1- المـواصـفـات الـفـنـيـة لوحدة التبريد:</span></strong>
-                            </p>
-                        </td>
-                        <td style="width:282.65pt">
-                            <p dir="LTR">
-                                <strong><span style="font-size:14.0pt;color:#0070C0">1-Unit Technical Specifications:</span></strong>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="width:250.95pt">
-                            <p dir="RTL" style="text-align:right">
-                                <b><span lang="AR-SA" style="font-size:10.0pt;color:#1F1F1F">الموديل والعلامة:</span></b>
-                                <span lang="AR-SA" style="font-size:10.0pt;color:#1F1F1F"> </span>
-                                <span dir="LTR" style="font-size:10.0pt;color:#1F1F1F">VOLGA HVAC</span>
-                                <span lang="AR-SA" style="font-size:10.0pt;color:#1F1F1F"> (تجميع سعودي - تقنية أمريكية)</span>
-                            </p>
-                        </td>
-                        <td style="width:282.65pt">
-                            <p dir="LTR">
-                                <b><span style="font-size:10.0pt;color:#1F1F1F">Model & Brand:</span></b>
-                                <span style="font-size:10.0pt;color:#1F1F1F"> VOLGA HVAC (KSA Assembly - USA Tech)</span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="width:250.95pt">
-                            <p dir="RTL" style="text-align:right">
-                                <b><span lang="AR-SA" style="font-size:10.0pt;color:#1F1F1F">قوة التبريد:</span></b>
-                                <span lang="AR-SA" style="font-size:10.0pt;color:#1F1F1F"> <span style="background:yellow">تصل إلى </span></span>
-                                <span contenteditable="true" class="editable" id="temperature_range" style="font-size:10.0pt;color:#1F1F1F">-25</span>
-                                <span lang="AR-SA" style="font-size:10.0pt;color:#1F1F1F"><span style="background:yellow"> درجة مئوية</span></span>
-                            </p>
-                        </td>
-                        <td style="width:282.65pt">
-                            <p dir="LTR">
-                                <b><span style="font-size:10.0pt;color:#1F1F1F">Cooling Power:</span></b>
-                                <span style="font-size:10.0pt;color:#1F1F1F;background:yellow"> Down to </span>
-                                <span contenteditable="true" class="editable" id="temperature_range_copy" style="font-size:10.0pt;color:#1F1F1F">-25</span>
-                                <span style="font-size:10.0pt;color:#1F1F1F;background:yellow">°C</span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="width:250.95pt">
-                            <p dir="RTL" style="text-align:right">
-                                <b><span lang="AR-SA" style="font-size:10.0pt;color:#1F1F1F">تدفق الهواء:</span></b>
-                                <span lang="AR-SA" style="font-size:10.0pt;color:#1F1F1F"> 1750 م³/ساعة (الأعلى في فئتها)</span>
-                            </p>
-                        </td>
-                        <td style="width:282.65pt">
-                            <p dir="LTR">
-                                <b><span style="font-size:10.0pt;color:#1F1F1F">Airflow:</span></b>
-                                <span style="font-size:10.0pt;color:#1F1F1F"> 1750 m³/hr (Best in class)</span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="width:250.95pt">
-                            <p dir="RTL" style="text-align:right">
-                                <b><span lang="AR-SA" style="font-size:10.0pt;color:#1F1F1F">الضاغط (الكمبريسور):</span></b>
-                                <span lang="AR-SA" style="font-size:10.0pt;color:#1F1F1F"> 5</span>
-                                <span dir="LTR" style="font-size:10.0pt;color:#1F1F1F">S14</span>
-                                <span lang="AR-SA" style="font-size:10.0pt;color:#1F1F1F"> معتمد (سعة 138</span>
-                                <span dir="LTR" style="font-size:10.0pt;color:#1F1F1F">cc</span>
-                                <span lang="AR-SA" style="font-size:10.0pt;color:#1F1F1F">)</span>
-                            </p>
-                        </td>
-                        <td style="width:282.65pt">
-                            <p dir="LTR">
-                                <b><span style="font-size:10.0pt;color:#1F1F1F">Compressor:</span></b>
-                                <span style="font-size:10.0pt;color:#1F1F1F"> Approved 5S14 (138cc capacity)</span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="width:250.95pt">
-                            <p dir="RTL" style="text-align:right">
-                                <b><span lang="AR-SA" style="font-size:10.0pt;color:#1F1F1F">تحمل الحرارة المحيطة:</span></b>
-                                <span lang="AR-SA" style="font-size:10.0pt;color:#1F1F1F"> حتى 55 درجة مئوية</span>
-                            </p>
-                        </td>
-                        <td style="width:282.65pt">
-                            <p dir="LTR">
-                                <b><span style="font-size:10.0pt;color:#1F1F1F">Ambient Temp Resistance:</span></b>
-                                <span style="font-size:10.0pt;color:#1F1F1F"> Up to 55°C</span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="width:250.95pt">
-                            <p dir="RTL" style="text-align:right">
-                                <b><span lang="AR-SA" style="font-size:10.0pt;color:#1F1F1F">نظام التذويب:</span></b>
-                                <span lang="AR-SA" style="font-size:10.0pt;color:#1F1F1F"> غاز ساخن (</span>
-                                <span dir="LTR" style="font-size:10.0pt;color:#1F1F1F">Hot Gas</span>
-                                <span lang="AR-SA" style="font-size:10.0pt;color:#1F1F1F">)</span>
-                            </p>
-                        </td>
-                        <td style="width:282.65pt">
-                            <p dir="LTR">
-                                <b><span style="font-size:10.0pt;color:#1F1F1F">Defrosting System:</span></b>
-                                <span style="font-size:10.0pt;color:#1F1F1F"> Hot Gas Defrosting</span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="width:250.95pt">
-                            <p dir="RTL" style="text-align:right">
-                                <b><span lang="AR-SA" style="font-size:10.0pt;color:#1F1F1F">الخامات:</span></b>
-                                <span lang="AR-SA" style="font-size:10.0pt;color:#1F1F1F"> أنابيب نحاس / زعانف ألمنيوم (مضاد للميكروبات)</span>
-                            </p>
-                        </td>
-                        <td style="width:282.65pt">
-                            <p dir="LTR">
-                                <b><span style="font-size:10.0pt;color:#1F1F1F">Materials:</span></b>
-                                <span style="font-size:10.0pt;color:#1F1F1F"> Copper tubes / Aluminum fins (Anti-microbial)</span>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="width:250.95pt">
-                            <p dir="RTL" style="text-align:right">
-                                <b><span lang="AR-SA" style="font-size:10.0pt;color:#1F1F1F">الجهد ونوع الفريون:</span></b>
-                                <span lang="AR-SA" style="font-size:10.0pt;color:#1F1F1F"> 12 فولت </span>
-                                <span dir="LTR" style="font-size:10.0pt;color:#1F1F1F">DC / R404a (0.9kg)</span>
-                            </p>
-                        </td>
-                        <td style="width:282.65pt">
-                            <p dir="LTR">
-                                <b><span style="font-size:10.0pt;color:#1F1F1F">Voltage & Refrigerant:</span></b>
-                                <span style="font-size:10.0pt;color:#1F1F1F"> 12V DC / R404a (0.9kg)</span>
-                            </p>
-                        </td>
-                    </tr>
-                </table>
-            </div>
+            <!-- القسم 1: المواصفات الفنية -->
+            <table dir="rtl" style="width:100%">
+                <tr>
+                    <td style="width:50%">
+                        <p style="text-align:right">
+                            <strong><span style="font-size:14.0pt;color:#0070C0">1- المـواصـفـات الـفـنـيـة لوحدة التبريد:</span></strong>
+                        </p>
+                    </td>
+                    <td style="width:50%">
+                        <p dir="ltr">
+                            <strong><span style="font-size:14.0pt;color:#0070C0">1-Unit Technical Specifications:</span></strong>
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">الموديل والعلامة:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> VOLGA HVAC (تجميع سعودي - تقنية أمريكية)</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Model & Brand:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> VOLGA HVAC (KSA Assembly - USA Tech)</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">قوة التبريد:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> تصل إلى </span><span contenteditable="true" class="editable" id="temperature_range" style="font-size:10.0pt;color:#1F1F1F">-25</span><span style="font-size:10.0pt;color:#1F1F1F"> درجة مئوية</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Cooling Power:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> Down to </span><span contenteditable="true" class="editable" id="temperature_range_en">-25</span><span style="font-size:10.0pt;color:#1F1F1F">°C</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">تدفق الهواء:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> 1750 م³/ساعة (الأعلى في فئتها)</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Airflow:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> 1750 m³/hr (Best in class)</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">الضاغط:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> 5S14 معتمد (سعة 138cc)</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Compressor:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> Approved 5S14 (138cc capacity)</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">تحمل الحرارة المحيطة:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> حتى 55 درجة مئوية</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Ambient Temp Resistance:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> Up to 55°C</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">نظام التذويب:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> غاز ساخن (Hot Gas)</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Defrosting System:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> Hot Gas Defrosting</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">الخامات:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> أنابيب نحاس / زعانف ألمنيوم (مضاد للميكروبات)</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Materials:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> Copper tubes / Aluminum fins (Anti-microbial)</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">الجهد ونوع الفريون:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> 12 فولت DC / R404a (0.9kg)</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Voltage & Refrigerant:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> 12V DC / R404a (0.9kg)</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">أبعاد الوحدة الخارجية:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> 920 × 540 × 230 ملم</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Outdoor Unit Dim:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> 920 x 540 x 230 mm</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">أبعاد الوحدة الداخلية:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> 1010 × 570 × 150 ملم</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Indoor Unit Dim:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> 1010 x 570 x 150 mm</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">الوزن الصافي:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> خارجية 25 كجم / داخلية 15 كجم</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Net Weight:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> Ext: 25 kg / Int: 15 kg</span></p></td>
+                </tr>
+            </table>
+
+            <div class="divider"></div>
+
+            <!-- القسم 2: مواصفات الشاسيه والأرضية -->
+            <table dir="rtl" style="width:100%">
+                <tr>
+                    <td style="width:50%">
+                        <p style="text-align:right"><strong><span style="font-size:14.0pt;color:#0070C0">2- مواصفات الشاسيه والأرضية:</span></strong></p>
+                    </td>
+                    <td style="width:50%">
+                        <p dir="ltr"><strong><span style="font-size:14.0pt;color:#0070C0">2-Chassis & Flooring Specifications:</span></strong></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">هيكل الشاسيه:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> حديد معالج عالي التحمل للطرق الوعرة</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Chassis Frame:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> Heavy-duty treated iron for off-road</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">أبعاد الصندوق (خارجي):</span></b><span style="font-size:10.0pt;color:#1F1F1F"> 2.30 ط × 1.70 ع × 1.60 ارتفاع (م)</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Ext. Dimensions:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> 2.30L x 1.70W x 1.60H (m)</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">الفريم الخارجي:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> ألمنيوم مقاس 6×6 سم</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Outer Frame:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> 6x6 cm Aluminum frame</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">طلاء الشاسيه:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> هيريسايت (راتنج فينولي) + طبقة سوداء</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Chassis Coating:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> Heresite Phenolic Resin + Black coat</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">أرضية الصندوق:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> ألواح ألمنيوم مقوى بسماكة 4-6 ملم</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Floor:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> Reinforced Aluminum sheets 4-6mm thick</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">العزل الأرضي:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> بولي يوريثان كثافة 40 كجم/م³ (100-120 ملم)</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Floor Insulation:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> PU density 40kg/m³ (100-120mm)</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">نظام الختم:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> ربر لاصق بين القواطع لمنع التسرب الحراري</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Sealing:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> Adhesive rubber seals to prevent heat leak</span></p></td>
+                </tr>
+            </table>
+
+            <div class="divider"></div>
+
+            <!-- القسم 3: مواصفات الألواح والعزل -->
+            <table dir="rtl" style="width:100%">
+                <tr>
+                    <td style="width:50%">
+                        <p style="text-align:right"><strong><span style="font-size:14.0pt;color:#0070C0">3- مواصفات الألواح والعزل:</span></strong></p>
+                    </td>
+                    <td style="width:50%">
+                        <p dir="ltr"><strong><span style="font-size:14.0pt;color:#0070C0">3-Insulation & Cladding Specifications:</span></strong></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">نوع الألواح:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> ألواح مسبقة الصب معتمدة من CTI</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Panel Type:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> CTI certified prefabricated panels</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">سماكة العزل:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> 10 سم</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Insulation Thickness:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> 10 cm</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">مادة العزل:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> بوليوريثان (كثافة 38-40 كجم/م³)</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Insulation Material:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> PU (Density 38-40 kg/m³)</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">معامل العزل الحراري:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> 0.02 واط/ م/ درجة مئوية</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Thermal Conductivity:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> 0.02 W/m.K</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">التغطية الداخلية:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> صاج مجلفن معالج بالهيريسايت (0.6 مم)</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Internal Cladding:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> Heresite-treated Galv. steel (0.6mm)</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">اللون:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> أبيض معزز بالإيبوكسي المقاوم</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Finish:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> White, reinforced with resistant Epoxy</span></p></td>
+                </tr>
+            </table>
 
             <p style="margin:20pt 0">&nbsp;</p>
 
-            <!-- الفوتر -->
-            <div style="text-align:center;margin-top:40pt">
+            <!-- جدول الأسعار -->
+            <table class="price-table" dir="rtl" style="width:100%">
+                <tr>
+                    <td style="width:20%"><p style="text-align:right"><strong><span style="font-size:10.0pt;color:#1F1F1F">البيان</span></strong></p></td>
+                    <td style="width:35%"><p style="text-align:center"><strong><span style="font-size:10.0pt;color:#1F1F1F">Description</span></strong></p></td>
+                    <td style="width:10%"><p style="text-align:right"><strong><span style="font-size:10.0pt;color:#1F1F1F">الكمية</span></strong><span style="font-size:10.0pt">Qty</span></p></td>
+                    <td style="width:15%"><p style="text-align:right"><strong><span style="font-size:10.0pt;color:#1F1F1F">السعر</span></strong><span style="font-size:10.0pt">Price</span></p></td>
+                    <td style="width:20%"><p style="text-align:right"><strong><span style="font-size:10.0pt;color:#1F1F1F">الإجمالي</span></strong><span style="font-size:10.0pt">Total</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><span style="font-size:10.0pt;color:#1F1F1F">توريد وتركيب وحدة التبريد، تصنيع وتركيب الصندوق، وأعمال المعالجة والعزل الداخلي</span></p></td>
+                    <td><p style="text-align:center"><span style="font-size:10.0pt;color:#1F1F1F">Supply & Installation of Cooling Unit, Box Manufacturing, Treatment & Internal Insulation</span></p></td>
+                    <td><p style="text-align:right"><span contenteditable="true" class="editable" id="qty1" style="font-size:10.0pt;color:#1F1F1F">1</span></p></td>
+                    <td><p style="text-align:right"><span contenteditable="true" class="editable" id="price1" style="font-size:10.0pt;color:#1F1F1F">17,000</span></p></td>
+                    <td><p style="text-align:right"><span id="total1" style="font-size:10.0pt;color:#1F1F1F">17,000</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">ضريبة القيمة المضافة (15%)</span></b></p></td>
+                    <td><p style="text-align:center"><b><span style="font-size:10.0pt;color:#1F1F1F">Value Added Tax (15%)</span></b></p></td>
+                    <td><p style="text-align:right"><span style="font-size:10.0pt;color:#1F1F1F">-</span></p></td>
+                    <td><p style="text-align:right"><span id="vat_amount" style="font-size:10.0pt;color:#1F1F1F">2,550</span></p></td>
+                    <td><p style="text-align:right"><span id="vat_total" style="font-size:10.0pt;color:#1F1F1F">2,550</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">الإجمالي النهائي (شامل الضريبة)</span></b></p></td>
+                    <td><p style="text-align:center"><b><span style="font-size:10.0pt;color:#1F1F1F">Grand Total (Incl. VAT)</span></b></p></td>
+                    <td><p style="text-align:right"><span style="font-size:10.0pt;color:#1F1F1F">-</span></p></td>
+                    <td><p style="text-align:right"><span style="font-size:10.0pt;color:#1F1F1F">-</span></p></td>
+                    <td><p style="text-align:right"><b><span id="grand_total" style="font-size:13.0pt;color:#1F1F1F;background:yellow">19,550</span></b></p></td>
+                </tr>
+            </table>
+
+            <p style="margin:20pt 0">&nbsp;</p>
+
+            <!-- الشروط والأحكام -->
+            <table dir="rtl" style="width:100%">
+                <tr>
+                    <td style="width:50%"><p style="text-align:right"><strong><span style="font-size:11.0pt;color:#1F1F1F">الشروط والأحكام</span></strong></p></td>
+                    <td style="width:50%"><p dir="ltr"><strong><span style="font-size:11.0pt;color:#1F1F1F">Terms & Conditions</span></strong></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:11.0pt;color:#1F1F1F">طريقة الدفع:</span></b><span style="font-size:11.0pt;color:#1F1F1F"> 50% دفعة مقدمة عند التوقيع و50% عند الاستلام</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:11.0pt;color:#1F1F1F">Payment:</span></b><span style="font-size:11.0pt;color:#1F1F1F"> 50% Down payment / 50% Upon delivery</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:11.0pt;color:#1F1F1F">مدة التنفيذ:</span></b><span style="font-size:11.0pt;color:#1F1F1F"> 20-25 يوم عمل لكل مركبة (من استلام الدفعة والسيارة)</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:11.0pt;color:#1F1F1F">Execution Time:</span></b><span style="font-size:11.0pt;color:#1F1F1F"> 20-25 Working days per vehicle</span></p></td>
+                </tr>
+            </table>
+
+            <p style="margin:20pt 0">&nbsp;</p>
+
+            <!-- القسم 4: الضمان -->
+            <table dir="rtl" style="width:100%">
+                <tr>
+                    <td style="width:50%"><p style="text-align:right"><strong><span style="font-size:14.0pt;color:#0070C0">4- الضمان:</span></strong></p></td>
+                    <td style="width:50%"><p dir="ltr"><strong><span style="font-size:14.0pt;color:#0070C0">4- Warranty:</span></strong></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">ضمان وحدة التبريد:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> 3 سنوات أو 1900 ساعة (شامل القطع والصيانة)</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Unit Warranty:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> 3 Years or 1900 hours (Parts & Labor)</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">ضمان الصندوق:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> 3 سنوات على العزل والهيكل</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Box Warranty:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> 3 Years on insulation & structure</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><b><span style="font-size:10.0pt;color:#1F1F1F">ميزة إضافية:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> خصم 5% لمدة سنة للعملاء على جميع المنتجات (تم التطبيق)</span></p></td>
+                    <td><p dir="ltr"><b><span style="font-size:10.0pt;color:#1F1F1F">Bonus:</span></b><span style="font-size:10.0pt;color:#1F1F1F"> 5% Annual discount on all factory products (added)</span></p></td>
+                </tr>
+            </table>
+
+            <p style="margin:20pt 0">&nbsp;</p>
+
+            <!-- القسم 5: ملاحظات هامة -->
+            <table dir="rtl" style="width:100%">
+                <tr>
+                    <td style="width:50%"><p style="text-align:right"><strong><span style="font-size:14.0pt;color:#0070C0">5- ملاحظات هامة</span></strong></p></td>
+                    <td style="width:50%"><p dir="ltr"><strong><span style="font-size:14.0pt;color:#0070C0">5- Important Notes</span></strong></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><span style="font-size:10.0pt;color:#1F1F1F">المصنع غير مسؤول عن صندوق السيارة الأصلي بعد الفك.</span></p></td>
+                    <td><p dir="ltr"><span style="font-size:10.0pt;color:#1F1F1F">The factory is not responsible for the original box after removal.</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><span style="font-size:10.0pt;color:#1F1F1F">يجب على العميل استلام الصندوق الأصلي وقت أو قبل استلام السيارة.</span></p></td>
+                    <td><p dir="ltr"><span style="font-size:10.0pt;color:#1F1F1F">Customer must collect the original box before or during delivery.</span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><span style="font-size:10.0pt;color:#1F1F1F">يحق للمصنع التصرف في الصندوق في حال عدم استلامه من العميل.</span></p></td>
+                    <td><p dir="ltr"><span style="font-size:10.0pt;color:#1F1F1F">The factory reserves the right to dispose of the box if not collected.</span></p></td>
+                </tr>
+            </table>
+
+            <p style="margin:20pt 0">&nbsp;</p>
+
+            <!-- القسم 6: الصناعة والشهادات -->
+            <table dir="rtl" style="width:100%">
+                <tr>
+                    <td style="width:50%"><p style="text-align:right"><strong><span style="font-size:14.0pt;color:#0070C0">6- الصناعة والشهادات</span></strong></p></td>
+                    <td style="width:50%"><p dir="ltr"><strong><span style="font-size:14.0pt;color:#0070C0">6- Manufacturing & Certificates</span></strong></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><span style="font-size:10.0pt;color:#1F1F1F">المنشأ:<b> صناعة سعودية بترخيص من </b></span><b><span style="font-size:10.0pt;color:#1F1F1F">VOLGA USA</span></b></p></td>
+                    <td><p dir="ltr"><span style="font-size:10.0pt;color:#1F1F1F">Origin:<b> Saudi Made under VOLGA USA license</b></span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><span style="font-size:10.0pt;color:#1F1F1F">الاعتمادات الدولية:<b> حاصلون على شهادة معهد التبريد الأمريكي </b></span><b><span style="font-size:10.0pt;color:#1F1F1F">CTI</span></b></p></td>
+                    <td><p dir="ltr"><span style="font-size:10.0pt;color:#1F1F1F">Accreditation:<b> Approved by CTI (USA)</b></span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><span style="font-size:10.0pt;color:#1F1F1F">شهادات الأيزو:<b> حاصلون على </b></span><b><span style="font-size:10.0pt;color:#1F1F1F">ISO 9001:2015 & ISO 45001:2018</span></b></p></td>
+                    <td><p dir="ltr"><span style="font-size:10.0pt;color:#1F1F1F">ISO Certs:<b> ISO 9001:2015 & ISO 45001:2018</b></span></p></td>
+                </tr>
+                <tr>
+                    <td><p style="text-align:right"><span style="font-size:10.0pt;color:#1F1F1F">شهادات أنظمة الجودة والسلامة:<b> </b></span><b><span style="font-size:10.0pt;color:#1F1F1F">ASO: QCMS / CSAMS / OHSMS</span></b></p></td>
+                    <td><p dir="ltr"><span style="font-size:10.0pt;color:#1F1F1F">Quality Systems:<b> ASO: QCMS / CSAMS / OHSMS</b></span></p></td>
+                </tr>
+            </table>
+
+            <p style="margin:20pt 0">&nbsp;</p>
+
+            <!-- الشهادات (صور) -->
+            <div style="text-align:center;margin:20pt 0">
                 <p style="font-size:9.0pt;font-family:'Arial Rounded MT Bold',sans-serif;color:#C00000;background:lightgrey">
                     (CTI), (ISO 9001:2015), (ISO 45001:2018), (ASO: QCMS: 1/2020), (ASO: CSAMS: 1/2021), (ASO: OHSMS: 1/2021) <b style="color:#0070C0">Certificates.</b>
                 </p>
+            </div>
+
+            <!-- صور الشهادات - placeholders -->
+            <div class="cert-images">
+                <div class="cert-placeholder">ISO</div>
+                <div class="cert-placeholder">CTI</div>
+                <div class="cert-placeholder">ASO</div>
+                <div class="cert-placeholder">QCMS</div>
+                <div class="cert-placeholder">CSAMS</div>
+                <div class="cert-placeholder">OHSMS</div>
+            </div>
+
+            <!-- معلومات إضافية -->
+            <div style="text-align:center;margin-top:20pt">
                 <p style="font-size:10.0pt;color:black;margin-top:10pt">
                     <b>Conform/ </b><b style="font-size:9.0pt">Designed</b><span style="font-size:9.0pt;color:#0070C0"> VOLGA - HVAC </span>
                     <b>• For KSA & GCC. Countries.</b>
@@ -370,8 +528,9 @@
                     VOLGA COOLING TECHNOLOGIES. KSA/USA
                 </p>
 
-                <p style="font-size:15.0pt;margin-top:30pt"><b>Best Regards • <span lang="AR-SA" dir="RTL">أطيب التحيات</span></b></p>
-                <p style="font-size:13.0pt;margin-top:5pt"><b>Fareed ALshehri <span lang="AR-SA" dir="RTL">فريد الشهري</span></b></p>
+                <!-- معلومات الاتصال -->
+                <p style="font-size:15.0pt;margin-top:30pt"><b>Best Regards • <span>أطيب التحيات</span></b></p>
+                <p style="font-size:13.0pt;margin-top:5pt"><b>Fareed ALshehri <span>فريد الشهري</span></b></p>
                 <p style="font-size:13.0pt;margin-top:5pt"><b>+966 555 038 099</b></p>
                 <p style="font-size:13.0pt;margin-top:2pt"><b>+966 557 040 238</b></p>
             </div>
@@ -379,39 +538,33 @@
     </div>
 
     <script>
-        let editMode = false;
-        let editIndex = -1;
-
-        // تحميل البيانات عند التعديل
-        window.onload = function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const editId = urlParams.get('edit');
+        // حساب الإجمالي تلقائياً
+        function calculateTotal() {
+            const qty1 = parseInt(document.getElementById('qty1').textContent) || 0;
+            const price1 = parseInt(document.getElementById('price1').textContent.replace(/,/g, '')) || 0;
             
-            if (editId !== null) {
-                editMode = true;
-                editIndex = parseInt(editId);
-                loadQuotationData(editIndex);
-            }
-        };
-
-        function loadQuotationData(index) {
-            const quotations = JSON.parse(localStorage.getItem('quotations') || '[]');
-            const data = quotations[index];
+            const subtotal = qty1 * price1;
+            const vat = Math.round(subtotal * 0.15);
+            const total = subtotal + vat;
             
-            if (data) {
-                Object.keys(data).forEach(key => {
-                    const element = document.getElementById(key);
-                    if (element) {
-                        element.textContent = data[key];
-                    }
-                    // نسخ درجة الحرارة للحقل الثاني
-                    if (key === 'temperature_range') {
-                        const copyElement = document.getElementById('temperature_range_copy');
-                        if (copyElement) copyElement.textContent = data[key];
-                    }
-                });
-            }
+            document.getElementById('total1').textContent = subtotal.toLocaleString();
+            document.getElementById('vat_amount').textContent = vat.toLocaleString();
+            document.getElementById('vat_total').textContent = vat.toLocaleString();
+            document.getElementById('grand_total').textContent = total.toLocaleString();
         }
+
+        // مزامنة درجة الحرارة
+        document.getElementById('temperature_range').addEventListener('input', function() {
+            document.getElementById('temperature_range_en').textContent = this.textContent;
+        });
+
+        document.getElementById('temperature_range_en').addEventListener('input', function() {
+            document.getElementById('temperature_range').textContent = this.textContent;
+        });
+
+        // حساب عند تغيير الكمية أو السعر
+        document.getElementById('qty1').addEventListener('input', calculateTotal);
+        document.getElementById('price1').addEventListener('input', calculateTotal);
 
         function saveQuotation() {
             const data = {
@@ -421,10 +574,12 @@
                 client_name: document.getElementById('client_name').textContent.trim(),
                 quote_title: document.getElementById('quote_title').textContent.trim(),
                 temperature_range: document.getElementById('temperature_range').textContent.trim(),
+                qty1: document.getElementById('qty1').textContent.trim(),
+                price1: document.getElementById('price1').textContent.trim(),
+                total: document.getElementById('grand_total').textContent.trim(),
                 saved_at: new Date().toISOString()
             };
 
-            // التحقق من البيانات الأساسية
             if (!data.client_name || data.client_name === 'اسم العميل') {
                 alert('⚠️ من فضلك أدخل اسم العميل');
                 document.getElementById('client_name').focus();
@@ -432,34 +587,21 @@
             }
 
             const quotations = JSON.parse(localStorage.getItem('quotations') || '[]');
-            
-            if (editMode && editIndex >= 0) {
-                // تحديث عرض سعر موجود
-                quotations[editIndex] = data;
-                alert('✅ تم تحديث عرض السعر بنجاح!');
-            } else {
-                // إضافة عرض سعر جديد
-                quotations.push(data);
-                alert('✅ تم حفظ عرض السعر بنجاح!');
-            }
-            
+            quotations.push(data);
             localStorage.setItem('quotations', JSON.stringify(quotations));
-            window.location.href = 'quotations.html';
+            
+            alert('✅ تم حفظ عرض السعر بنجاح!');
+            window.print();
         }
 
-        function cancel() {
+        function goBack() {
             if (confirm('هل أنت متأكد من الإلغاء؟ لن يتم حفظ التغييرات.')) {
-                window.location.href = 'quotations.html';
+                window.history.back();
             }
         }
 
-        // مزامنة درجة الحرارة بين الحقلين
-        document.getElementById('temperature_range').addEventListener('input', function() {
-            document.getElementById('temperature_range_copy').textContent = this.textContent;
-        });
-        document.getElementById('temperature_range_copy').addEventListener('input', function() {
-            document.getElementById('temperature_range').textContent = this.textContent;
-        });
+        // حساب أول مرة
+        calculateTotal();
     </script>
 </body>
 </html>
