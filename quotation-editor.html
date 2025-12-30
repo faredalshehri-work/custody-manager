@@ -221,6 +221,7 @@ td {
 <div id="tableTools" style="display: none; position: fixed; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 3px 15px rgba(0,0,0,0.3); z-index: 9999; border: 2px solid #0070C0;">
     <div style="display: flex; gap: 8px; align-items: center;">
         <span style="font-weight: bold; color: #0070C0; margin-left: 10px;">🔧 أدوات الجدول:</span>
+        <button id="resetTablePos" style="padding: 6px 12px; background: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">↩️ إعادة المكان</button>
         <button id="addRowAbove" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">⬆️ صف فوق</button>
         <button id="addRowBelow" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">⬇️ صف تحت</button>
         <button id="addColLeft" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">⬅️ عمود يسار</button>
@@ -1204,38 +1205,55 @@ document.addEventListener('DOMContentLoaded', function() {
             selectTable(wrapper, table);
         });
         
-        // السحب
+        // السحب مع drag threshold
         const dragHandle = wrapper.querySelector('.drag-handle');
         dragHandle.addEventListener('mousedown', function(e) {
             if (!editMode) return;
             e.preventDefault();
             e.stopPropagation();
             
-            // حساب الـ offset بشكل صحيح
             const startX = e.pageX;
             const startY = e.pageY;
-            const startLeft = wrapper.offsetLeft;
-            const startTop = wrapper.offsetTop;
-            
-            // تحويل إلى absolute
-            if (wrapper.style.position !== 'absolute') {
-                const rect = wrapper.getBoundingClientRect();
-                wrapper.style.position = 'absolute';
-                wrapper.style.left = (rect.left + window.scrollX) + 'px';
-                wrapper.style.top = (rect.top + window.scrollY) + 'px';
-                wrapper.style.zIndex = '100';
-            }
+            const originalLeft = wrapper.offsetLeft;
+            const originalTop = wrapper.offsetTop;
+            let isDragging = false;
+            let hasMovedEnough = false;
             
             function move(e) {
                 const dx = e.pageX - startX;
                 const dy = e.pageY - startY;
-                wrapper.style.left = (startLeft + dx) + 'px';
-                wrapper.style.top = (startTop + dy) + 'px';
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                // التحويل لـ absolute فقط بعد تحرك 5px على الأقل
+                if (!hasMovedEnough && distance > 5) {
+                    hasMovedEnough = true;
+                    isDragging = true;
+                    
+                    // الآن نحوله لـ absolute
+                    const rect = wrapper.getBoundingClientRect();
+                    wrapper.style.position = 'absolute';
+                    wrapper.style.left = (rect.left + window.scrollX) + 'px';
+                    wrapper.style.top = (rect.top + window.scrollY) + 'px';
+                    wrapper.style.zIndex = '100';
+                    wrapper.style.width = rect.width + 'px';
+                    
+                    toast('✋ جاري السحب...', '#17a2b8');
+                }
+                
+                // السحب فقط بعد ما يصير absolute
+                if (isDragging) {
+                    wrapper.style.left = (originalLeft + dx) + 'px';
+                    wrapper.style.top = (originalTop + dy) + 'px';
+                }
             }
             
             function stop() {
                 document.removeEventListener('mousemove', move);
                 document.removeEventListener('mouseup', stop);
+                
+                if (isDragging) {
+                    toast('✅ تم نقل الجدول', '#28a745');
+                }
             }
             
             document.addEventListener('mousemove', move);
@@ -1375,6 +1393,23 @@ document.addEventListener('DOMContentLoaded', function() {
     function getCellIndex(cell) {
         return Array.from(cell.parentElement.cells).indexOf(cell);
     }
+
+    // إعادة الجدول للمكان الأصلي
+    document.getElementById('resetTablePos').addEventListener('click', () => {
+        if (!selectedTable) return;
+        
+        const wrapper = selectedTable.closest('.table-wrapper');
+        if (wrapper) {
+            // إزالة position absolute
+            wrapper.style.position = 'relative';
+            wrapper.style.left = '';
+            wrapper.style.top = '';
+            wrapper.style.zIndex = '';
+            wrapper.style.width = '';
+            
+            toast('↩️ تم إرجاع الجدول للمكان الأصلي', '#6f42c1');
+        }
+    });
 
     document.getElementById('addRowAbove').addEventListener('click', () => {
         if (!selectedTable) return;
@@ -1581,7 +1616,7 @@ document.addEventListener('DOMContentLoaded', function() {
         wrapper.appendChild(img);
         container.appendChild(wrapper);
         
-        // السحب
+        // السحب مع drag threshold
         img.addEventListener('mousedown', function(e) {
             if (!editMode) return;
             if (e.target.classList.contains('resize-handle')) return;
@@ -1591,19 +1626,36 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const startX = e.pageX;
             const startY = e.pageY;
-            const startLeft = wrapper.offsetLeft;
-            const startTop = wrapper.offsetTop;
+            const originalLeft = wrapper.offsetLeft;
+            const originalTop = wrapper.offsetTop;
+            let isDragging = false;
+            let hasMovedEnough = false;
             
             function move(e) {
                 const dx = e.pageX - startX;
                 const dy = e.pageY - startY;
-                wrapper.style.left = (startLeft + dx) + 'px';
-                wrapper.style.top = (startTop + dy) + 'px';
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                // التحويل للسحب فقط بعد تحرك 5px على الأقل
+                if (!hasMovedEnough && distance > 5) {
+                    hasMovedEnough = true;
+                    isDragging = true;
+                    toast('✋ جاري نقل الصورة...', '#17a2b8');
+                }
+                
+                if (isDragging) {
+                    wrapper.style.left = (originalLeft + dx) + 'px';
+                    wrapper.style.top = (originalTop + dy) + 'px';
+                }
             }
             
             function stop() {
                 document.removeEventListener('mousemove', move);
                 document.removeEventListener('mouseup', stop);
+                
+                if (isDragging) {
+                    toast('✅ تم نقل الصورة', '#28a745');
+                }
             }
             
             document.addEventListener('mousemove', move);
