@@ -505,7 +505,6 @@ table.selected {
     
     .page-container {
         width: 210mm !important;
-        height: 297mm !important;
         min-height: 297mm !important;
         max-width: 210mm !important;
         margin: 0 !important;
@@ -514,7 +513,7 @@ table.selected {
         page-break-after: always;
     }
     
-    /* إخفاء عناصر التحرير */
+    /* إخفاء أدوات التحرير فقط */
     #toolbar, 
     #tableTools, 
     #tableModal, 
@@ -525,58 +524,16 @@ table.selected {
         display: none !important;
     }
     
-    /* الجداول العادية (لم يتم سحبها) */
-    .table-wrapper:not([data-was-floated]) {
-        position: relative !important;
-        left: auto !important;
-        top: auto !important;
-        display: inline-block !important;
-        outline: none !important;
-    }
-    
-    /* الجداول المسحوبة (تبقى في مكانها) */
-    .table-wrapper[data-was-floated] {
-        position: absolute !important;
-        /* left و top يبقون كما هم! */
-        outline: none !important;
-    }
-    
-    .table-wrapper.selected {
-        outline: none !important;
-    }
-    
-    /* الجداول في الطباعة */
-    table {
-        page-break-inside: auto;
-        position: relative !important;
-    }
-    
-    tr {
-        page-break-inside: avoid;
-        page-break-after: auto;
-    }
-    
-    thead {
-        display: table-header-group;
-    }
-    
-    tfoot {
-        display: table-footer-group;
-    }
-    
-    /* الصور في الطباعة */
-    .img-wrapper[data-was-floated] {
-        position: absolute !important;
-        /* left و top يبقون كما هم! */
-        outline: none !important;
-    }
-    
-    .img-wrapper:not([data-was-floated]),
+    /* إزالة outline فقط */
+    .table-wrapper,
+    .table-wrapper.selected,
+    .img-wrapper,
     .img-wrapper.selected {
         outline: none !important;
-        position: relative !important;
-        display: inline-block !important;
     }
+    
+    /* الجداول والصور تطبع زي ما هي بالضبط! */
+    /* لا نغير position ولا left ولا top ولا أي شيء! */
 }
 </style>
 
