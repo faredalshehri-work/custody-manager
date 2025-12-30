@@ -172,7 +172,239 @@ td {
 
 <body lang=EN-US link="#0563C1" vlink="#954F72" style='word-wrap:break-word'>
 
-<div class="page-container">
+<!-- شريط الأدوات النهائي -->
+<div id="mainToolbar" style="position: fixed; top: 0; left: 0; right: 0; z-index: 10000; background: linear-gradient(135deg, #0070C0 0%, #003d7a 100%); padding: 12px 25px; box-shadow: 0 3px 15px rgba(0,0,0,0.4); color: white; font-family: 'Segoe UI', Tahoma, sans-serif;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h2 style="margin: 0; font-size: 20px;">📝 محرر VOLGA النهائي</h2>
+        <div style="display: flex; gap: 8px;">
+            <button id="editBtn" style="padding: 10px 18px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">
+                <span id="editIcon">🔓</span> <span id="editTxt">تحرير القالب</span>
+            </button>
+            <button id="saveTempBtn" disabled style="padding: 10px 18px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; opacity: 0.5;">💾 حفظ</button>
+            <button id="printBtn" style="padding: 10px 18px; background: #ffc107; color: #000; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">🖨️ طباعة</button>
+        </div>
+    </div>
+    
+    <div id="toolbar" style="display: none; background: rgba(255,255,255,0.15); padding: 10px; border-radius: 8px; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <!-- تكبير/تصغير الخط -->
+        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
+            <small style="opacity: 0.9; font-size: 11px; margin-left: 4px;">الخط:</small>
+            <button id="fontDown" title="Ctrl+ج" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">A-</button>
+            <span id="fontSize" style="padding: 6px 12px; background: white; color: #0070C0; border-radius: 4px; font-weight: bold; min-width: 40px; text-align: center;">12pt</span>
+            <button id="fontUp" title="Ctrl+د" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">A+</button>
+        </div>
+        
+        <!-- تنسيق -->
+        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
+            <button id="boldBtn" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">B</button>
+            <button id="italicBtn" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-style: italic;">I</button>
+            <button id="underBtn" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; text-decoration: underline;">U</button>
+        </div>
+        
+        <!-- الألوان -->
+        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
+            <small style="opacity: 0.9; font-size: 11px; margin-left: 4px;">الألوان:</small>
+            <input type="color" id="txtColor" value="#000000" style="width: 40px; height: 34px; border: none; cursor: pointer; border-radius: 4px;" title="لون النص">
+            <input type="color" id="bgColor" value="#ffffff" style="width: 40px; height: 34px; border: none; cursor: pointer; border-radius: 4px;" title="لون الخلفية">
+        </div>
+        
+        <!-- الجداول -->
+        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
+            <button id="newTableBtn" style="padding: 6px 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">⊞ جدول</button>
+            <button id="addRowBtn" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">➕ صف</button>
+            <button id="addColBtn" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">➕ عمود</button>
+            <button id="delRowBtn" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">➖ صف</button>
+            <button id="delColBtn" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">➖ عمود</button>
+        </div>
+        
+        <!-- الصور -->
+        <div style="display: inline-flex; gap: 4px; padding: 0 10px;">
+            <button id="imgBtn" style="padding: 6px 12px; background: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">🖼️ صورة</button>
+        </div>
+    </div>
+</div>
+
+<!-- شريط الحالة -->
+<div id="status" style="position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a2e; color: white; padding: 6px 20px; display: flex; justify-content: space-between; font-size: 12px; z-index: 9999;">
+    <div style="display: flex; gap: 8px; align-items: center;">
+        <div id="statusDot" style="width: 10px; height: 10px; border-radius: 50%; background: #dc3545;"></div>
+        <span id="statusTxt">القالب مقفل</span>
+    </div>
+    <div><span id="words">0 كلمة</span> | <span id="chars">0 حرف</span></div>
+</div>
+
+<!-- Modal إدراج جدول -->
+<div id="tableModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 400px; width: 90%;">
+        <h3 style="color: #0070C0; margin: 0 0 20px 0;">⊞ إدراج جدول</h3>
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; font-weight: bold; margin-bottom: 8px;">عدد الصفوف</label>
+            <input type="number" id="tRows" value="3" min="1" max="50" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px;">
+        </div>
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-weight: bold; margin-bottom: 8px;">عدد الأعمدة</label>
+            <input type="number" id="tCols" value="3" min="1" max="20" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px;">
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button id="insertTable" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">إدراج</button>
+            <button id="cancelTable" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer;">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal إدراج صورة -->
+<div id="imgModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; width: 90%;">
+        <h3 style="color: #0070C0; margin: 0 0 20px 0;">🖼️ إدراج صورة</h3>
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; font-weight: bold; margin-bottom: 8px;">رابط الصورة</label>
+            <input type="text" id="imgUrl" placeholder="https://..." style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px;">
+        </div>
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; font-weight: bold; margin-bottom: 8px;">أو ارفع صورة</label>
+            <input type="file" id="imgFile" accept="image/*" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px;">
+        </div>
+        <div style="margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div>
+                <label style="display: block; font-weight: bold; margin-bottom: 8px;">العرض</label>
+                <input type="number" id="imgW" value="200" min="50" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px;">
+            </div>
+            <div>
+                <label style="display: block; font-weight: bold; margin-bottom: 8px;">الارتفاع</label>
+                <input type="number" id="imgH" value="200" min="50" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px;">
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button id="insertImg" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">إدراج</button>
+            <button id="cancelImg" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer;">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<style>
+body { padding-top: 140px !important; padding-bottom: 40px !important; }
+
+.page-container[contenteditable="true"] {
+    caret-color: #0070C0 !important;
+    cursor: text !important;
+}
+
+.page-container[contenteditable="true"]::selection {
+    background: #0070C0 !important;
+    color: white !important;
+}
+
+/* الصور القابلة للسحب والتكبير */
+.resizable-img {
+    position: absolute !important;
+    cursor: move;
+    border: 2px solid transparent;
+    transition: border 0.2s;
+}
+
+.resizable-img:hover,
+.resizable-img.selected {
+    border: 2px solid #0070C0;
+}
+
+.resizable-img.selected {
+    box-shadow: 0 0 10px rgba(0,112,192,0.5);
+}
+
+/* مقابض تغيير الحجم */
+.resize-handle {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #0070C0;
+    border: 2px solid white;
+    border-radius: 50%;
+    display: none;
+}
+
+.resizable-img.selected ~ .resize-handle {
+    display: block;
+}
+
+.handle-nw { top: -6px; left: -6px; cursor: nw-resize; }
+.handle-ne { top: -6px; right: -6px; cursor: ne-resize; }
+.handle-sw { bottom: -6px; left: -6px; cursor: sw-resize; }
+.handle-se { bottom: -6px; right: -6px; cursor: se-resize; }
+.handle-n { top: -6px; left: 50%; margin-left: -6px; cursor: n-resize; }
+.handle-s { bottom: -6px; left: 50%; margin-left: -6px; cursor: s-resize; }
+.handle-w { top: 50%; left: -6px; margin-top: -6px; cursor: w-resize; }
+.handle-e { top: 50%; right: -6px; margin-top: -6px; cursor: e-resize; }
+
+/* الجداول القابلة للسحب */
+.draggable-table {
+    position: relative;
+    cursor: move !important;
+}
+
+.draggable-table.floating {
+    position: absolute !important;
+    z-index: 100;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.draggable-table:hover {
+    outline: 2px dashed #0070C0;
+}
+
+/* أزرار التحكم */
+.img-controls {
+    position: absolute;
+    top: -35px;
+    right: 0;
+    display: none;
+    gap: 5px;
+    background: white;
+    padding: 5px;
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.resizable-img.selected ~ .img-controls {
+    display: flex;
+}
+
+.control-btn {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.toast {
+    position: fixed;
+    bottom: 60px;
+    left: 20px;
+    padding: 15px 25px;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+    z-index: 30000;
+    font-weight: bold;
+    animation: slideIn 0.3s;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-400px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@media print {
+    #mainToolbar, #status, #tableModal, #imgModal, .resize-handle, .img-controls {
+        display: none !important;
+    }
+    body { padding: 0 !important; background: white !important; }
+    .page-container { box-shadow: none !important; margin: 0 !important; }
+    .resizable-img { border: none !important; }
+}
+</style>
+
+<div class="page-container" contenteditable="false">
 
     <!-- Editor Header -->
     <div class="editor-header">
@@ -768,992 +1000,7 @@ td {
 
 </div>
 
-<!-- شريط الأدوات المتطور -->
-<div id="professionalToolbar" style="position: fixed; top: 0; left: 0; right: 0; z-index: 10000; background: linear-gradient(135deg, #0070C0 0%, #003d7a 100%); padding: 12px 25px; box-shadow: 0 3px 15px rgba(0,0,0,0.4); color: white; font-family: 'Segoe UI', Tahoma, sans-serif;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h2 style="margin: 0; font-size: 20px; display: flex; align-items: center; gap: 8px;">
-            <span>📝</span>
-            محرر VOLGA المتطور
-        </h2>
-        <div style="display: flex; gap: 8px;">
-            <button id="toggleEditBtn" style="padding: 10px 18px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.25s; display: flex; align-items: center; gap: 6px;">
-                <span id="editIcon">🔓</span>
-                <span id="editText">تحرير القالب</span>
-            </button>
-            <button id="saveBtn" disabled style="padding: 10px 18px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.25s; opacity: 0.5;">💾 حفظ</button>
-            <button id="templatesBtn" style="padding: 10px 18px; background: white; color: #0070C0; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.25s;">📂 القوالب</button>
-            <button onclick="window.print()" style="padding: 10px 18px; background: #ffc107; color: #000; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.25s;">🖨️ طباعة</button>
-        </div>
-    </div>
-    
-    <div id="toolbarControls" style="display: none; background: rgba(255,255,255,0.15); padding: 10px; border-radius: 8px; gap: 10px; align-items: center; flex-wrap: wrap;">
-        <!-- التراجع والإعادة -->
-        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
-            <small style="opacity: 0.9; align-self: center; font-size: 11px; margin-left: 4px;">التراجع:</small>
-            <button id="undoBtn" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; min-width: 35px;">↶</button>
-            <button id="redoBtn" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; min-width: 35px;">↷</button>
-        </div>
-        
-        <!-- الحافظة -->
-        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
-            <small style="opacity: 0.9; align-self: center; font-size: 11px; margin-left: 4px;">الحافظة:</small>
-            <button id="cutBtn" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px;">✂️</button>
-            <button id="copyBtn" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px;">📋</button>
-            <button id="pasteBtn" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px;">📄</button>
-        </div>
-        
-        <!-- الخط -->
-        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
-            <small style="opacity: 0.9; align-self: center; font-size: 11px; margin-left: 4px;">الخط:</small>
-            <select id="fontSelect" style="padding: 6px 8px; border: none; border-radius: 4px; font-size: 12px;">
-                <option value="Times New Roman" selected>Times New Roman</option>
-                <option value="Arial">Arial</option>
-                <option value="Calibri">Calibri</option>
-                <option value="Tahoma">Tahoma</option>
-            </select>
-            <button id="fontSizeDown" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px;" title="Ctrl+ج">A-</button>
-            <input type="number" id="fontSizeInput" min="8" max="72" value="12" style="width: 55px; padding: 6px; border: none; border-radius: 4px; font-size: 12px;">
-            <button id="fontSizeUp" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px;" title="Ctrl+د">A+</button>
-        </div>
-        
-        <!-- تنسيق -->
-        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
-            <small style="opacity: 0.9; align-self: center; font-size: 11px; margin-left: 4px;">التنسيق:</small>
-            <button id="boldBtn" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; min-width: 35px;">B</button>
-            <button id="italicBtn" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-style: italic; font-size: 13px; min-width: 35px;">I</button>
-            <button id="underlineBtn" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; text-decoration: underline; font-size: 13px; min-width: 35px;">U</button>
-        </div>
-        
-        <!-- الألوان -->
-        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
-            <small style="opacity: 0.9; align-self: center; font-size: 11px; margin-left: 4px;">اللون:</small>
-            <input type="color" id="textColorPicker" value="#000000" style="width: 38px; height: 32px; border: none; cursor: pointer; border-radius: 4px;" title="لون النص">
-            <input type="color" id="bgColorPicker" value="#ffffff" style="width: 38px; height: 32px; border: none; cursor: pointer; border-radius: 4px;" title="لون الخلفية">
-        </div>
-        
-        <!-- المحاذاة -->
-        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
-            <small style="opacity: 0.9; align-self: center; font-size: 11px; margin-left: 4px;">المحاذاة:</small>
-            <button id="alignRightBtn" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px;">↤</button>
-            <button id="alignCenterBtn" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px;">↔</button>
-            <button id="alignLeftBtn" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px;">↦</button>
-        </div>
-        
-        <!-- الجداول -->
-        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
-            <button id="insertTableBtn" style="padding: 6px 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">⊞ جدول</button>
-            <button id="addRowBtn" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">➕ صف</button>
-            <button id="addColBtn" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">➕ عمود</button>
-            <button id="delRowBtn" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">➖ صف</button>
-            <button id="delColBtn" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">➖ عمود</button>
-            <button id="delTableBtn" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">🗑️ حذف</button>
-        </div>
-        
-        <!-- الصور -->
-        <div style="display: inline-flex; gap: 4px; padding: 0 10px;">
-            <button id="insertImageBtn" style="padding: 6px 12px; background: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">🖼️ صورة</button>
-        </div>
-    </div>
-</div>
-
-<!-- شريط الحالة -->
-<div id="statusBar" style="position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a2e; color: white; padding: 6px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; z-index: 9999; font-family: 'Segoe UI', Tahoma, sans-serif;">
-    <div style="display: flex; align-items: center; gap: 8px;">
-        <div id="statusDot" style="width: 10px; height: 10px; border-radius: 50%; background: #dc3545;"></div>
-        <span id="statusText">القالب مقفل - اضغط "تحرير القالب" للبدء</span>
-    </div>
-    <div>
-        <span id="wordCount">0 كلمة</span> | <span id="charCount">0 حرف</span>
-    </div>
-</div>
-
-<!-- Modals -->
-<div id="saveModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; justify-content: center; align-items: center;">
-    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; width: 90%; font-family: 'Segoe UI', Tahoma, sans-serif;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 3px solid #0070C0;">
-            <h3 style="color: #0070C0; margin: 0; font-size: 20px;">💾 حفظ القالب</h3>
-            <button id="closeSaveBtn" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold;">✖</button>
-        </div>
-        <div style="margin: 20px 0;">
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">اسم القالب *</label>
-                <input type="text" id="templateName" placeholder="مثال: قالب VOLGA - ديسمبر 2025" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px;">
-            </div>
-            <div>
-                <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">وصف القالب</label>
-                <textarea id="templateDesc" rows="3" placeholder="وصف مختصر (اختياري)" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px; resize: vertical;"></textarea>
-            </div>
-        </div>
-        <div style="display: flex; gap: 10px; justify-content: flex-end; padding-top: 15px; border-top: 2px solid #eee;">
-            <button id="confirmSaveBtn" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">💾 حفظ</button>
-            <button id="cancelSaveBtn" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">إلغاء</button>
-        </div>
-    </div>
-</div>
-
-<div id="templatesModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; justify-content: center; align-items: center;">
-    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; font-family: 'Segoe UI', Tahoma, sans-serif;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 3px solid #0070C0;">
-            <h3 style="color: #0070C0; margin: 0; font-size: 20px;">📂 القوالب المحفوظة</h3>
-            <button id="closeTemplatesBtn" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold;">✖</button>
-        </div>
-        <div id="templatesList"></div>
-        <div style="display: flex; gap: 10px; justify-content: flex-end; padding-top: 15px; border-top: 2px solid #eee; margin-top: 20px;">
-            <button id="closeTemplatesBtn2" style="padding: 10px 20px; background: #0070C0; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">إغلاق</button>
-        </div>
-    </div>
-</div>
-
-<!-- Modal إدراج جدول -->
-<div id="insertTableModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; justify-content: center; align-items: center;">
-    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 400px; width: 90%; font-family: 'Segoe UI', Tahoma, sans-serif;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 3px solid #0070C0;">
-            <h3 style="color: #0070C0; margin: 0; font-size: 20px;">⊞ إدراج جدول</h3>
-            <button id="closeInsertTableBtn" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold;">✖</button>
-        </div>
-        <div style="margin: 20px 0;">
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">عدد الصفوف</label>
-                <input type="number" id="tableRows" value="3" min="1" max="50" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px;">
-            </div>
-            <div>
-                <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">عدد الأعمدة</label>
-                <input type="number" id="tableCols" value="3" min="1" max="20" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px;">
-            </div>
-        </div>
-        <div style="display: flex; gap: 10px; justify-content: flex-end; padding-top: 15px; border-top: 2px solid #eee;">
-            <button id="confirmInsertTableBtn" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">⊞ إدراج</button>
-            <button id="cancelInsertTableBtn" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">إلغاء</button>
-        </div>
-    </div>
-</div>
-
-<!-- Modal إدراج صورة -->
-<div id="insertImageModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; justify-content: center; align-items: center;">
-    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; width: 90%; font-family: 'Segoe UI', Tahoma, sans-serif;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 3px solid #0070C0;">
-            <h3 style="color: #0070C0; margin: 0; font-size: 20px;">🖼️ إدراج صورة</h3>
-            <button id="closeInsertImageBtn" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold;">✖</button>
-        </div>
-        <div style="margin: 20px 0;">
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">رابط الصورة</label>
-                <input type="text" id="imageUrl" placeholder="https://example.com/image.jpg" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px;">
-            </div>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">أو ارفع صورة</label>
-                <input type="file" id="imageFile" accept="image/*" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px;">
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div>
-                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">العرض (px)</label>
-                    <input type="number" id="imageWidth" value="200" min="50" max="800" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px;">
-                </div>
-                <div>
-                    <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">الارتفاع (px)</label>
-                    <input type="number" id="imageHeight" value="200" min="50" max="800" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px;">
-                </div>
-            </div>
-        </div>
-        <div style="display: flex; gap: 10px; justify-content: flex-end; padding-top: 15px; border-top: 2px solid #eee;">
-            <button id="confirmInsertImageBtn" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">🖼️ إدراج</button>
-            <button id="cancelInsertImageBtn" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">إلغاء</button>
-        </div>
-    </div>
-</div>
-
-<style>
-body {
-    padding-top: 140px !important;
-    padding-bottom: 40px !important;
-}
-
-/* المؤشر الوامض */
-.page-container[contenteditable="true"] {
-    caret-color: #0070C0 !important;
-    cursor: text !important;
-}
-
-.page-container[contenteditable="false"] {
-    cursor: not-allowed !important;
-    user-select: none !important;
-}
-
-/* التحديد */
-.page-container[contenteditable="true"]::selection {
-    background: #0070C0 !important;
-    color: white !important;
-}
-
-.page-container[contenteditable="true"] *::selection {
-    background: #0070C0 !important;
-    color: white !important;
-}
-
-/* hover للجداول */
-.page-container[contenteditable="true"] table:hover {
-    outline: 2px dashed #0070C0;
-}
-
-/* الجداول القابلة للسحب */
-.draggable-table {
-    cursor: move !important;
-    position: relative;
-}
-
-.draggable-table.dragging {
-    opacity: 0.7;
-    z-index: 1000;
-}
-
-/* الصور القابلة للسحب */
-.draggable-image {
-    cursor: move !important;
-    border: 2px solid transparent;
-    transition: border 0.3s;
-}
-
-.draggable-image:hover {
-    border: 2px dashed #0070C0;
-}
-
-.draggable-image.selected {
-    border: 2px solid #0070C0;
-}
-
-.draggable-image.dragging {
-    opacity: 0.7;
-    z-index: 1000;
-}
-
-/* مقابض تغيير حجم الصورة */
-.image-wrapper {
-    position: absolute;
-    display: inline-block;
-}
-
-.image-wrapper.selected::after {
-    content: '';
-    position: absolute;
-    bottom: -5px;
-    right: -5px;
-    width: 15px;
-    height: 15px;
-    background: #0070C0;
-    cursor: nwse-resize;
-    border-radius: 3px;
-}
-
-/* فصل الصفحات */
-.page-break {
-    page-break-after: always;
-    margin-bottom: 30px;
-    border-bottom: 2px dashed #ccc;
-    padding-bottom: 20px;
-}
-
-@media screen {
-    .page-container {
-        box-shadow: 0 0 20px rgba(0,0,0,0.2);
-    }
-}
-
-/* الطباعة */
-@media print {
-    body {
-        padding-top: 0 !important;
-        padding-bottom: 0 !important;
-    }
-    #professionalToolbar, #statusBar, #saveModal, #templatesModal {
-        display: none !important;
-    }
-    .page-container {
-        margin: 0 !important;
-        box-shadow: none !important;
-    }
-}
-
-.toast {
-    position: fixed;
-    bottom: 60px;
-    left: 20px;
-    padding: 15px 25px;
-    border-radius: 10px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.4);
-    z-index: 30000;
-    font-weight: bold;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    animation: slideIn 0.3s;
-}
-
-@keyframes slideIn {
-    from { transform: translateX(-400px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-.pulse {
-    animation: pulse 2s infinite;
-}
-</style>
-
 <script>
-// Wait for DOM to load
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Advanced Editor Loading...');
-    
-    let isEditMode = false;
-    let selectedImage = null;
-    let selectedTable = null;
-    const pageContainer = document.querySelector('.page-container');
-    
-    if (!pageContainer) {
-        console.error('Page container not found!');
-        return;
-    }
-
-    // ============= TOGGLE EDIT MODE =============
-    document.getElementById('toggleEditBtn').addEventListener('click', function() {
-        isEditMode = !isEditMode;
-        pageContainer.contentEditable = isEditMode;
-        
-        const editIcon = document.getElementById('editIcon');
-        const editText = document.getElementById('editText');
-        const statusDot = document.getElementById('statusDot');
-        const statusText = document.getElementById('statusText');
-        const toolbarControls = document.getElementById('toolbarControls');
-        const saveBtn = document.getElementById('saveBtn');
-        
-        if (isEditMode) {
-            editIcon.textContent = '🔒';
-            editText.textContent = 'قفل القالب';
-            statusDot.style.background = '#28a745';
-            statusDot.classList.add('pulse');
-            statusText.textContent = 'وضع التحرير نشط - يمكنك التعديل الآن';
-            toolbarControls.style.display = 'flex';
-            saveBtn.disabled = false;
-            saveBtn.style.opacity = '1';
-            pageContainer.focus();
-            showToast('✅ وضع التحرير مفعل! يمكنك البدء بالتعديل', 'success');
-        } else {
-            editIcon.textContent = '🔓';
-            editText.textContent = 'تحرير القالب';
-            statusDot.style.background = '#dc3545';
-            statusDot.classList.remove('pulse');
-            statusText.textContent = 'القالب مقفل - اضغط "تحرير القالب" للبدء';
-            toolbarControls.style.display = 'none';
-            saveBtn.disabled = true;
-            saveBtn.style.opacity = '0.5';
-            showToast('🔒 تم قفل القالب', 'info');
-        }
-        
-        updateWordCount();
-    });
-
-    // ============= FONT SIZE =============
-    function changeFontSize(delta) {
-        if (!isEditMode) return;
-        
-        const selection = window.getSelection();
-        if (selection.rangeCount === 0) return;
-        
-        const range = selection.getRangeAt(0);
-        if (range.collapsed) return;
-        
-        const span = document.createElement('span');
-        const currentSize = getCurrentFontSize();
-        const newSize = Math.max(8, Math.min(72, currentSize + delta));
-        
-        span.style.fontSize = newSize + 'pt';
-        
-        try {
-            range.surroundContents(span);
-            showToast(`📏 حجم الخط: ${newSize}pt`, 'success');
-        } catch(e) {
-            console.error('Font size error:', e);
-        }
-    }
-
-    function getCurrentFontSize() {
-        const selection = window.getSelection();
-        if (selection.rangeCount > 0) {
-            const range = selection.getRangeAt(0);
-            const element = range.startContainer.parentElement;
-            const computedSize = window.getComputedStyle(element).fontSize;
-            return parseInt(computedSize);
-        }
-        return 12;
-    }
-
-    document.getElementById('fontSizeUp').addEventListener('click', () => changeFontSize(2));
-    document.getElementById('fontSizeDown').addEventListener('click', () => changeFontSize(-2));
-    
-    document.getElementById('fontSizeInput').addEventListener('change', function() {
-        if (!isEditMode) return;
-        const size = this.value;
-        const selection = window.getSelection();
-        if (selection.rangeCount === 0) return;
-        
-        const range = selection.getRangeAt(0);
-        if (range.collapsed) return;
-        
-        const span = document.createElement('span');
-        span.style.fontSize = size + 'pt';
-        
-        try {
-            range.surroundContents(span);
-            showToast(`📏 حجم الخط: ${size}pt`, 'success');
-        } catch(e) {}
-    });
-
-    // ============= FONT FAMILY =============
-    document.getElementById('fontSelect').addEventListener('change', function() {
-        if (!isEditMode) return;
-        document.execCommand('fontName', false, this.value);
-    });
-
-    // ============= TEXT FORMATTING =============
-    document.getElementById('boldBtn').addEventListener('click', () => {
-        if (isEditMode) document.execCommand('bold');
-    });
-    
-    document.getElementById('italicBtn').addEventListener('click', () => {
-        if (isEditMode) document.execCommand('italic');
-    });
-    
-    document.getElementById('underlineBtn').addEventListener('click', () => {
-        if (isEditMode) document.execCommand('underline');
-    });
-
-    // ============= COLORS =============
-    document.getElementById('textColorPicker').addEventListener('input', function() {
-        if (!isEditMode) return;
-        const color = this.value;
-        document.execCommand('foreColor', false, color);
-        showToast('🎨 تم تغيير لون النص', 'success');
-    });
-
-    document.getElementById('bgColorPicker').addEventListener('input', function() {
-        if (!isEditMode) return;
-        const color = this.value;
-        document.execCommand('hiliteColor', false, color);
-        showToast('🎨 تم تغيير لون الخلفية', 'success');
-    });
-
-    // ============= ALIGNMENT =============
-    document.getElementById('alignRightBtn').addEventListener('click', () => {
-        if (isEditMode) document.execCommand('justifyRight');
-    });
-    
-    document.getElementById('alignCenterBtn').addEventListener('click', () => {
-        if (isEditMode) document.execCommand('justifyCenter');
-    });
-    
-    document.getElementById('alignLeftBtn').addEventListener('click', () => {
-        if (isEditMode) document.execCommand('justifyLeft');
-    });
-
-    // ============= UNDO/REDO =============
-    document.getElementById('undoBtn').addEventListener('click', () => {
-        if (isEditMode) {
-            document.execCommand('undo');
-            showToast('↶ تراجع', 'info');
-        }
-    });
-    
-    document.getElementById('redoBtn').addEventListener('click', () => {
-        if (isEditMode) {
-            document.execCommand('redo');
-            showToast('↷ إعادة', 'info');
-        }
-    });
-
-    // ============= CLIPBOARD =============
-    document.getElementById('cutBtn').addEventListener('click', () => {
-        if (isEditMode) {
-            document.execCommand('cut');
-            showToast('✂️ تم القص', 'success');
-        }
-    });
-    
-    document.getElementById('copyBtn').addEventListener('click', () => {
-        if (isEditMode) {
-            document.execCommand('copy');
-            showToast('📋 تم النسخ', 'success');
-        }
-    });
-    
-    document.getElementById('pasteBtn').addEventListener('click', async () => {
-        if (!isEditMode) return;
-        
-        try {
-            const text = await navigator.clipboard.readText();
-            document.execCommand('insertText', false, text);
-            showToast('📄 تم اللصق', 'success');
-        } catch(err) {
-            console.error('Paste error:', err);
-            showToast('⚠️ استخدم Ctrl+V للصق', 'warning');
-        }
-    });
-
-    // ============= INSERT TABLE =============
-    document.getElementById('insertTableBtn').addEventListener('click', () => {
-        if (!isEditMode) return;
-        document.getElementById('insertTableModal').style.display = 'flex';
-    });
-
-    document.getElementById('closeInsertTableBtn').addEventListener('click', () => {
-        document.getElementById('insertTableModal').style.display = 'none';
-    });
-
-    document.getElementById('cancelInsertTableBtn').addEventListener('click', () => {
-        document.getElementById('insertTableModal').style.display = 'none';
-    });
-
-    document.getElementById('confirmInsertTableBtn').addEventListener('click', () => {
-        const rows = parseInt(document.getElementById('tableRows').value);
-        const cols = parseInt(document.getElementById('tableCols').value);
-        
-        let tableHTML = '<table style="border-collapse: collapse; width: 100%; margin: 10px 0; border: 1px solid #ddd;">';
-        for (let i = 0; i < rows; i++) {
-            tableHTML += '<tr>';
-            for (let j = 0; j < cols; j++) {
-                tableHTML += '<td style="border: 1px solid #ddd; padding: 5.4pt;">خلية</td>';
-            }
-            tableHTML += '</tr>';
-        }
-        tableHTML += '</table>';
-        
-        document.execCommand('insertHTML', false, tableHTML);
-        document.getElementById('insertTableModal').style.display = 'none';
-        showToast('✅ تم إدراج الجدول!', 'success');
-    });
-
-    // ============= TABLE OPERATIONS =============
-    function getSelectedTable() {
-        const selection = window.getSelection();
-        if (selection.rangeCount === 0) return null;
-        
-        let element = selection.anchorNode;
-        while (element && element.tagName !== 'TABLE') {
-            element = element.parentElement;
-        }
-        return element;
-    }
-
-    function getSelectedCell() {
-        const selection = window.getSelection();
-        if (selection.rangeCount === 0) return null;
-        
-        let element = selection.anchorNode;
-        while (element && element.tagName !== 'TD' && element.tagName !== 'TH') {
-            element = element.parentElement;
-        }
-        return element;
-    }
-
-    document.getElementById('addRowBtn').addEventListener('click', () => {
-        if (!isEditMode) return;
-        const table = getSelectedTable();
-        
-        if (table) {
-            const row = table.insertRow();
-            const colCount = table.rows[0].cells.length;
-            for (let i = 0; i < colCount; i++) {
-                const cell = row.insertCell();
-                cell.style.border = '1px solid #ddd';
-                cell.style.padding = '5.4pt';
-                cell.textContent = 'خلية جديدة';
-            }
-            showToast('✅ تم إضافة صف!', 'success');
-        } else {
-            showToast('⚠️ حدد جدول أولاً', 'warning');
-        }
-    });
-
-    document.getElementById('addColBtn').addEventListener('click', () => {
-        if (!isEditMode) return;
-        const table = getSelectedTable();
-        
-        if (table) {
-            const rows = table.rows;
-            for (let i = 0; i < rows.length; i++) {
-                const cell = rows[i].insertCell();
-                cell.style.border = '1px solid #ddd';
-                cell.style.padding = '5.4pt';
-                cell.textContent = 'خلية جديدة';
-            }
-            showToast('✅ تم إضافة عمود!', 'success');
-        } else {
-            showToast('⚠️ حدد جدول أولاً', 'warning');
-        }
-    });
-
-    document.getElementById('delRowBtn').addEventListener('click', () => {
-        if (!isEditMode) return;
-        const cell = getSelectedCell();
-        
-        if (cell) {
-            const row = cell.parentElement;
-            const table = getSelectedTable();
-            
-            if (table && table.rows.length > 1) {
-                row.remove();
-                showToast('✅ تم حذف الصف!', 'success');
-            } else {
-                showToast('⚠️ لا يمكن حذف آخر صف', 'warning');
-            }
-        } else {
-            showToast('⚠️ حدد خلية في الصف المراد حذفه', 'warning');
-        }
-    });
-
-    document.getElementById('delColBtn').addEventListener('click', () => {
-        if (!isEditMode) return;
-        const cell = getSelectedCell();
-        
-        if (cell) {
-            const table = getSelectedTable();
-            const colIndex = cell.cellIndex;
-            
-            if (table && table.rows[0].cells.length > 1) {
-                for (let i = 0; i < table.rows.length; i++) {
-                    table.rows[i].deleteCell(colIndex);
-                }
-                showToast('✅ تم حذف العمود!', 'success');
-            } else {
-                showToast('⚠️ لا يمكن حذف آخر عمود', 'warning');
-            }
-        } else {
-            showToast('⚠️ حدد خلية في العمود المراد حذفه', 'warning');
-        }
-    });
-
-    document.getElementById('delTableBtn').addEventListener('click', () => {
-        if (!isEditMode) return;
-        const table = getSelectedTable();
-        
-        if (table) {
-            if (confirm('هل تريد حذف الجدول؟')) {
-                table.remove();
-                showToast('✅ تم حذف الجدول!', 'success');
-            }
-        } else {
-            showToast('⚠️ حدد جدول أولاً', 'warning');
-        }
-    });
-
-    // ============= INSERT IMAGE =============
-    document.getElementById('insertImageBtn').addEventListener('click', () => {
-        if (!isEditMode) return;
-        document.getElementById('insertImageModal').style.display = 'flex';
-    });
-
-    document.getElementById('closeInsertImageBtn').addEventListener('click', () => {
-        document.getElementById('insertImageModal').style.display = 'none';
-    });
-
-    document.getElementById('cancelInsertImageBtn').addEventListener('click', () => {
-        document.getElementById('insertImageModal').style.display = 'none';
-    });
-
-    document.getElementById('confirmInsertImageBtn').addEventListener('click', () => {
-        const url = document.getElementById('imageUrl').value;
-        const file = document.getElementById('imageFile').files[0];
-        const width = document.getElementById('imageWidth').value;
-        const height = document.getElementById('imageHeight').value;
-        
-        if (url) {
-            insertImageFromUrl(url, width, height);
-        } else if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                insertImageFromUrl(e.target.result, width, height);
-            };
-            reader.readAsDataURL(file);
-        } else {
-            alert('⚠️ الرجاء إدخال رابط أو رفع صورة');
-            return;
-        }
-        
-        document.getElementById('insertImageModal').style.display = 'none';
-        document.getElementById('imageUrl').value = '';
-        document.getElementById('imageFile').value = '';
-    });
-
-    function insertImageFromUrl(url, width, height) {
-        const img = document.createElement('img');
-        img.src = url;
-        img.style.width = width + 'px';
-        img.style.height = height + 'px';
-        img.style.maxWidth = '100%';
-        img.style.position = 'absolute';
-        img.style.cursor = 'move';
-        img.style.zIndex = '10';
-        img.classList.add('draggable-image');
-        img.draggable = true;
-        
-        // Make image draggable
-        img.addEventListener('dragstart', function(e) {
-            e.dataTransfer.effectAllowed = 'move';
-            img.classList.add('dragging');
-        });
-        
-        img.addEventListener('dragend', function() {
-            img.classList.remove('dragging');
-        });
-        
-        // Make image resizable
-        img.addEventListener('mousedown', function(e) {
-            if (!isEditMode) return;
-            selectedImage = img;
-            img.classList.add('selected');
-            
-            const startX = e.clientX;
-            const startY = e.clientY;
-            const startWidth = img.offsetWidth;
-            const startHeight = img.offsetHeight;
-            
-            function resize(e) {
-                const newWidth = startWidth + (e.clientX - startX);
-                const newHeight = startHeight + (e.clientY - startY);
-                img.style.width = newWidth + 'px';
-                img.style.height = newHeight + 'px';
-            }
-            
-            function stopResize() {
-                document.removeEventListener('mousemove', resize);
-                document.removeEventListener('mouseup', stopResize);
-            }
-            
-            document.addEventListener('mousemove', resize);
-            document.addEventListener('mouseup', stopResize);
-        });
-        
-        pageContainer.appendChild(img);
-        showToast('✅ تم إدراج الصورة!', 'success');
-    }
-
-    // ============= KEYBOARD SHORTCUTS =============
-    document.addEventListener('keydown', function(e) {
-        if (!isEditMode) return;
-        
-        if (e.ctrlKey || e.metaKey) {
-            switch(e.key) {
-                case 'b': case 'B':
-                    e.preventDefault();
-                    document.execCommand('bold');
-                    break;
-                case 'i': case 'I':
-                    e.preventDefault();
-                    document.execCommand('italic');
-                    break;
-                case 'u': case 'U':
-                    e.preventDefault();
-                    document.execCommand('underline');
-                    break;
-                case 's': case 'S':
-                    e.preventDefault();
-                    document.getElementById('saveBtn').click();
-                    break;
-                case 'د':
-                    e.preventDefault();
-                    changeFontSize(2);
-                    break;
-                case 'ج':
-                    e.preventDefault();
-                    changeFontSize(-2);
-                    break;
-            }
-        }
-    });
-
-    // ============= SAVE & LOAD TEMPLATES =============
-    document.getElementById('saveBtn').addEventListener('click', () => {
-        if (!isEditMode) return;
-        document.getElementById('saveModal').style.display = 'flex';
-    });
-
-    document.getElementById('closeSaveBtn').addEventListener('click', () => {
-        document.getElementById('saveModal').style.display = 'none';
-    });
-
-    document.getElementById('cancelSaveBtn').addEventListener('click', () => {
-        document.getElementById('saveModal').style.display = 'none';
-    });
-
-    document.getElementById('confirmSaveBtn').addEventListener('click', () => {
-        const name = document.getElementById('templateName').value;
-        const desc = document.getElementById('templateDesc').value;
-        
-        if (!name) {
-            alert('⚠️ يرجى إدخال اسم القالب');
-            return;
-        }
-
-        const template = {
-            id: Date.now(),
-            name: name,
-            description: desc,
-            content: pageContainer.innerHTML,
-            created: new Date().toLocaleString('ar-SA')
-        };
-
-        let templates = JSON.parse(localStorage.getItem('volga_templates') || '[]');
-        templates.push(template);
-        localStorage.setItem('volga_templates', JSON.stringify(templates));
-
-        document.getElementById('saveModal').style.display = 'none';
-        showToast('✅ تم حفظ القالب بنجاح!', 'success');
-        
-        document.getElementById('templateName').value = '';
-        document.getElementById('templateDesc').value = '';
-    });
-
-    // Load Templates
-    document.getElementById('templatesBtn').addEventListener('click', loadTemplates);
-    document.getElementById('closeTemplatesBtn').addEventListener('click', () => {
-        document.getElementById('templatesModal').style.display = 'none';
-    });
-    document.getElementById('closeTemplatesBtn2').addEventListener('click', () => {
-        document.getElementById('templatesModal').style.display = 'none';
-    });
-
-    function loadTemplates() {
-        const templates = JSON.parse(localStorage.getItem('volga_templates') || '[]');
-        const listDiv = document.getElementById('templatesList');
-        
-        if (templates.length === 0) {
-            listDiv.innerHTML = '<p style="text-align: center; color: #999; padding: 30px;">لا توجد قوالب محفوظة</p>';
-        } else {
-            listDiv.innerHTML = '';
-            templates.reverse().forEach(template => {
-                const item = document.createElement('div');
-                item.style.cssText = 'padding: 15px; margin-bottom: 12px; border: 2px solid #ddd; border-radius: 10px; cursor: pointer; transition: all 0.3s; background: white;';
-                item.innerHTML = `
-                    <h4 style="color: #0070C0; margin: 0 0 8px 0; font-size: 16px;">${template.name}</h4>
-                    <p style="font-size: 13px; color: #666; margin: 5px 0;">${template.description || 'لا يوجد وصف'}</p>
-                    <p style="font-size: 11px; color: #999; margin: 8px 0 12px 0;">تاريخ الإنشاء: ${template.created}</p>
-                    <div style="display: flex; gap: 8px;">
-                        <button onclick="applyTemplate(${template.id})" style="padding: 8px 16px; background: #0070C0; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">تطبيق</button>
-                        <button onclick="deleteTemplateById(${template.id})" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">حذف</button>
-                    </div>
-                `;
-                item.onmouseover = () => { item.style.borderColor = '#0070C0'; item.style.background = '#f0f8ff'; };
-                item.onmouseout = () => { item.style.borderColor = '#ddd'; item.style.background = 'white'; };
-                listDiv.appendChild(item);
-            });
-        }
-        
-        document.getElementById('templatesModal').style.display = 'flex';
-    }
-
-    window.applyTemplate = function(id) {
-        const templates = JSON.parse(localStorage.getItem('volga_templates') || '[]');
-        const template = templates.find(t => t.id === id);
-        
-        if (template) {
-            pageContainer.innerHTML = template.content;
-            document.getElementById('templatesModal').style.display = 'none';
-            showToast('✅ تم تطبيق القالب!', 'success');
-        }
-    };
-
-    window.deleteTemplateById = function(id) {
-        if (confirm('هل تريد حذف هذا القالب؟')) {
-            let templates = JSON.parse(localStorage.getItem('volga_templates') || '[]');
-            templates = templates.filter(t => t.id !== id);
-            localStorage.setItem('volga_templates', JSON.stringify(templates));
-            loadTemplates();
-            showToast('✅ تم حذف القالب!', 'success');
-        }
-    };
-
-    // ============= UTILITIES =============
-    function showToast(message, type = 'success') {
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.style.background = type === 'success' ? '#28a745' : type === 'warning' ? '#ffc107' : '#17a2b8';
-        toast.style.color = type === 'warning' ? '#000' : 'white';
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
-    }
-
-    function updateWordCount() {
-        const text = pageContainer.innerText || '';
-        const words = text.trim().split(/\s+/).filter(word => word.length > 0);
-        document.getElementById('wordCount').textContent = words.length + ' كلمة';
-        document.getElementById('charCount').textContent = text.length + ' حرف';
-    }
-
-    // Update word count on input
-    pageContainer.addEventListener('input', updateWordCount);
-
-    // Initialize
-    updateWordCount();
-    console.log('Advanced Editor Loaded Successfully!');
-});
-</script>
-            document.getElementById('templatesModal').style.display = 'none';
-            showToast('✅ تم تطبيق القالب!', 'success');
-        }
-    };
-
-    window.deleteTemplateById = function(id) {
-        if (confirm('هل تريد حذف هذا القالب؟')) {
-            let templates = JSON.parse(localStorage.getItem('volga_templates') || '[]');
-            templates = templates.filter(t => t.id !== id);
-            localStorage.setItem('volga_templates', JSON.stringify(templates));
-            loadTemplates();
-            showToast('✅ تم حذف القالب!', 'success');
-        }
-    };
-
-    function showToast(message, type = 'success') {
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.style.background = type === 'success' ? '#28a745' : type === 'warning' ? '#ffc107' : '#17a2b8';
-        toast.style.color = type === 'warning' ? '#000' : 'white';
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
-    }
-
-    function updateWordCount() {
-        const text = pageContainer.innerText || '';
-        const words = text.trim().split(/\s+/).filter(word => word.length > 0);
-        document.getElementById('wordCount').textContent = words.length + ' كلمة';
-        document.getElementById('charCount').textContent = text.length + ' حرف';
-    }
-
-    // اختصارات لوحة المفاتيح
-    document.addEventListener('keydown', function(e) {
-        if (!isEditMode) return;
-        
-        if (e.ctrlKey || e.metaKey) {
-            switch(e.key.toLowerCase()) {
-                case 'b': e.preventDefault(); document.execCommand('bold'); break;
-                case 'i': e.preventDefault(); document.execCommand('italic'); break;
-                case 'u': e.preventDefault(); document.execCommand('underline'); break;
-                case 's': e.preventDefault(); document.getElementById('saveBtn').click(); break;
-            }
-        }
-    });
-
-    // تحديث العداد
-    pageContainer.addEventListener('input', updateWordCount);
-
-    // تهيئة أولية
-    updateWordCount();
-    console.log('Editor initialized successfully!');
-});
-
-// الكود الأصلي
 function calculateTotal() {
     const qty1 = parseInt(document.getElementById('qty1').textContent.replace(/,/g, '')) || 0;
     const price1 = parseInt(document.getElementById('price1').textContent.replace(/,/g, '')) || 0;
@@ -1813,6 +1060,632 @@ function goBack() {
         window.history.back();
     }
 }
+
+calculateTotal();
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 محرر VOLGA النهائي');
+    
+    let editMode = false;
+    let currentFontSize = 12;
+    let selectedImg = null;
+    const container = document.querySelector('.page-container');
+    
+    if (!container) {
+        console.error('Container not found!');
+        return;
+    }
+
+    // ========== تبديل وضع التحرير ==========
+    document.getElementById('editBtn').addEventListener('click', function() {
+        editMode = !editMode;
+        container.contentEditable = editMode;
+        
+        const icon = document.getElementById('editIcon');
+        const txt = document.getElementById('editTxt');
+        const dot = document.getElementById('statusDot');
+        const status = document.getElementById('statusTxt');
+        const toolbar = document.getElementById('toolbar');
+        const saveBtn = document.getElementById('saveTempBtn');
+        
+        if (editMode) {
+            icon.textContent = '🔒';
+            txt.textContent = 'قفل القالب';
+            dot.style.background = '#28a745';
+            status.textContent = 'وضع التحرير نشط';
+            toolbar.style.display = 'flex';
+            saveBtn.disabled = false;
+            saveBtn.style.opacity = '1';
+            container.focus();
+            toast('✅ وضع التحرير مفعل!', '#28a745');
+        } else {
+            icon.textContent = '🔓';
+            txt.textContent = 'تحرير القالب';
+            dot.style.background = '#dc3545';
+            status.textContent = 'القالب مقفل';
+            toolbar.style.display = 'none';
+            saveBtn.disabled = true;
+            saveBtn.style.opacity = '0.5';
+            toast('🔒 تم قفل القالب', '#17a2b8');
+        }
+        
+        updateCount();
+    });
+
+    // ========== تكبير/تصغير الخط (مُصلح 100%) ==========
+    function changeFontSize(delta) {
+        if (!editMode) return;
+        
+        const sel = window.getSelection();
+        if (!sel.rangeCount || sel.isCollapsed) {
+            toast('⚠️ حدد النص أولاً!', '#ffc107');
+            return;
+        }
+        
+        const range = sel.getRangeAt(0);
+        const span = document.createElement('span');
+        
+        // احصل على الحجم الحالي
+        let parent = range.commonAncestorContainer;
+        if (parent.nodeType === 3) parent = parent.parentElement;
+        
+        let computedSize = parseFloat(window.getComputedStyle(parent).fontSize);
+        let baseSize = computedSize * 0.75; // تحويل من px إلى pt
+        
+        currentFontSize = Math.round(baseSize) + delta;
+        currentFontSize = Math.max(8, Math.min(72, currentFontSize));
+        
+        span.style.fontSize = currentFontSize + 'pt';
+        
+        try {
+            const contents = range.extractContents();
+            span.appendChild(contents);
+            range.insertNode(span);
+            
+            // تحديث العرض
+            document.getElementById('fontSize').textContent = currentFontSize + 'pt';
+            toast(`📏 حجم الخط: ${currentFontSize}pt`, '#28a745');
+            
+            // إعادة التحديد
+            range.selectNodeContents(span);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        } catch(e) {
+            console.error('Font size error:', e);
+            toast('❌ خطأ في تغيير الحجم', '#dc3545');
+        }
+    }
+
+    document.getElementById('fontUp').addEventListener('click', () => changeFontSize(2));
+    document.getElementById('fontDown').addEventListener('click', () => changeFontSize(-2));
+
+    // ========== التنسيق ==========
+    document.getElementById('boldBtn').addEventListener('click', () => {
+        if (editMode) document.execCommand('bold');
+    });
+    
+    document.getElementById('italicBtn').addEventListener('click', () => {
+        if (editMode) document.execCommand('italic');
+    });
+    
+    document.getElementById('underBtn').addEventListener('click', () => {
+        if (editMode) document.execCommand('underline');
+    });
+
+    // ========== الألوان (مُصلح 100%) ==========
+    document.getElementById('txtColor').addEventListener('input', function() {
+        if (!editMode) return;
+        
+        const sel = window.getSelection();
+        if (!sel.rangeCount || sel.isCollapsed) {
+            toast('⚠️ حدد النص أولاً!', '#ffc107');
+            return;
+        }
+        
+        const range = sel.getRangeAt(0);
+        const span = document.createElement('span');
+        span.style.color = this.value;
+        
+        try {
+            const contents = range.extractContents();
+            span.appendChild(contents);
+            range.insertNode(span);
+            toast('🎨 تم تغيير لون النص', '#28a745');
+            
+            // إعادة التحديد
+            range.selectNodeContents(span);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        } catch(e) {
+            console.error('Color error:', e);
+        }
+    });
+
+    document.getElementById('bgColor').addEventListener('input', function() {
+        if (!editMode) return;
+        
+        const sel = window.getSelection();
+        if (!sel.rangeCount || sel.isCollapsed) {
+            toast('⚠️ حدد النص أولاً!', '#ffc107');
+            return;
+        }
+        
+        const range = sel.getRangeAt(0);
+        const span = document.createElement('span');
+        span.style.backgroundColor = this.value;
+        
+        try {
+            const contents = range.extractContents();
+            span.appendChild(contents);
+            range.insertNode(span);
+            toast('🎨 تم تغيير لون الخلفية', '#28a745');
+            
+            // إعادة التحديد
+            range.selectNodeContents(span);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        } catch(e) {
+            console.error('BG Color error:', e);
+        }
+    });
+
+    // ========== الجداول ==========
+    document.getElementById('newTableBtn').addEventListener('click', () => {
+        if (!editMode) return;
+        document.getElementById('tableModal').style.display = 'flex';
+    });
+
+    document.getElementById('cancelTable').addEventListener('click', () => {
+        document.getElementById('tableModal').style.display = 'none';
+    });
+
+    document.getElementById('insertTable').addEventListener('click', () => {
+        const rows = parseInt(document.getElementById('tRows').value);
+        const cols = parseInt(document.getElementById('tCols').value);
+        
+        let html = '<div class="draggable-table" style="display: inline-block; margin: 10px;"><table style="border-collapse: collapse; border: 1px solid #ddd;">';
+        for (let i = 0; i < rows; i++) {
+            html += '<tr>';
+            for (let j = 0; j < cols; j++) {
+                html += '<td style="border: 1px solid #ddd; padding: 8px; min-width: 80px;">خلية</td>';
+            }
+            html += '</tr>';
+        }
+        html += '</table></div>';
+        
+        document.execCommand('insertHTML', false, html);
+        document.getElementById('tableModal').style.display = 'none';
+        
+        // جعل الجدول قابل للسحب
+        setTimeout(() => makeTablesDraggable(), 100);
+        
+        toast('✅ تم إدراج الجدول!', '#28a745');
+    });
+
+    // جعل الجداول قابلة للسحب
+    function makeTablesDraggable() {
+        const tables = container.querySelectorAll('.draggable-table');
+        
+        tables.forEach(wrapper => {
+            if (wrapper.draggingInit) return;
+            wrapper.draggingInit = true;
+            
+            wrapper.addEventListener('mousedown', function(e) {
+                if (!editMode) return;
+                if (e.target.tagName === 'TD') return; // السماح بتحرير الخلايا
+                
+                e.preventDefault();
+                
+                const rect = wrapper.getBoundingClientRect();
+                const offsetX = e.clientX - rect.left;
+                const offsetY = e.clientY - rect.top;
+                
+                // تحويل إلى position absolute
+                if (!wrapper.classList.contains('floating')) {
+                    wrapper.classList.add('floating');
+                    wrapper.style.left = rect.left + 'px';
+                    wrapper.style.top = rect.top + 'px';
+                    wrapper.style.width = rect.width + 'px';
+                }
+                
+                function move(e) {
+                    wrapper.style.left = (e.clientX - offsetX) + 'px';
+                    wrapper.style.top = (e.clientY - offsetY) + 'px';
+                }
+                
+                function stop() {
+                    document.removeEventListener('mousemove', move);
+                    document.removeEventListener('mouseup', stop);
+                }
+                
+                document.addEventListener('mousemove', move);
+                document.addEventListener('mouseup', stop);
+            });
+        });
+    }
+
+    // عمليات الجدول
+    function getTable() {
+        const sel = window.getSelection();
+        if (!sel.rangeCount) return null;
+        
+        let el = sel.anchorNode;
+        while (el && el.tagName !== 'TABLE') {
+            el = el.parentElement;
+        }
+        return el;
+    }
+
+    function getCell() {
+        const sel = window.getSelection();
+        if (!sel.rangeCount) return null;
+        
+        let el = sel.anchorNode;
+        while (el && el.tagName !== 'TD' && el.tagName !== 'TH') {
+            el = el.parentElement;
+        }
+        return el;
+    }
+
+    document.getElementById('addRowBtn').addEventListener('click', () => {
+        if (!editMode) return;
+        const table = getTable();
+        
+        if (table) {
+            const row = table.insertRow();
+            const cols = table.rows[0].cells.length;
+            for (let i = 0; i < cols; i++) {
+                const cell = row.insertCell();
+                cell.style.border = '1px solid #ddd';
+                cell.style.padding = '8px';
+                cell.textContent = 'خلية جديدة';
+            }
+            toast('✅ تم إضافة صف!', '#28a745');
+        } else {
+            toast('⚠️ حدد جدول أولاً', '#ffc107');
+        }
+    });
+
+    document.getElementById('addColBtn').addEventListener('click', () => {
+        if (!editMode) return;
+        const table = getTable();
+        
+        if (table) {
+            for (let i = 0; i < table.rows.length; i++) {
+                const cell = table.rows[i].insertCell();
+                cell.style.border = '1px solid #ddd';
+                cell.style.padding = '8px';
+                cell.textContent = 'خلية';
+            }
+            toast('✅ تم إضافة عمود!', '#28a745');
+        } else {
+            toast('⚠️ حدد جدول أولاً', '#ffc107');
+        }
+    });
+
+    document.getElementById('delRowBtn').addEventListener('click', () => {
+        if (!editMode) return;
+        const cell = getCell();
+        
+        if (cell) {
+            const row = cell.parentElement;
+            const table = getTable();
+            
+            if (table && table.rows.length > 1) {
+                row.remove();
+                toast('✅ تم حذف الصف!', '#28a745');
+            } else {
+                toast('⚠️ لا يمكن حذف آخر صف', '#ffc107');
+            }
+        } else {
+            toast('⚠️ حدد خلية في الصف', '#ffc107');
+        }
+    });
+
+    document.getElementById('delColBtn').addEventListener('click', () => {
+        if (!editMode) return;
+        const cell = getCell();
+        
+        if (cell) {
+            const table = getTable();
+            const idx = cell.cellIndex;
+            
+            if (table && table.rows[0].cells.length > 1) {
+                for (let i = 0; i < table.rows.length; i++) {
+                    table.rows[i].deleteCell(idx);
+                }
+                toast('✅ تم حذف العمود!', '#28a745');
+            } else {
+                toast('⚠️ لا يمكن حذف آخر عمود', '#ffc107');
+            }
+        } else {
+            toast('⚠️ حدد خلية في العمود', '#ffc107');
+        }
+    });
+
+    // ========== الصور (مُصلح 100% - تكبير/تصغير كامل) ==========
+    document.getElementById('imgBtn').addEventListener('click', () => {
+        if (!editMode) return;
+        document.getElementById('imgModal').style.display = 'flex';
+    });
+
+    document.getElementById('cancelImg').addEventListener('click', () => {
+        document.getElementById('imgModal').style.display = 'none';
+    });
+
+    document.getElementById('insertImg').addEventListener('click', () => {
+        const url = document.getElementById('imgUrl').value;
+        const file = document.getElementById('imgFile').files[0];
+        const w = document.getElementById('imgW').value;
+        const h = document.getElementById('imgH').value;
+        
+        if (url) {
+            insertImage(url, w, h);
+        } else if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => insertImage(e.target.result, w, h);
+            reader.readAsDataURL(file);
+        } else {
+            toast('⚠️ أدخل رابط أو ارفع صورة', '#ffc107');
+            return;
+        }
+        
+        document.getElementById('imgModal').style.display = 'none';
+        document.getElementById('imgUrl').value = '';
+        document.getElementById('imgFile').value = '';
+    });
+
+    function insertImage(src, w, h) {
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'absolute';
+        wrapper.style.left = '100px';
+        wrapper.style.top = '200px';
+        wrapper.style.zIndex = '10';
+        
+        const img = document.createElement('img');
+        img.src = src;
+        img.className = 'resizable-img';
+        img.style.width = w + 'px';
+        img.style.height = h + 'px';
+        img.style.display = 'block';
+        
+        // أزرار التحكم
+        const controls = document.createElement('div');
+        controls.className = 'img-controls';
+        controls.innerHTML = `
+            <button class="control-btn" style="background: #007bff; color: white;" onclick="changeZIndex(this, 1)">▲ للأمام</button>
+            <button class="control-btn" style="background: #6c757d; color: white;" onclick="changeZIndex(this, -1)">▼ للخلف</button>
+            <button class="control-btn" style="background: #dc3545; color: white;" onclick="deleteImg(this)">🗑️</button>
+        `;
+        
+        // مقابض التكبير/التصغير
+        const handles = ['nw', 'ne', 'sw', 'se', 'n', 's', 'w', 'e'];
+        handles.forEach(pos => {
+            const handle = document.createElement('div');
+            handle.className = `resize-handle handle-${pos}`;
+            handle.dataset.pos = pos;
+            wrapper.appendChild(handle);
+        });
+        
+        wrapper.appendChild(img);
+        wrapper.appendChild(controls);
+        container.appendChild(wrapper);
+        
+        // السحب
+        img.addEventListener('mousedown', function(e) {
+            if (!editMode) return;
+            if (e.target.classList.contains('resize-handle')) return;
+            
+            e.preventDefault();
+            deselectAll();
+            img.classList.add('selected');
+            selectedImg = img;
+            
+            const rect = wrapper.getBoundingClientRect();
+            const offsetX = e.clientX - rect.left;
+            const offsetY = e.clientY - rect.top;
+            
+            function move(e) {
+                wrapper.style.left = (e.clientX - offsetX) + 'px';
+                wrapper.style.top = (e.clientY - offsetY) + 'px';
+            }
+            
+            function stop() {
+                document.removeEventListener('mousemove', move);
+                document.removeEventListener('mouseup', stop);
+            }
+            
+            document.addEventListener('mousemove', move);
+            document.addEventListener('mouseup', stop);
+        });
+        
+        // التكبير/التصغير
+        wrapper.addEventListener('mousedown', function(e) {
+            if (!editMode) return;
+            if (!e.target.classList.contains('resize-handle')) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const handle = e.target;
+            const pos = handle.dataset.pos;
+            const startX = e.clientX;
+            const startY = e.clientY;
+            const startW = img.offsetWidth;
+            const startH = img.offsetHeight;
+            const startLeft = wrapper.offsetLeft;
+            const startTop = wrapper.offsetTop;
+            const shiftKey = e.shiftKey;
+            
+            function resize(e) {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                
+                let newW = startW;
+                let newH = startH;
+                let newLeft = startLeft;
+                let newTop = startTop;
+                
+                if (shiftKey) {
+                    // Shift: تغيير متناسب من جميع الجوانب
+                    const delta = Math.max(dx, dy);
+                    if (pos.includes('e') || pos.includes('w')) {
+                        newW = startW + (pos.includes('e') ? delta : -delta);
+                        newH = (newW / startW) * startH;
+                        if (pos.includes('w')) {
+                            newLeft = startLeft - (newW - startW);
+                        }
+                    }
+                    if (pos.includes('n') || pos.includes('s')) {
+                        newTop = startTop + (pos.includes('s') ? delta / 2 : -delta / 2);
+                        newLeft = startLeft - delta / 4;
+                    }
+                } else {
+                    // عادي: تغيير من الجانب المحدد فقط
+                    if (pos.includes('e')) {
+                        newW = startW + dx;
+                    }
+                    if (pos.includes('w')) {
+                        newW = startW - dx;
+                        newLeft = startLeft + dx;
+                    }
+                    if (pos.includes('s')) {
+                        newH = startH + dy;
+                    }
+                    if (pos.includes('n')) {
+                        newH = startH - dy;
+                        newTop = startTop + dy;
+                    }
+                }
+                
+                if (newW > 50) {
+                    img.style.width = newW + 'px';
+                    wrapper.style.left = newLeft + 'px';
+                }
+                if (newH > 50) {
+                    img.style.height = newH + 'px';
+                    wrapper.style.top = newTop + 'px';
+                }
+            }
+            
+            function stopResize() {
+                document.removeEventListener('mousemove', resize);
+                document.removeEventListener('mouseup', stopResize);
+            }
+            
+            document.addEventListener('mousemove', resize);
+            document.addEventListener('mouseup', stopResize);
+        });
+        
+        toast('✅ تم إدراج الصورة!', '#28a745');
+    }
+
+    // وظائف الصور
+    window.changeZIndex = function(btn, delta) {
+        const wrapper = btn.closest('div').parentElement;
+        const currentZ = parseInt(wrapper.style.zIndex || 10);
+        wrapper.style.zIndex = Math.max(1, currentZ + delta);
+        toast(delta > 0 ? '▲ للأمام' : '▼ للخلف', '#17a2b8');
+    };
+
+    window.deleteImg = function(btn) {
+        if (confirm('هل تريد حذف الصورة؟')) {
+            btn.closest('div').parentElement.remove();
+            toast('🗑️ تم حذف الصورة', '#dc3545');
+        }
+    };
+
+    function deselectAll() {
+        document.querySelectorAll('.resizable-img.selected').forEach(img => {
+            img.classList.remove('selected');
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.classList.contains('resizable-img') && !e.target.classList.contains('control-btn')) {
+            deselectAll();
+        }
+    });
+
+    // ========== اختصارات لوحة المفاتيح ==========
+    document.addEventListener('keydown', function(e) {
+        if (!editMode) return;
+        
+        if (e.ctrlKey) {
+            switch(e.key) {
+                case 'b': case 'B':
+                    e.preventDefault();
+                    document.execCommand('bold');
+                    break;
+                case 'i': case 'I':
+                    e.preventDefault();
+                    document.execCommand('italic');
+                    break;
+                case 'u': case 'U':
+                    e.preventDefault();
+                    document.execCommand('underline');
+                    break;
+                case 'د':
+                    e.preventDefault();
+                    changeFontSize(2);
+                    break;
+                case 'ج':
+                    e.preventDefault();
+                    changeFontSize(-2);
+                    break;
+            }
+        }
+    });
+
+    // ========== المساعدات ==========
+    function toast(msg, color) {
+        const t = document.createElement('div');
+        t.className = 'toast';
+        t.style.background = color;
+        t.style.color = color === '#ffc107' ? '#000' : 'white';
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 3000);
+    }
+
+    function updateCount() {
+        const text = container.innerText || '';
+        const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+        document.getElementById('words').textContent = words.length + ' كلمة';
+        document.getElementById('chars').textContent = text.length + ' حرف';
+    }
+
+    container.addEventListener('input', updateCount);
+    
+    // الطباعة
+    document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+    // تهيئة
+    updateCount();
+    setTimeout(() => makeTablesDraggable(), 500);
+    
+    console.log('✅ محرر VOLGA جاهز 100%!');
+});
+
+// الكود الأصلي
+function calculateTotal() {
+    const qty1 = parseInt(document.getElementById('qty1')?.textContent.replace(/,/g, '')) || 0;
+    const price1 = parseInt(document.getElementById('price1')?.textContent.replace(/,/g, '')) || 0;
+    
+    const subtotal = qty1 * price1;
+    const vat = Math.round(subtotal * 0.15);
+    const total = subtotal + vat;
+    
+    if (document.getElementById('total1')) document.getElementById('total1').textContent = subtotal.toLocaleString();
+    if (document.getElementById('vat_amount')) document.getElementById('vat_amount').textContent = vat.toLocaleString();
+    if (document.getElementById('vat_total')) document.getElementById('vat_total').textContent = vat.toLocaleString();
+    if (document.getElementById('grand_total')) document.getElementById('grand_total').textContent = total.toLocaleString();
+}
+
+if (document.getElementById('qty1')) document.getElementById('qty1').addEventListener('input', calculateTotal);
+if (document.getElementById('price1')) document.getElementById('price1').addEventListener('input', calculateTotal);
 
 calculateTotal();
 </script>
