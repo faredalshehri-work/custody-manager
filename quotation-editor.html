@@ -172,446 +172,7 @@ td {
 
 <body lang=EN-US link="#0563C1" vlink="#954F72" style='word-wrap:break-word'>
 
-<!-- شريط الأدوات الاحترافي -->
-<div id="professionalToolbar" style="position: sticky; top: 0; z-index: 10000; background: linear-gradient(135deg, #0070C0 0%, #003d7a 100%); padding: 12px 25px; box-shadow: 0 3px 15px rgba(0,0,0,0.4); color: white; font-family: 'Segoe UI', Tahoma, sans-serif;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h2 style="margin: 0; font-size: 20px; display: flex; align-items: center; gap: 8px;">
-            <span>📝</span>
-            محرر VOLGA الاحترافي
-        </h2>
-        <div style="display: flex; gap: 8px;">
-            <button id="toggleEditBtn" onclick="toggleEdit()" style="padding: 10px 18px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.25s; display: flex; align-items: center; gap: 6px;">
-                <span id="editIcon">🔓</span>
-                <span id="editText">تحرير القالب</span>
-            </button>
-            <button onclick="saveTemplate()" id="saveBtn" disabled style="padding: 10px 18px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.25s; opacity: 0.5;">💾 حفظ</button>
-            <button onclick="loadTemplates()" style="padding: 10px 18px; background: white; color: #0070C0; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.25s;">📂 القوالب</button>
-            <button onclick="window.print()" style="padding: 10px 18px; background: #ffc107; color: #000; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.25s;">🖨️ طباعة</button>
-        </div>
-    </div>
-    
-    <div id="toolbarControls" style="display: none; background: rgba(255,255,255,0.15); padding: 10px; border-radius: 8px; gap: 10px; align-items: center; flex-wrap: wrap;">
-        <!-- التراجع والإعادة -->
-        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
-            <small style="opacity: 0.9; align-self: center; font-size: 11px; margin-left: 4px;">التراجع:</small>
-            <button onclick="document.execCommand('undo')" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; min-width: 35px;">↶</button>
-            <button onclick="document.execCommand('redo')" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; min-width: 35px;">↷</button>
-        </div>
-        
-        <!-- الحافظة -->
-        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
-            <small style="opacity: 0.9; align-self: center; font-size: 11px; margin-left: 4px;">الحافظة:</small>
-            <button onclick="document.execCommand('cut')" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px;">✂️</button>
-            <button onclick="document.execCommand('copy')" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px;">📋</button>
-            <button onclick="document.execCommand('paste')" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px;">📎</button>
-        </div>
-        
-        <!-- الخط -->
-        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
-            <small style="opacity: 0.9; align-self: center; font-size: 11px; margin-left: 4px;">الخط:</small>
-            <select onchange="document.execCommand('fontName', false, this.value)" style="padding: 6px 8px; border: none; border-radius: 4px; font-size: 12px;">
-                <option value="Times New Roman" selected>Times New Roman</option>
-                <option value="Arial">Arial</option>
-                <option value="Calibri">Calibri</option>
-                <option value="Tahoma">Tahoma</option>
-            </select>
-            <input type="number" min="8" max="72" value="12" onchange="changeFontSize(this.value)" style="width: 55px; padding: 6px; border: none; border-radius: 4px; font-size: 12px;">
-        </div>
-        
-        <!-- تنسيق -->
-        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
-            <small style="opacity: 0.9; align-self: center; font-size: 11px; margin-left: 4px;">التنسيق:</small>
-            <button onclick="document.execCommand('bold')" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; min-width: 35px;">B</button>
-            <button onclick="document.execCommand('italic')" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-style: italic; font-size: 13px; min-width: 35px;">I</button>
-            <button onclick="document.execCommand('underline')" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; text-decoration: underline; font-size: 13px; min-width: 35px;">U</button>
-        </div>
-        
-        <!-- الألوان -->
-        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
-            <small style="opacity: 0.9; align-self: center; font-size: 11px; margin-left: 4px;">اللون:</small>
-            <input type="color" value="#000000" onchange="document.execCommand('foreColor', false, this.value)" style="width: 38px; height: 32px; border: none; cursor: pointer; border-radius: 4px;" title="لون النص">
-            <input type="color" value="#ffffff" onchange="document.execCommand('backColor', false, this.value)" style="width: 38px; height: 32px; border: none; cursor: pointer; border-radius: 4px;" title="لون الخلفية">
-        </div>
-        
-        <!-- المحاذاة -->
-        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
-            <small style="opacity: 0.9; align-self: center; font-size: 11px; margin-left: 4px;">المحاذاة:</small>
-            <button onclick="document.execCommand('justifyRight')" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px;">↤</button>
-            <button onclick="document.execCommand('justifyCenter')" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px;">↔</button>
-            <button onclick="document.execCommand('justifyLeft')" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px;">↦</button>
-        </div>
-        
-        <!-- الجداول -->
-        <div style="display: inline-flex; gap: 4px; padding: 0 10px;">
-            <button onclick="addTableRow()" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">➕ صف</button>
-            <button onclick="addTableColumn()" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">➕ عمود</button>
-            <button onclick="deleteTable()" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">🗑️ حذف</button>
-        </div>
-    </div>
-</div>
-
-<!-- شريط الحالة -->
-<div id="statusBar" style="position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a2e; color: white; padding: 6px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; z-index: 9999; font-family: 'Segoe UI', Tahoma, sans-serif;">
-    <div style="display: flex; align-items: center; gap: 8px;">
-        <div id="statusDot" style="width: 10px; height: 10px; border-radius: 50%; background: #dc3545;"></div>
-        <span id="statusText">القالب مقفل - اضغط "تحرير القالب" للبدء</span>
-    </div>
-    <div>
-        <span id="wordCount">0 كلمة</span> | <span id="charCount">0 حرف</span>
-    </div>
-</div>
-
-<!-- Modal حفظ القالب -->
-<div id="saveModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; justify-content: center; align-items: center;">
-    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; width: 90%; font-family: 'Segoe UI', Tahoma, sans-serif;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 3px solid #0070C0;">
-            <h3 style="color: #0070C0; margin: 0; font-size: 20px;">💾 حفظ القالب</h3>
-            <button onclick="closeSaveModal()" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold;">✖</button>
-        </div>
-        <div style="margin: 20px 0;">
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">اسم القالب *</label>
-                <input type="text" id="templateName" placeholder="مثال: قالب VOLGA - ديسمبر 2025" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px;">
-            </div>
-            <div>
-                <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">وصف القالب</label>
-                <textarea id="templateDesc" rows="3" placeholder="وصف مختصر (اختياري)" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px; resize: vertical;"></textarea>
-            </div>
-        </div>
-        <div style="display: flex; gap: 10px; justify-content: flex-end; padding-top: 15px; border-top: 2px solid #eee;">
-            <button onclick="confirmSave()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">💾 حفظ</button>
-            <button onclick="closeSaveModal()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">إلغاء</button>
-        </div>
-    </div>
-</div>
-
-<!-- Modal القوالب -->
-<div id="templatesModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; justify-content: center; align-items: center;">
-    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; font-family: 'Segoe UI', Tahoma, sans-serif;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 3px solid #0070C0;">
-            <h3 style="color: #0070C0; margin: 0; font-size: 20px;">📂 القوالب المحفوظة</h3>
-            <button onclick="closeTemplatesModal()" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold;">✖</button>
-        </div>
-        <div id="templatesList"></div>
-        <div style="display: flex; gap: 10px; justify-content: flex-end; padding-top: 15px; border-top: 2px solid #eee; margin-top: 20px;">
-            <button onclick="closeTemplatesModal()" style="padding: 10px 20px; background: #0070C0; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">إغلاق</button>
-        </div>
-    </div>
-</div>
-
-<style>
-/* المؤشر الوامض - يظهر فقط في وضع التحرير */
-.page-container[contenteditable="true"] {
-    caret-color: #0070C0 !important;
-    cursor: text !important;
-}
-
-.page-container[contenteditable="false"] {
-    cursor: not-allowed !important;
-    user-select: none !important;
-}
-
-/* تأثيرات التحديد */
-.page-container[contenteditable="true"]::selection {
-    background: #0070C0 !important;
-    color: white !important;
-}
-
-.page-container[contenteditable="true"] *::selection {
-    background: #0070C0 !important;
-    color: white !important;
-}
-
-/* إخفاء الأدوات عند الطباعة */
-@media print {
-    #professionalToolbar, #statusBar, #saveModal, #templatesModal {
-        display: none !important;
-    }
-    .page-container {
-        margin: 0 !important;
-        box-shadow: none !important;
-    }
-}
-
-/* تأثير hover للجداول */
-.page-container[contenteditable="true"] table:hover {
-    outline: 2px dashed #0070C0;
-}
-
-/* رسالة Toast */
-.toast {
-    position: fixed;
-    bottom: 60px;
-    left: 20px;
-    padding: 15px 25px;
-    border-radius: 10px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.4);
-    z-index: 30000;
-    font-weight: bold;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    animation: slideIn 0.3s;
-}
-
-@keyframes slideIn {
-    from { transform: translateX(-400px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-.pulse {
-    animation: pulse 2s infinite;
-}
-</style>
-
-<script>
-let isEditMode = false;
-const pageContainer = document.querySelector('.page-container');
-
-function toggleEdit() {
-    isEditMode = !isEditMode;
-    pageContainer.contentEditable = isEditMode;
-    
-    const editIcon = document.getElementById('editIcon');
-    const editText = document.getElementById('editText');
-    const statusDot = document.getElementById('statusDot');
-    const statusText = document.getElementById('statusText');
-    const toolbarControls = document.getElementById('toolbarControls');
-    const saveBtn = document.getElementById('saveBtn');
-    
-    if (isEditMode) {
-        // تفعيل وضع التحرير
-        editIcon.textContent = '🔒';
-        editText.textContent = 'قفل القالب';
-        statusDot.style.background = '#28a745';
-        statusDot.classList.add('pulse');
-        statusText.textContent = 'وضع التحرير نشط - يمكنك التعديل الآن';
-        toolbarControls.style.display = 'flex';
-        saveBtn.disabled = false;
-        saveBtn.style.opacity = '1';
-        pageContainer.focus();
-        showToast('✅ وضع التحرير مفعل! يمكنك البدء بالتعديل', 'success');
-    } else {
-        // قفل القالب
-        editIcon.textContent = '🔓';
-        editText.textContent = 'تحرير القالب';
-        statusDot.style.background = '#dc3545';
-        statusDot.classList.remove('pulse');
-        statusText.textContent = 'القالب مقفل - اضغط "تحرير القالب" للبدء';
-        toolbarControls.style.display = 'none';
-        saveBtn.disabled = true;
-        saveBtn.style.opacity = '0.5';
-        showToast('🔒 تم قفل القالب', 'info');
-    }
-    
-    updateWordCount();
-}
-
-function changeFontSize(size) {
-    if (!isEditMode) return;
-    document.execCommand('fontSize', false, '7');
-    const fontElements = document.getElementsByTagName('font');
-    for (let i = 0; i < fontElements.length; i++) {
-        if (fontElements[i].size === '7') {
-            fontElements[i].removeAttribute('size');
-            fontElements[i].style.fontSize = size + 'pt';
-        }
-    }
-}
-
-function addTableRow() {
-    if (!isEditMode) return;
-    const selection = window.getSelection();
-    let element = selection.anchorNode;
-    while (element && element.tagName !== 'TABLE') {
-        element = element.parentElement;
-    }
-    if (element && element.tagName === 'TABLE') {
-        const row = element.insertRow();
-        const colCount = element.rows[0].cells.length;
-        for (let i = 0; i < colCount; i++) {
-            const cell = row.insertCell();
-            cell.style.border = '1px solid #ddd';
-            cell.style.padding = '5.4pt';
-            cell.textContent = 'خلية جديدة';
-        }
-        showToast('✅ تم إضافة صف!', 'success');
-    } else {
-        showToast('⚠️ حدد جدول أولاً', 'warning');
-    }
-}
-
-function addTableColumn() {
-    if (!isEditMode) return;
-    const selection = window.getSelection();
-    let element = selection.anchorNode;
-    while (element && element.tagName !== 'TABLE') {
-        element = element.parentElement;
-    }
-    if (element && element.tagName === 'TABLE') {
-        const rows = element.rows;
-        for (let i = 0; i < rows.length; i++) {
-            const cell = rows[i].insertCell();
-            cell.style.border = '1px solid #ddd';
-            cell.style.padding = '5.4pt';
-            cell.textContent = 'خلية جديدة';
-        }
-        showToast('✅ تم إضافة عمود!', 'success');
-    } else {
-        showToast('⚠️ حدد جدول أولاً', 'warning');
-    }
-}
-
-function deleteTable() {
-    if (!isEditMode) return;
-    const selection = window.getSelection();
-    let element = selection.anchorNode;
-    while (element && element.tagName !== 'TABLE') {
-        element = element.parentElement;
-    }
-    if (element && element.tagName === 'TABLE') {
-        if (confirm('هل تريد حذف الجدول؟')) {
-            element.remove();
-            showToast('✅ تم حذف الجدول!', 'success');
-        }
-    } else {
-        showToast('⚠️ حدد جدول أولاً', 'warning');
-    }
-}
-
-function updateWordCount() {
-    const text = pageContainer.innerText || '';
-    const words = text.trim().split(/\s+/).filter(word => word.length > 0);
-    document.getElementById('wordCount').textContent = words.length + ' كلمة';
-    document.getElementById('charCount').textContent = text.length + ' حرف';
-}
-
-function saveTemplate() {
-    if (!isEditMode) return;
-    document.getElementById('saveModal').style.display = 'flex';
-}
-
-function closeSaveModal() {
-    document.getElementById('saveModal').style.display = 'none';
-}
-
-function confirmSave() {
-    const name = document.getElementById('templateName').value;
-    const desc = document.getElementById('templateDesc').value;
-    
-    if (!name) {
-        alert('⚠️ يرجى إدخال اسم القالب');
-        return;
-    }
-
-    const template = {
-        id: Date.now(),
-        name: name,
-        description: desc,
-        content: pageContainer.innerHTML,
-        created: new Date().toLocaleString('ar-SA')
-    };
-
-    let templates = JSON.parse(localStorage.getItem('volga_templates') || '[]');
-    templates.push(template);
-    localStorage.setItem('volga_templates', JSON.stringify(templates));
-
-    closeSaveModal();
-    showToast('✅ تم حفظ القالب بنجاح!', 'success');
-    
-    document.getElementById('templateName').value = '';
-    document.getElementById('templateDesc').value = '';
-}
-
-function loadTemplates() {
-    const templates = JSON.parse(localStorage.getItem('volga_templates') || '[]');
-    const listDiv = document.getElementById('templatesList');
-    
-    if (templates.length === 0) {
-        listDiv.innerHTML = '<p style="text-align: center; color: #999; padding: 30px;">لا توجد قوالب محفوظة</p>';
-    } else {
-        listDiv.innerHTML = '';
-        templates.reverse().forEach(template => {
-            const item = document.createElement('div');
-            item.style.cssText = 'padding: 15px; margin-bottom: 12px; border: 2px solid #ddd; border-radius: 10px; cursor: pointer; transition: all 0.3s; background: white;';
-            item.innerHTML = `
-                <h4 style="color: #0070C0; margin: 0 0 8px 0; font-size: 16px;">${template.name}</h4>
-                <p style="font-size: 13px; color: #666; margin: 5px 0;">${template.description || 'لا يوجد وصف'}</p>
-                <p style="font-size: 11px; color: #999; margin: 8px 0 12px 0;">تاريخ الإنشاء: ${template.created}</p>
-                <div style="display: flex; gap: 8px;">
-                    <button onclick="applyTemplate(${template.id})" style="padding: 8px 16px; background: #0070C0; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">تطبيق</button>
-                    <button onclick="deleteTemplateById(${template.id})" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">حذف</button>
-                </div>
-            `;
-            item.onmouseover = () => { item.style.borderColor = '#0070C0'; item.style.background = '#f0f8ff'; };
-            item.onmouseout = () => { item.style.borderColor = '#ddd'; item.style.background = 'white'; };
-            listDiv.appendChild(item);
-        });
-    }
-    
-    document.getElementById('templatesModal').style.display = 'flex';
-}
-
-function closeTemplatesModal() {
-    document.getElementById('templatesModal').style.display = 'none';
-}
-
-function applyTemplate(id) {
-    const templates = JSON.parse(localStorage.getItem('volga_templates') || '[]');
-    const template = templates.find(t => t.id === id);
-    
-    if (template) {
-        pageContainer.innerHTML = template.content;
-        closeTemplatesModal();
-        showToast('✅ تم تطبيق القالب!', 'success');
-    }
-}
-
-function deleteTemplateById(id) {
-    if (confirm('هل تريد حذف هذا القالب؟')) {
-        let templates = JSON.parse(localStorage.getItem('volga_templates') || '[]');
-        templates = templates.filter(t => t.id !== id);
-        localStorage.setItem('volga_templates', JSON.stringify(templates));
-        loadTemplates();
-        showToast('✅ تم حذف القالب!', 'success');
-    }
-}
-
-function showToast(message, type = 'success') {
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.style.background = type === 'success' ? '#28a745' : type === 'warning' ? '#ffc107' : '#17a2b8';
-    toast.style.color = type === 'warning' ? '#000' : 'white';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-}
-
-// اختصارات لوحة المفاتيح
-document.addEventListener('keydown', function(e) {
-    if (!isEditMode) return;
-    
-    if (e.ctrlKey || e.metaKey) {
-        switch(e.key.toLowerCase()) {
-            case 'b': e.preventDefault(); document.execCommand('bold'); break;
-            case 'i': e.preventDefault(); document.execCommand('italic'); break;
-            case 'u': e.preventDefault(); document.execCommand('underline'); break;
-            case 's': e.preventDefault(); saveTemplate(); break;
-        }
-    }
-});
-
-// تحديث العداد
-pageContainer.addEventListener('input', updateWordCount);
-
-// تهيئة
-updateWordCount();
-</script>
-
-<div class="page-container" contenteditable="false">
+<div class="page-container">
 
     <!-- Editor Header -->
     <div class="editor-header">
@@ -1207,7 +768,499 @@ updateWordCount();
 
 </div>
 
+<!-- شريط الأدوات الاحترافي -->
+<div id="professionalToolbar" style="position: fixed; top: 0; left: 0; right: 0; z-index: 10000; background: linear-gradient(135deg, #0070C0 0%, #003d7a 100%); padding: 12px 25px; box-shadow: 0 3px 15px rgba(0,0,0,0.4); color: white; font-family: 'Segoe UI', Tahoma, sans-serif;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h2 style="margin: 0; font-size: 20px; display: flex; align-items: center; gap: 8px;">
+            <span>📝</span>
+            محرر VOLGA الاحترافي
+        </h2>
+        <div style="display: flex; gap: 8px;">
+            <button id="toggleEditBtn" style="padding: 10px 18px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.25s; display: flex; align-items: center; gap: 6px;">
+                <span id="editIcon">🔓</span>
+                <span id="editText">تحرير القالب</span>
+            </button>
+            <button id="saveBtn" disabled style="padding: 10px 18px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.25s; opacity: 0.5;">💾 حفظ</button>
+            <button id="templatesBtn" style="padding: 10px 18px; background: white; color: #0070C0; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.25s;">📂 القوالب</button>
+            <button onclick="window.print()" style="padding: 10px 18px; background: #ffc107; color: #000; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.25s;">🖨️ طباعة</button>
+        </div>
+    </div>
+    
+    <div id="toolbarControls" style="display: none; background: rgba(255,255,255,0.15); padding: 10px; border-radius: 8px; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <!-- التراجع والإعادة -->
+        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
+            <small style="opacity: 0.9; align-self: center; font-size: 11px; margin-left: 4px;">التراجع:</small>
+            <button onclick="document.execCommand('undo')" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; min-width: 35px;">↶</button>
+            <button onclick="document.execCommand('redo')" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; min-width: 35px;">↷</button>
+        </div>
+        
+        <!-- الحافظة -->
+        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
+            <small style="opacity: 0.9; align-self: center; font-size: 11px; margin-left: 4px;">الحافظة:</small>
+            <button onclick="document.execCommand('cut')" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px;">✂️</button>
+            <button onclick="document.execCommand('copy')" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px;">📋</button>
+            <button onclick="document.execCommand('paste')" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px;">📎</button>
+        </div>
+        
+        <!-- الخط -->
+        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
+            <small style="opacity: 0.9; align-self: center; font-size: 11px; margin-left: 4px;">الخط:</small>
+            <select id="fontSelect" style="padding: 6px 8px; border: none; border-radius: 4px; font-size: 12px;">
+                <option value="Times New Roman" selected>Times New Roman</option>
+                <option value="Arial">Arial</option>
+                <option value="Calibri">Calibri</option>
+                <option value="Tahoma">Tahoma</option>
+            </select>
+            <input type="number" id="fontSizeInput" min="8" max="72" value="12" style="width: 55px; padding: 6px; border: none; border-radius: 4px; font-size: 12px;">
+        </div>
+        
+        <!-- تنسيق -->
+        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
+            <small style="opacity: 0.9; align-self: center; font-size: 11px; margin-left: 4px;">التنسيق:</small>
+            <button onclick="document.execCommand('bold')" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; min-width: 35px;">B</button>
+            <button onclick="document.execCommand('italic')" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-style: italic; font-size: 13px; min-width: 35px;">I</button>
+            <button onclick="document.execCommand('underline')" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; text-decoration: underline; font-size: 13px; min-width: 35px;">U</button>
+        </div>
+        
+        <!-- الألوان -->
+        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
+            <small style="opacity: 0.9; align-self: center; font-size: 11px; margin-left: 4px;">اللون:</small>
+            <input type="color" id="textColorPicker" value="#000000" style="width: 38px; height: 32px; border: none; cursor: pointer; border-radius: 4px;" title="لون النص">
+            <input type="color" id="bgColorPicker" value="#ffffff" style="width: 38px; height: 32px; border: none; cursor: pointer; border-radius: 4px;" title="لون الخلفية">
+        </div>
+        
+        <!-- المحاذاة -->
+        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
+            <small style="opacity: 0.9; align-self: center; font-size: 11px; margin-left: 4px;">المحاذاة:</small>
+            <button onclick="document.execCommand('justifyRight')" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px;">↤</button>
+            <button onclick="document.execCommand('justifyCenter')" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px;">↔</button>
+            <button onclick="document.execCommand('justifyLeft')" style="padding: 6px 10px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px;">↦</button>
+        </div>
+        
+        <!-- الجداول -->
+        <div style="display: inline-flex; gap: 4px; padding: 0 10px;">
+            <button id="addRowBtn" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">➕ صف</button>
+            <button id="addColBtn" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">➕ عمود</button>
+            <button id="delTableBtn" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">🗑️ حذف</button>
+        </div>
+    </div>
+</div>
+
+<!-- شريط الحالة -->
+<div id="statusBar" style="position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a2e; color: white; padding: 6px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; z-index: 9999; font-family: 'Segoe UI', Tahoma, sans-serif;">
+    <div style="display: flex; align-items: center; gap: 8px;">
+        <div id="statusDot" style="width: 10px; height: 10px; border-radius: 50%; background: #dc3545;"></div>
+        <span id="statusText">القالب مقفل - اضغط "تحرير القالب" للبدء</span>
+    </div>
+    <div>
+        <span id="wordCount">0 كلمة</span> | <span id="charCount">0 حرف</span>
+    </div>
+</div>
+
+<!-- Modals -->
+<div id="saveModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; width: 90%; font-family: 'Segoe UI', Tahoma, sans-serif;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 3px solid #0070C0;">
+            <h3 style="color: #0070C0; margin: 0; font-size: 20px;">💾 حفظ القالب</h3>
+            <button id="closeSaveBtn" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold;">✖</button>
+        </div>
+        <div style="margin: 20px 0;">
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">اسم القالب *</label>
+                <input type="text" id="templateName" placeholder="مثال: قالب VOLGA - ديسمبر 2025" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px;">
+            </div>
+            <div>
+                <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">وصف القالب</label>
+                <textarea id="templateDesc" rows="3" placeholder="وصف مختصر (اختياري)" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px; resize: vertical;"></textarea>
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end; padding-top: 15px; border-top: 2px solid #eee;">
+            <button id="confirmSaveBtn" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">💾 حفظ</button>
+            <button id="cancelSaveBtn" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<div id="templatesModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; font-family: 'Segoe UI', Tahoma, sans-serif;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 3px solid #0070C0;">
+            <h3 style="color: #0070C0; margin: 0; font-size: 20px;">📂 القوالب المحفوظة</h3>
+            <button id="closeTemplatesBtn" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold;">✖</button>
+        </div>
+        <div id="templatesList"></div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end; padding-top: 15px; border-top: 2px solid #eee; margin-top: 20px;">
+            <button id="closeTemplatesBtn2" style="padding: 10px 20px; background: #0070C0; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<style>
+body {
+    padding-top: 140px !important;
+    padding-bottom: 40px !important;
+}
+
+/* المؤشر الوامض */
+.page-container[contenteditable="true"] {
+    caret-color: #0070C0 !important;
+    cursor: text !important;
+}
+
+.page-container[contenteditable="false"] {
+    cursor: not-allowed !important;
+    user-select: none !important;
+}
+
+/* التحديد */
+.page-container[contenteditable="true"]::selection {
+    background: #0070C0 !important;
+    color: white !important;
+}
+
+.page-container[contenteditable="true"] *::selection {
+    background: #0070C0 !important;
+    color: white !important;
+}
+
+/* hover للجداول */
+.page-container[contenteditable="true"] table:hover {
+    outline: 2px dashed #0070C0;
+}
+
+/* الطباعة */
+@media print {
+    body {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    #professionalToolbar, #statusBar, #saveModal, #templatesModal {
+        display: none !important;
+    }
+    .page-container {
+        margin: 0 !important;
+        box-shadow: none !important;
+    }
+}
+
+.toast {
+    position: fixed;
+    bottom: 60px;
+    left: 20px;
+    padding: 15px 25px;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+    z-index: 30000;
+    font-weight: bold;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    animation: slideIn 0.3s;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-400px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+</style>
+
 <script>
+// انتظار تحميل الصفحة بالكامل
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded - initializing editor...');
+    
+    let isEditMode = false;
+    const pageContainer = document.querySelector('.page-container');
+    
+    if (!pageContainer) {
+        console.error('Page container not found!');
+        return;
+    }
+    
+    console.log('Page container found:', pageContainer);
+
+    // زر تحرير القالب
+    document.getElementById('toggleEditBtn').addEventListener('click', function() {
+        console.log('Toggle button clicked!');
+        isEditMode = !isEditMode;
+        pageContainer.contentEditable = isEditMode;
+        
+        const editIcon = document.getElementById('editIcon');
+        const editText = document.getElementById('editText');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const toolbarControls = document.getElementById('toolbarControls');
+        const saveBtn = document.getElementById('saveBtn');
+        
+        if (isEditMode) {
+            console.log('Edit mode activated');
+            editIcon.textContent = '🔒';
+            editText.textContent = 'قفل القالب';
+            statusDot.style.background = '#28a745';
+            statusDot.classList.add('pulse');
+            statusText.textContent = 'وضع التحرير نشط - يمكنك التعديل الآن';
+            toolbarControls.style.display = 'flex';
+            saveBtn.disabled = false;
+            saveBtn.style.opacity = '1';
+            pageContainer.focus();
+            showToast('✅ وضع التحرير مفعل! يمكنك البدء بالتعديل', 'success');
+        } else {
+            console.log('Edit mode deactivated');
+            editIcon.textContent = '🔓';
+            editText.textContent = 'تحرير القالب';
+            statusDot.style.background = '#dc3545';
+            statusDot.classList.remove('pulse');
+            statusText.textContent = 'القالب مقفل - اضغط "تحرير القالب" للبدء';
+            toolbarControls.style.display = 'none';
+            saveBtn.disabled = true;
+            saveBtn.style.opacity = '0.5';
+            showToast('🔒 تم قفل القالب', 'info');
+        }
+        
+        updateWordCount();
+    });
+
+    // تغيير الخط
+    document.getElementById('fontSelect').addEventListener('change', function() {
+        if (!isEditMode) return;
+        document.execCommand('fontName', false, this.value);
+    });
+
+    // تغيير حجم الخط
+    document.getElementById('fontSizeInput').addEventListener('change', function() {
+        if (!isEditMode) return;
+        const size = this.value;
+        document.execCommand('fontSize', false, '7');
+        const fontElements = document.getElementsByTagName('font');
+        for (let i = 0; i < fontElements.length; i++) {
+            if (fontElements[i].size === '7') {
+                fontElements[i].removeAttribute('size');
+                fontElements[i].style.fontSize = size + 'pt';
+            }
+        }
+    });
+
+    // الألوان
+    document.getElementById('textColorPicker').addEventListener('change', function() {
+        if (!isEditMode) return;
+        document.execCommand('foreColor', false, this.value);
+    });
+
+    document.getElementById('bgColorPicker').addEventListener('change', function() {
+        if (!isEditMode) return;
+        document.execCommand('backColor', false, this.value);
+    });
+
+    // إضافة صف
+    document.getElementById('addRowBtn').addEventListener('click', function() {
+        if (!isEditMode) return;
+        const selection = window.getSelection();
+        let element = selection.anchorNode;
+        while (element && element.tagName !== 'TABLE') {
+            element = element.parentElement;
+        }
+        if (element && element.tagName === 'TABLE') {
+            const row = element.insertRow();
+            const colCount = element.rows[0].cells.length;
+            for (let i = 0; i < colCount; i++) {
+                const cell = row.insertCell();
+                cell.style.border = '1px solid #ddd';
+                cell.style.padding = '5.4pt';
+                cell.textContent = 'خلية جديدة';
+            }
+            showToast('✅ تم إضافة صف!', 'success');
+        } else {
+            showToast('⚠️ حدد جدول أولاً', 'warning');
+        }
+    });
+
+    // إضافة عمود
+    document.getElementById('addColBtn').addEventListener('click', function() {
+        if (!isEditMode) return;
+        const selection = window.getSelection();
+        let element = selection.anchorNode;
+        while (element && element.tagName !== 'TABLE') {
+            element = element.parentElement;
+        }
+        if (element && element.tagName === 'TABLE') {
+            const rows = element.rows;
+            for (let i = 0; i < rows.length; i++) {
+                const cell = rows[i].insertCell();
+                cell.style.border = '1px solid #ddd';
+                cell.style.padding = '5.4pt';
+                cell.textContent = 'خلية جديدة';
+            }
+            showToast('✅ تم إضافة عمود!', 'success');
+        } else {
+            showToast('⚠️ حدد جدول أولاً', 'warning');
+        }
+    });
+
+    // حذف جدول
+    document.getElementById('delTableBtn').addEventListener('click', function() {
+        if (!isEditMode) return;
+        const selection = window.getSelection();
+        let element = selection.anchorNode;
+        while (element && element.tagName !== 'TABLE') {
+            element = element.parentElement;
+        }
+        if (element && element.tagName === 'TABLE') {
+            if (confirm('هل تريد حذف الجدول؟')) {
+                element.remove();
+                showToast('✅ تم حذف الجدول!', 'success');
+            }
+        } else {
+            showToast('⚠️ حدد جدول أولاً', 'warning');
+        }
+    });
+
+    // حفظ القالب
+    document.getElementById('saveBtn').addEventListener('click', function() {
+        if (!isEditMode) return;
+        document.getElementById('saveModal').style.display = 'flex';
+    });
+
+    document.getElementById('closeSaveBtn').addEventListener('click', function() {
+        document.getElementById('saveModal').style.display = 'none';
+    });
+
+    document.getElementById('cancelSaveBtn').addEventListener('click', function() {
+        document.getElementById('saveModal').style.display = 'none';
+    });
+
+    document.getElementById('confirmSaveBtn').addEventListener('click', function() {
+        const name = document.getElementById('templateName').value;
+        const desc = document.getElementById('templateDesc').value;
+        
+        if (!name) {
+            alert('⚠️ يرجى إدخال اسم القالب');
+            return;
+        }
+
+        const template = {
+            id: Date.now(),
+            name: name,
+            description: desc,
+            content: pageContainer.innerHTML,
+            created: new Date().toLocaleString('ar-SA')
+        };
+
+        let templates = JSON.parse(localStorage.getItem('volga_templates') || '[]');
+        templates.push(template);
+        localStorage.setItem('volga_templates', JSON.stringify(templates));
+
+        document.getElementById('saveModal').style.display = 'none';
+        showToast('✅ تم حفظ القالب بنجاح!', 'success');
+        
+        document.getElementById('templateName').value = '';
+        document.getElementById('templateDesc').value = '';
+    });
+
+    // القوالب المحفوظة
+    document.getElementById('templatesBtn').addEventListener('click', loadTemplates);
+    document.getElementById('closeTemplatesBtn').addEventListener('click', function() {
+        document.getElementById('templatesModal').style.display = 'none';
+    });
+    document.getElementById('closeTemplatesBtn2').addEventListener('click', function() {
+        document.getElementById('templatesModal').style.display = 'none';
+    });
+
+    function loadTemplates() {
+        const templates = JSON.parse(localStorage.getItem('volga_templates') || '[]');
+        const listDiv = document.getElementById('templatesList');
+        
+        if (templates.length === 0) {
+            listDiv.innerHTML = '<p style="text-align: center; color: #999; padding: 30px;">لا توجد قوالب محفوظة</p>';
+        } else {
+            listDiv.innerHTML = '';
+            templates.reverse().forEach(template => {
+                const item = document.createElement('div');
+                item.style.cssText = 'padding: 15px; margin-bottom: 12px; border: 2px solid #ddd; border-radius: 10px; cursor: pointer; transition: all 0.3s; background: white;';
+                item.innerHTML = `
+                    <h4 style="color: #0070C0; margin: 0 0 8px 0; font-size: 16px;">${template.name}</h4>
+                    <p style="font-size: 13px; color: #666; margin: 5px 0;">${template.description || 'لا يوجد وصف'}</p>
+                    <p style="font-size: 11px; color: #999; margin: 8px 0 12px 0;">تاريخ الإنشاء: ${template.created}</p>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="applyTemplate(${template.id})" style="padding: 8px 16px; background: #0070C0; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">تطبيق</button>
+                        <button onclick="deleteTemplateById(${template.id})" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">حذف</button>
+                    </div>
+                `;
+                item.onmouseover = () => { item.style.borderColor = '#0070C0'; item.style.background = '#f0f8ff'; };
+                item.onmouseout = () => { item.style.borderColor = '#ddd'; item.style.background = 'white'; };
+                listDiv.appendChild(item);
+            });
+        }
+        
+        document.getElementById('templatesModal').style.display = 'flex';
+    }
+
+    window.applyTemplate = function(id) {
+        const templates = JSON.parse(localStorage.getItem('volga_templates') || '[]');
+        const template = templates.find(t => t.id === id);
+        
+        if (template) {
+            pageContainer.innerHTML = template.content;
+            document.getElementById('templatesModal').style.display = 'none';
+            showToast('✅ تم تطبيق القالب!', 'success');
+        }
+    };
+
+    window.deleteTemplateById = function(id) {
+        if (confirm('هل تريد حذف هذا القالب؟')) {
+            let templates = JSON.parse(localStorage.getItem('volga_templates') || '[]');
+            templates = templates.filter(t => t.id !== id);
+            localStorage.setItem('volga_templates', JSON.stringify(templates));
+            loadTemplates();
+            showToast('✅ تم حذف القالب!', 'success');
+        }
+    };
+
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.style.background = type === 'success' ? '#28a745' : type === 'warning' ? '#ffc107' : '#17a2b8';
+        toast.style.color = type === 'warning' ? '#000' : 'white';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    function updateWordCount() {
+        const text = pageContainer.innerText || '';
+        const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+        document.getElementById('wordCount').textContent = words.length + ' كلمة';
+        document.getElementById('charCount').textContent = text.length + ' حرف';
+    }
+
+    // اختصارات لوحة المفاتيح
+    document.addEventListener('keydown', function(e) {
+        if (!isEditMode) return;
+        
+        if (e.ctrlKey || e.metaKey) {
+            switch(e.key.toLowerCase()) {
+                case 'b': e.preventDefault(); document.execCommand('bold'); break;
+                case 'i': e.preventDefault(); document.execCommand('italic'); break;
+                case 'u': e.preventDefault(); document.execCommand('underline'); break;
+                case 's': e.preventDefault(); document.getElementById('saveBtn').click(); break;
+            }
+        }
+    });
+
+    // تحديث العداد
+    pageContainer.addEventListener('input', updateWordCount);
+
+    // تهيئة أولية
+    updateWordCount();
+    console.log('Editor initialized successfully!');
+});
+
+// الكود الأصلي
 function calculateTotal() {
     const qty1 = parseInt(document.getElementById('qty1').textContent.replace(/,/g, '')) || 0;
     const price1 = parseInt(document.getElementById('price1').textContent.replace(/,/g, '')) || 0;
