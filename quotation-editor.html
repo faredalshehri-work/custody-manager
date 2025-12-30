@@ -525,13 +525,19 @@ table.selected {
         display: none !important;
     }
     
-    /* إرجاع كل الجداول للـ flow العادي في الطباعة */
-    .table-wrapper {
+    /* الجداول العادية (لم يتم سحبها) */
+    .table-wrapper:not([data-was-floated]) {
         position: relative !important;
         left: auto !important;
         top: auto !important;
         display: inline-block !important;
-        width: auto !important;
+        outline: none !important;
+    }
+    
+    /* الجداول المسحوبة (تبقى في مكانها) */
+    .table-wrapper[data-was-floated] {
+        position: absolute !important;
+        /* left و top يبقون كما هم! */
         outline: none !important;
     }
     
@@ -559,7 +565,13 @@ table.selected {
     }
     
     /* الصور في الطباعة */
-    .img-wrapper,
+    .img-wrapper[data-was-floated] {
+        position: absolute !important;
+        /* left و top يبقون كما هم! */
+        outline: none !important;
+    }
+    
+    .img-wrapper:not([data-was-floated]),
     .img-wrapper.selected {
         outline: none !important;
         position: relative !important;
@@ -1694,6 +1706,7 @@ document.addEventListener('DOMContentLoaded', function() {
         wrapper.style.position = 'absolute';
         wrapper.style.left = '100px';
         wrapper.style.top = '200px';
+        wrapper.dataset.wasFloated = 'true'; // علامة إنها floating
         
         const img = document.createElement('img');
         img.src = src;
