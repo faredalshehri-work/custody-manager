@@ -275,20 +275,76 @@ body {
     padding-top: 140px !important;
 }
 
-/* ضبط A4 بالضبط */
+/* ضبط A4 بالضبط - نظام صفحات Word */
+body {
+    background: #e0e0e0 !important; /* خلفية رمادية زي Word */
+}
+
 .page-container {
     width: 210mm !important;
-    min-height: 297mm !important;
     max-width: 210mm !important;
-    margin: 20px auto !important;
-    padding: 0.5in !important;
+    margin: 0 auto !important;
+    padding: 20px 0 !important;
+    background: #e0e0e0;
+}
+
+/* الصفحة الواحدة - A4 كاملة */
+.word-page {
+    width: 210mm;
+    height: 297mm;
     background: white;
+    margin: 0 auto 20px auto;
+    padding: 0;
     box-sizing: border-box;
+    position: relative;
+    page-break-after: always;
+}
+
+/* الهيدر */
+.page-header {
+    position: absolute;
+    top: 0.5in;
+    left: 0.75in;
+    right: 0.75in;
+    height: 40px;
+    border-bottom: 1px solid #d0d0d0;
+    padding-bottom: 8px;
+    font-size: 9pt;
+    color: #888;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* الفوتر */
+.page-footer {
+    position: absolute;
+    bottom: 0.5in;
+    left: 0.75in;
+    right: 0.75in;
+    height: 40px;
+    border-top: 1px solid #d0d0d0;
+    padding-top: 8px;
+    font-size: 9pt;
+    color: #888;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* محتوى الصفحة */
+.page-content {
+    position: absolute;
+    top: calc(0.5in + 50px);
+    bottom: calc(0.5in + 50px);
+    left: 0.75in;
+    right: 0.75in;
+    overflow: visible;
 }
 
 @media screen {
-    .page-container {
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    .word-page {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
 }
 
@@ -504,13 +560,22 @@ table.selected {
     }
     
     .page-container {
+        background: white !important;
+        padding: 0 !important;
+    }
+    
+    .word-page {
         width: 210mm !important;
-        min-height: 297mm !important;
-        max-width: 210mm !important;
+        height: 297mm !important;
         margin: 0 !important;
-        padding: 0.5in !important;
+        padding: 0 !important;
         box-shadow: none !important;
         page-break-after: always;
+    }
+    
+    .page-header,
+    .page-footer {
+        color: #666 !important;
     }
     
     /* إخفاء أدوات التحرير فقط */
@@ -531,13 +596,20 @@ table.selected {
     .img-wrapper.selected {
         outline: none !important;
     }
-    
-    /* الجداول والصور تطبع زي ما هي بالضبط! */
-    /* لا نغير position ولا left ولا top ولا أي شيء! */
 }
 </style>
 
-<div class="page-container" contenteditable="false">
+<div class="page-container">
+    <!-- الصفحة الأولى -->
+    <div class="word-page" id="page-1">
+        <!-- الهيدر -->
+        <div class="page-header">
+            <span>فولجا كولينج تيكنولوجيز - VOLGA COOLING TECHNOLOGIES</span>
+            <span>Ref: VTR-1225-001</span>
+        </div>
+        
+        <!-- المحتوى -->
+        <div class="page-content" contenteditable="false">
 
     <!-- Editor Header -->
     <div class="editor-header">
@@ -1131,7 +1203,36 @@ table.selected {
 
     <p class=MsoNormal align=center style='text-align:center'><b><span style='font-size:13.0pt'>+966 557 040 238</span></b></p>
 
-</div>
+        </div><!-- نهاية page-content -->
+        
+        <!-- الفوتر -->
+        <div class="page-footer">
+            <span>VOLGA COOLING TECHNOLOGIES | C.R 4030353741 – VAT No. 300912764900003</span>
+            <span>Page 1</span>
+        </div>
+    </div><!-- نهاية الصفحة الأولى -->
+    
+    <!-- الصفحة الثانية -->
+    <div class="word-page" id="page-2">
+        <!-- الهيدر -->
+        <div class="page-header">
+            <span>فولجا كولينج تيكنولوجيز - VOLGA COOLING TECHNOLOGIES</span>
+            <span>Ref: VTR-1225-001</span>
+        </div>
+        
+        <!-- المحتوى -->
+        <div class="page-content" contenteditable="false">
+            <p class=MsoNormal style='text-align:center'><i><span style='font-size:11.0pt;color:#666'>الصفحة الثانية - يمكن إضافة محتوى هنا</span></i></p>
+        </div>
+        
+        <!-- الفوتر -->
+        <div class="page-footer">
+            <span>VOLGA COOLING TECHNOLOGIES | C.R 4030353741 – VAT No. 300912764900003</span>
+            <span>Page 2</span>
+        </div>
+    </div><!-- نهاية الصفحة الثانية -->
+    
+</div><!-- نهاية page-container -->
 
 <script>
 function calculateTotal() {
@@ -1205,8 +1306,16 @@ document.addEventListener('DOMContentLoaded', function() {
     let selectedTable = null;
     let selectedCell = null;
     const container = document.querySelector('.page-container');
+    const pages = document.querySelectorAll('.page-content');
     
-    if (!container) return;
+    if (!container || pages.length === 0) return;
+    
+    // دالة لتطبيق contenteditable على كل الصفحات
+    function setEditMode(mode) {
+        pages.forEach(page => {
+            page.contentEditable = mode;
+        });
+    }
 
     // ========== تحضير الجداول الموجودة ==========
     function initTables() {
@@ -1894,7 +2003,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ========== وضع التحرير ==========
     document.getElementById('toggleEdit').addEventListener('click', function() {
         editMode = !editMode;
-        container.contentEditable = editMode;
+        setEditMode(editMode); // تطبيق على كل الصفحات
         
         const icon = document.getElementById('editIcon');
         const txt = document.getElementById('editText');
@@ -1904,7 +2013,7 @@ document.addEventListener('DOMContentLoaded', function() {
             icon.textContent = '🔒';
             txt.textContent = 'قفل';
             tools.style.display = 'flex';
-            container.focus();
+            pages[0].focus(); // focus على الصفحة الأولى
             toast('✅ وضع التحرير مفعل', '#28a745');
         } else {
             icon.textContent = '🔓';
