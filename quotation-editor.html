@@ -172,87 +172,85 @@ td {
 
 <body lang=EN-US link="#0563C1" vlink="#954F72" style='word-wrap:break-word'>
 
-<!-- شريط الأدوات النهائي -->
-<div id="mainToolbar" style="position: fixed; top: 0; left: 0; right: 0; z-index: 10000; background: linear-gradient(135deg, #0070C0 0%, #003d7a 100%); padding: 12px 25px; box-shadow: 0 3px 15px rgba(0,0,0,0.4); color: white; font-family: 'Segoe UI', Tahoma, sans-serif;">
+<!-- شريط الأدوات -->
+<div id="toolbar" style="position: fixed; top: 0; left: 0; right: 0; z-index: 10000; background: linear-gradient(135deg, #0070C0, #003d7a); padding: 12px 25px; box-shadow: 0 3px 15px rgba(0,0,0,0.4); color: white; font-family: 'Segoe UI', Tahoma, sans-serif;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h2 style="margin: 0; font-size: 20px;">📝 محرر VOLGA النهائي</h2>
+        <h2 style="margin: 0; font-size: 20px;">📝 محرر VOLGA (نظام Word)</h2>
         <div style="display: flex; gap: 8px;">
-            <button id="editBtn" style="padding: 10px 18px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">
-                <span id="editIcon">🔓</span> <span id="editTxt">تحرير القالب</span>
+            <button id="toggleEdit" style="padding: 10px 18px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                <span id="editIcon">🔓</span> <span id="editText">تحرير</span>
             </button>
-            <button id="saveTempBtn" disabled style="padding: 10px 18px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; opacity: 0.5;">💾 حفظ</button>
-            <button id="printBtn" style="padding: 10px 18px; background: #ffc107; color: #000; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">🖨️ طباعة</button>
+            <button onclick="window.print()" style="padding: 10px 18px; background: #ffc107; color: #000; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">🖨️ طباعة</button>
         </div>
     </div>
     
-    <div id="toolbar" style="display: none; background: rgba(255,255,255,0.15); padding: 10px; border-radius: 8px; gap: 10px; align-items: center; flex-wrap: wrap;">
-        <!-- تكبير/تصغير الخط -->
+    <div id="editTools" style="display: none; background: rgba(255,255,255,0.15); padding: 10px; border-radius: 8px; gap: 10px; flex-wrap: wrap;">
+        <!-- الخط -->
         <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
-            <small style="opacity: 0.9; font-size: 11px; margin-left: 4px;">الخط:</small>
-            <button id="fontDown" title="Ctrl+ج" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">A-</button>
-            <span id="fontSize" style="padding: 6px 12px; background: white; color: #0070C0; border-radius: 4px; font-weight: bold; min-width: 40px; text-align: center;">12pt</span>
-            <button id="fontUp" title="Ctrl+د" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">A+</button>
+            <button id="fontDown" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">A-</button>
+            <span id="fontDisplay" style="padding: 6px 12px; background: white; color: #0070C0; border-radius: 4px; font-weight: bold; min-width: 45px; text-align: center;">12pt</span>
+            <button id="fontUp" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">A+</button>
         </div>
         
-        <!-- تنسيق -->
+        <!-- التنسيق -->
         <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
-            <button id="boldBtn" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">B</button>
-            <button id="italicBtn" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-style: italic;">I</button>
-            <button id="underBtn" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; text-decoration: underline;">U</button>
+            <button id="bold" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">B</button>
+            <button id="italic" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-style: italic;">I</button>
+            <button id="under" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; text-decoration: underline;">U</button>
         </div>
         
         <!-- الألوان -->
         <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
-            <small style="opacity: 0.9; font-size: 11px; margin-left: 4px;">الألوان:</small>
-            <input type="color" id="txtColor" value="#000000" style="width: 40px; height: 34px; border: none; cursor: pointer; border-radius: 4px;" title="لون النص">
+            <input type="color" id="textColor" value="#000000" style="width: 40px; height: 34px; border: none; cursor: pointer; border-radius: 4px;" title="لون النص">
             <input type="color" id="bgColor" value="#ffffff" style="width: 40px; height: 34px; border: none; cursor: pointer; border-radius: 4px;" title="لون الخلفية">
         </div>
         
         <!-- الجداول -->
         <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
-            <button id="newTableBtn" style="padding: 6px 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">⊞ جدول</button>
-            <button id="addRowBtn" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">➕ صف</button>
-            <button id="addColBtn" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">➕ عمود</button>
-            <button id="delRowBtn" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">➖ صف</button>
-            <button id="delColBtn" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">➖ عمود</button>
+            <button id="insertTable" style="padding: 6px 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">⊞ جدول</button>
         </div>
         
         <!-- الصور -->
         <div style="display: inline-flex; gap: 4px; padding: 0 10px;">
-            <button id="imgBtn" style="padding: 6px 12px; background: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">🖼️ صورة</button>
+            <button id="insertImage" style="padding: 6px 12px; background: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">🖼️ صورة</button>
         </div>
     </div>
 </div>
 
-<!-- شريط الحالة -->
-<div id="status" style="position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a2e; color: white; padding: 6px 20px; display: flex; justify-content: space-between; font-size: 12px; z-index: 9999;">
+<!-- أدوات الجدول المحدد -->
+<div id="tableTools" style="display: none; position: fixed; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 3px 15px rgba(0,0,0,0.3); z-index: 9999; border: 2px solid #0070C0;">
     <div style="display: flex; gap: 8px; align-items: center;">
-        <div id="statusDot" style="width: 10px; height: 10px; border-radius: 50%; background: #dc3545;"></div>
-        <span id="statusTxt">القالب مقفل</span>
+        <span style="font-weight: bold; color: #0070C0; margin-left: 10px;">🔧 أدوات الجدول:</span>
+        <button id="addRowAbove" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">⬆️ صف فوق</button>
+        <button id="addRowBelow" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">⬇️ صف تحت</button>
+        <button id="addColLeft" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">⬅️ عمود يسار</button>
+        <button id="addColRight" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">➡️ عمود يمين</button>
+        <button id="delRow" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️ حذف صف</button>
+        <button id="delCol" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️ حذف عمود</button>
+        <button id="delTable" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️ حذف جدول</button>
     </div>
-    <div><span id="words">0 كلمة</span> | <span id="chars">0 حرف</span></div>
 </div>
 
-<!-- Modal إدراج جدول -->
+<!-- Modal جدول جديد -->
 <div id="tableModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; justify-content: center; align-items: center;">
     <div style="background: white; padding: 30px; border-radius: 15px; max-width: 400px; width: 90%;">
         <h3 style="color: #0070C0; margin: 0 0 20px 0;">⊞ إدراج جدول</h3>
         <div style="margin-bottom: 15px;">
-            <label style="display: block; font-weight: bold; margin-bottom: 8px;">عدد الصفوف</label>
-            <input type="number" id="tRows" value="3" min="1" max="50" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px;">
+            <label style="display: block; font-weight: bold; margin-bottom: 8px;">الصفوف</label>
+            <input type="number" id="newRows" value="3" min="1" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px;">
         </div>
         <div style="margin-bottom: 20px;">
-            <label style="display: block; font-weight: bold; margin-bottom: 8px;">عدد الأعمدة</label>
-            <input type="number" id="tCols" value="3" min="1" max="20" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px;">
+            <label style="display: block; font-weight: bold; margin-bottom: 8px;">الأعمدة</label>
+            <input type="number" id="newCols" value="3" min="1" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px;">
         </div>
         <div style="display: flex; gap: 10px;">
-            <button id="insertTable" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">إدراج</button>
-            <button id="cancelTable" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer;">إلغاء</button>
+            <button id="confirmInsert" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">إدراج</button>
+            <button id="cancelInsert" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer;">إلغاء</button>
         </div>
     </div>
 </div>
 
-<!-- Modal إدراج صورة -->
+<!-- Modal صورة -->
 <div id="imgModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; justify-content: center; align-items: center;">
     <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; width: 90%;">
         <h3 style="color: #0070C0; margin: 0 0 20px 0;">🖼️ إدراج صورة</h3>
@@ -264,54 +262,46 @@ td {
             <label style="display: block; font-weight: bold; margin-bottom: 8px;">أو ارفع صورة</label>
             <input type="file" id="imgFile" accept="image/*" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px;">
         </div>
-        <div style="margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div>
-                <label style="display: block; font-weight: bold; margin-bottom: 8px;">العرض</label>
-                <input type="number" id="imgW" value="200" min="50" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px;">
-            </div>
-            <div>
-                <label style="display: block; font-weight: bold; margin-bottom: 8px;">الارتفاع</label>
-                <input type="number" id="imgH" value="200" min="50" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px;">
-            </div>
-        </div>
         <div style="display: flex; gap: 10px;">
-            <button id="insertImg" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">إدراج</button>
+            <button id="confirmImg" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">إدراج</button>
             <button id="cancelImg" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer;">إلغاء</button>
         </div>
     </div>
 </div>
 
 <style>
-body { padding-top: 140px !important; padding-bottom: 40px !important; }
+body {
+    padding-top: 140px !important;
+}
 
 .page-container[contenteditable="true"] {
-    caret-color: #0070C0 !important;
-    cursor: text !important;
+    caret-color: #0070C0;
+    cursor: text;
 }
 
-.page-container[contenteditable="true"]::selection {
-    background: #0070C0 !important;
-    color: white !important;
+/* نظام الجداول - زي Word */
+table {
+    position: relative;
+    border-collapse: collapse;
 }
 
-/* الصور القابلة للسحب والتكبير */
-.resizable-img {
-    position: absolute !important;
-    cursor: move;
-    border: 2px solid transparent;
-    transition: border 0.2s;
+table.selected {
+    outline: 2px solid #0070C0;
+    box-shadow: 0 0 10px rgba(0,112,192,0.3);
 }
 
-.resizable-img:hover,
-.resizable-img.selected {
-    border: 2px solid #0070C0;
+/* wrapper للجدول */
+.table-wrapper {
+    position: relative;
+    display: inline-block;
+    margin: 10px;
 }
 
-.resizable-img.selected {
-    box-shadow: 0 0 10px rgba(0,112,192,0.5);
+.table-wrapper.selected {
+    outline: 3px solid #0070C0;
 }
 
-/* مقابض تغيير الحجم */
+/* مقابض التكبير - 8 مقابض */
 .resize-handle {
     position: absolute;
     width: 12px;
@@ -320,66 +310,83 @@ body { padding-top: 140px !important; padding-bottom: 40px !important; }
     border: 2px solid white;
     border-radius: 50%;
     display: none;
+    z-index: 1000;
 }
 
-.resizable-img.selected ~ .resize-handle {
+.table-wrapper.selected .resize-handle {
     display: block;
 }
 
 .handle-nw { top: -6px; left: -6px; cursor: nw-resize; }
+.handle-n  { top: -6px; left: 50%; margin-left: -6px; cursor: n-resize; }
 .handle-ne { top: -6px; right: -6px; cursor: ne-resize; }
-.handle-sw { bottom: -6px; left: -6px; cursor: sw-resize; }
+.handle-e  { top: 50%; right: -6px; margin-top: -6px; cursor: e-resize; }
 .handle-se { bottom: -6px; right: -6px; cursor: se-resize; }
-.handle-n { top: -6px; left: 50%; margin-left: -6px; cursor: n-resize; }
-.handle-s { bottom: -6px; left: 50%; margin-left: -6px; cursor: s-resize; }
-.handle-w { top: 50%; left: -6px; margin-top: -6px; cursor: w-resize; }
-.handle-e { top: 50%; right: -6px; margin-top: -6px; cursor: e-resize; }
+.handle-s  { bottom: -6px; left: 50%; margin-left: -6px; cursor: s-resize; }
+.handle-sw { bottom: -6px; left: -6px; cursor: sw-resize; }
+.handle-w  { top: 50%; left: -6px; margin-top: -6px; cursor: w-resize; }
 
-/* الجداول القابلة للسحب */
-.draggable-table {
-    position: relative;
-    cursor: move !important;
-}
-
-.draggable-table.floating {
-    position: absolute !important;
-    z-index: 100;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-
-.draggable-table:hover {
-    outline: 2px dashed #0070C0;
-}
-
-/* أزرار التحكم */
-.img-controls {
+/* مقبض السحب */
+.drag-handle {
     position: absolute;
-    top: -35px;
-    right: 0;
-    display: none;
-    gap: 5px;
-    background: white;
-    padding: 5px;
-    border-radius: 5px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-
-.resizable-img.selected ~ .img-controls {
-    display: flex;
-}
-
-.control-btn {
-    padding: 4px 8px;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0070C0;
+    color: white;
+    padding: 5px 15px;
+    border-radius: 5px 5px 0 0;
+    cursor: move;
     font-size: 12px;
     font-weight: bold;
+    display: none;
+    z-index: 1000;
+}
+
+.table-wrapper.selected .drag-handle {
+    display: block;
+}
+
+/* تغيير عرض الأعمدة */
+.col-resizer {
+    position: absolute;
+    width: 4px;
+    height: 100%;
+    cursor: col-resize;
+    background: transparent;
+    z-index: 100;
+}
+
+.col-resizer:hover {
+    background: #0070C0;
+}
+
+/* الصور */
+.img-wrapper {
+    position: absolute;
+    display: inline-block;
+}
+
+.img-wrapper img {
+    display: block;
+    cursor: move;
+}
+
+.img-wrapper.selected {
+    outline: 2px solid #0070C0;
+}
+
+.img-wrapper .resize-handle {
+    display: none;
+}
+
+.img-wrapper.selected .resize-handle {
+    display: block;
 }
 
 .toast {
     position: fixed;
-    bottom: 60px;
+    bottom: 20px;
     left: 20px;
     padding: 15px 25px;
     border-radius: 10px;
@@ -395,12 +402,11 @@ body { padding-top: 140px !important; padding-bottom: 40px !important; }
 }
 
 @media print {
-    #mainToolbar, #status, #tableModal, #imgModal, .resize-handle, .img-controls {
+    #toolbar, #tableTools, #tableModal, #imgModal, .resize-handle, .drag-handle, .col-resizer {
         display: none !important;
     }
-    body { padding: 0 !important; background: white !important; }
-    .page-container { box-shadow: none !important; margin: 0 !important; }
-    .resizable-img { border: none !important; }
+    body { padding: 0 !important; }
+    .table-wrapper, .img-wrapper { outline: none !important; }
 }
 </style>
 
@@ -1066,430 +1072,85 @@ calculateTotal();
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 محرر VOLGA النهائي');
+    console.log('🚀 نظام VOLGA - Word Style');
     
     let editMode = false;
-    let currentFontSize = 12;
-    let selectedImg = null;
+    let selectedTable = null;
+    let selectedCell = null;
     const container = document.querySelector('.page-container');
     
-    if (!container) {
-        console.error('Container not found!');
-        return;
-    }
+    if (!container) return;
 
-    // ========== تبديل وضع التحرير ==========
-    document.getElementById('editBtn').addEventListener('click', function() {
-        editMode = !editMode;
-        container.contentEditable = editMode;
-        
-        const icon = document.getElementById('editIcon');
-        const txt = document.getElementById('editTxt');
-        const dot = document.getElementById('statusDot');
-        const status = document.getElementById('statusTxt');
-        const toolbar = document.getElementById('toolbar');
-        const saveBtn = document.getElementById('saveTempBtn');
-        
-        if (editMode) {
-            icon.textContent = '🔒';
-            txt.textContent = 'قفل القالب';
-            dot.style.background = '#28a745';
-            status.textContent = 'وضع التحرير نشط';
-            toolbar.style.display = 'flex';
-            saveBtn.disabled = false;
-            saveBtn.style.opacity = '1';
-            container.focus();
-            toast('✅ وضع التحرير مفعل!', '#28a745');
-        } else {
-            icon.textContent = '🔓';
-            txt.textContent = 'تحرير القالب';
-            dot.style.background = '#dc3545';
-            status.textContent = 'القالب مقفل';
-            toolbar.style.display = 'none';
-            saveBtn.disabled = true;
-            saveBtn.style.opacity = '0.5';
-            toast('🔒 تم قفل القالب', '#17a2b8');
-        }
-        
-        updateCount();
-    });
-
-    // ========== تكبير/تصغير الخط (مُصلح 100%) ==========
-    function changeFontSize(delta) {
-        if (!editMode) return;
-        
-        const sel = window.getSelection();
-        if (!sel.rangeCount || sel.isCollapsed) {
-            toast('⚠️ حدد النص أولاً!', '#ffc107');
-            return;
-        }
-        
-        const range = sel.getRangeAt(0);
-        const span = document.createElement('span');
-        
-        // احصل على الحجم الحالي
-        let parent = range.commonAncestorContainer;
-        if (parent.nodeType === 3) parent = parent.parentElement;
-        
-        let computedSize = parseFloat(window.getComputedStyle(parent).fontSize);
-        let baseSize = computedSize * 0.75; // تحويل من px إلى pt
-        
-        currentFontSize = Math.round(baseSize) + delta;
-        currentFontSize = Math.max(8, Math.min(72, currentFontSize));
-        
-        span.style.fontSize = currentFontSize + 'pt';
-        
-        try {
-            const contents = range.extractContents();
-            span.appendChild(contents);
-            range.insertNode(span);
-            
-            // تحديث العرض
-            document.getElementById('fontSize').textContent = currentFontSize + 'pt';
-            toast(`📏 حجم الخط: ${currentFontSize}pt`, '#28a745');
-            
-            // إعادة التحديد
-            range.selectNodeContents(span);
-            sel.removeAllRanges();
-            sel.addRange(range);
-        } catch(e) {
-            console.error('Font size error:', e);
-            toast('❌ خطأ في تغيير الحجم', '#dc3545');
-        }
-    }
-
-    document.getElementById('fontUp').addEventListener('click', () => changeFontSize(2));
-    document.getElementById('fontDown').addEventListener('click', () => changeFontSize(-2));
-
-    // ========== التنسيق ==========
-    document.getElementById('boldBtn').addEventListener('click', () => {
-        if (editMode) document.execCommand('bold');
-    });
-    
-    document.getElementById('italicBtn').addEventListener('click', () => {
-        if (editMode) document.execCommand('italic');
-    });
-    
-    document.getElementById('underBtn').addEventListener('click', () => {
-        if (editMode) document.execCommand('underline');
-    });
-
-    // ========== الألوان (مُصلح 100%) ==========
-    document.getElementById('txtColor').addEventListener('input', function() {
-        if (!editMode) return;
-        
-        const sel = window.getSelection();
-        if (!sel.rangeCount || sel.isCollapsed) {
-            toast('⚠️ حدد النص أولاً!', '#ffc107');
-            return;
-        }
-        
-        const range = sel.getRangeAt(0);
-        const span = document.createElement('span');
-        span.style.color = this.value;
-        
-        try {
-            const contents = range.extractContents();
-            span.appendChild(contents);
-            range.insertNode(span);
-            toast('🎨 تم تغيير لون النص', '#28a745');
-            
-            // إعادة التحديد
-            range.selectNodeContents(span);
-            sel.removeAllRanges();
-            sel.addRange(range);
-        } catch(e) {
-            console.error('Color error:', e);
-        }
-    });
-
-    document.getElementById('bgColor').addEventListener('input', function() {
-        if (!editMode) return;
-        
-        const sel = window.getSelection();
-        if (!sel.rangeCount || sel.isCollapsed) {
-            toast('⚠️ حدد النص أولاً!', '#ffc107');
-            return;
-        }
-        
-        const range = sel.getRangeAt(0);
-        const span = document.createElement('span');
-        span.style.backgroundColor = this.value;
-        
-        try {
-            const contents = range.extractContents();
-            span.appendChild(contents);
-            range.insertNode(span);
-            toast('🎨 تم تغيير لون الخلفية', '#28a745');
-            
-            // إعادة التحديد
-            range.selectNodeContents(span);
-            sel.removeAllRanges();
-            sel.addRange(range);
-        } catch(e) {
-            console.error('BG Color error:', e);
-        }
-    });
-
-    // ========== الجداول ==========
-    document.getElementById('newTableBtn').addEventListener('click', () => {
-        if (!editMode) return;
-        document.getElementById('tableModal').style.display = 'flex';
-    });
-
-    document.getElementById('cancelTable').addEventListener('click', () => {
-        document.getElementById('tableModal').style.display = 'none';
-    });
-
-    document.getElementById('insertTable').addEventListener('click', () => {
-        const rows = parseInt(document.getElementById('tRows').value);
-        const cols = parseInt(document.getElementById('tCols').value);
-        
-        let html = '<div class="draggable-table" style="display: inline-block; margin: 10px;"><table style="border-collapse: collapse; border: 1px solid #ddd;">';
-        for (let i = 0; i < rows; i++) {
-            html += '<tr>';
-            for (let j = 0; j < cols; j++) {
-                html += '<td style="border: 1px solid #ddd; padding: 8px; min-width: 80px;">خلية</td>';
+    // ========== تحضير الجداول الموجودة ==========
+    function initTables() {
+        const tables = container.querySelectorAll('table');
+        tables.forEach(table => {
+            if (!table.parentElement.classList.contains('table-wrapper')) {
+                wrapTable(table);
             }
-            html += '</tr>';
-        }
-        html += '</table></div>';
-        
-        document.execCommand('insertHTML', false, html);
-        document.getElementById('tableModal').style.display = 'none';
-        
-        // جعل الجدول قابل للسحب
-        setTimeout(() => makeTablesDraggable(), 100);
-        
-        toast('✅ تم إدراج الجدول!', '#28a745');
-    });
-
-    // جعل الجداول قابلة للسحب
-    function makeTablesDraggable() {
-        const tables = container.querySelectorAll('.draggable-table');
-        
-        tables.forEach(wrapper => {
-            if (wrapper.draggingInit) return;
-            wrapper.draggingInit = true;
-            
-            wrapper.addEventListener('mousedown', function(e) {
-                if (!editMode) return;
-                if (e.target.tagName === 'TD') return; // السماح بتحرير الخلايا
-                
-                e.preventDefault();
-                
-                const rect = wrapper.getBoundingClientRect();
-                const offsetX = e.clientX - rect.left;
-                const offsetY = e.clientY - rect.top;
-                
-                // تحويل إلى position absolute
-                if (!wrapper.classList.contains('floating')) {
-                    wrapper.classList.add('floating');
-                    wrapper.style.left = rect.left + 'px';
-                    wrapper.style.top = rect.top + 'px';
-                    wrapper.style.width = rect.width + 'px';
-                }
-                
-                function move(e) {
-                    wrapper.style.left = (e.clientX - offsetX) + 'px';
-                    wrapper.style.top = (e.clientY - offsetY) + 'px';
-                }
-                
-                function stop() {
-                    document.removeEventListener('mousemove', move);
-                    document.removeEventListener('mouseup', stop);
-                }
-                
-                document.addEventListener('mousemove', move);
-                document.addEventListener('mouseup', stop);
-            });
         });
+        console.log(`✅ تم تحضير ${tables.length} جدول`);
     }
 
-    // عمليات الجدول
-    function getTable() {
-        const sel = window.getSelection();
-        if (!sel.rangeCount) return null;
-        
-        let el = sel.anchorNode;
-        while (el && el.tagName !== 'TABLE') {
-            el = el.parentElement;
-        }
-        return el;
-    }
-
-    function getCell() {
-        const sel = window.getSelection();
-        if (!sel.rangeCount) return null;
-        
-        let el = sel.anchorNode;
-        while (el && el.tagName !== 'TD' && el.tagName !== 'TH') {
-            el = el.parentElement;
-        }
-        return el;
-    }
-
-    document.getElementById('addRowBtn').addEventListener('click', () => {
-        if (!editMode) return;
-        const table = getTable();
-        
-        if (table) {
-            const row = table.insertRow();
-            const cols = table.rows[0].cells.length;
-            for (let i = 0; i < cols; i++) {
-                const cell = row.insertCell();
-                cell.style.border = '1px solid #ddd';
-                cell.style.padding = '8px';
-                cell.textContent = 'خلية جديدة';
-            }
-            toast('✅ تم إضافة صف!', '#28a745');
-        } else {
-            toast('⚠️ حدد جدول أولاً', '#ffc107');
-        }
-    });
-
-    document.getElementById('addColBtn').addEventListener('click', () => {
-        if (!editMode) return;
-        const table = getTable();
-        
-        if (table) {
-            for (let i = 0; i < table.rows.length; i++) {
-                const cell = table.rows[i].insertCell();
-                cell.style.border = '1px solid #ddd';
-                cell.style.padding = '8px';
-                cell.textContent = 'خلية';
-            }
-            toast('✅ تم إضافة عمود!', '#28a745');
-        } else {
-            toast('⚠️ حدد جدول أولاً', '#ffc107');
-        }
-    });
-
-    document.getElementById('delRowBtn').addEventListener('click', () => {
-        if (!editMode) return;
-        const cell = getCell();
-        
-        if (cell) {
-            const row = cell.parentElement;
-            const table = getTable();
-            
-            if (table && table.rows.length > 1) {
-                row.remove();
-                toast('✅ تم حذف الصف!', '#28a745');
-            } else {
-                toast('⚠️ لا يمكن حذف آخر صف', '#ffc107');
-            }
-        } else {
-            toast('⚠️ حدد خلية في الصف', '#ffc107');
-        }
-    });
-
-    document.getElementById('delColBtn').addEventListener('click', () => {
-        if (!editMode) return;
-        const cell = getCell();
-        
-        if (cell) {
-            const table = getTable();
-            const idx = cell.cellIndex;
-            
-            if (table && table.rows[0].cells.length > 1) {
-                for (let i = 0; i < table.rows.length; i++) {
-                    table.rows[i].deleteCell(idx);
-                }
-                toast('✅ تم حذف العمود!', '#28a745');
-            } else {
-                toast('⚠️ لا يمكن حذف آخر عمود', '#ffc107');
-            }
-        } else {
-            toast('⚠️ حدد خلية في العمود', '#ffc107');
-        }
-    });
-
-    // ========== الصور (مُصلح 100% - تكبير/تصغير كامل) ==========
-    document.getElementById('imgBtn').addEventListener('click', () => {
-        if (!editMode) return;
-        document.getElementById('imgModal').style.display = 'flex';
-    });
-
-    document.getElementById('cancelImg').addEventListener('click', () => {
-        document.getElementById('imgModal').style.display = 'none';
-    });
-
-    document.getElementById('insertImg').addEventListener('click', () => {
-        const url = document.getElementById('imgUrl').value;
-        const file = document.getElementById('imgFile').files[0];
-        const w = document.getElementById('imgW').value;
-        const h = document.getElementById('imgH').value;
-        
-        if (url) {
-            insertImage(url, w, h);
-        } else if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => insertImage(e.target.result, w, h);
-            reader.readAsDataURL(file);
-        } else {
-            toast('⚠️ أدخل رابط أو ارفع صورة', '#ffc107');
-            return;
-        }
-        
-        document.getElementById('imgModal').style.display = 'none';
-        document.getElementById('imgUrl').value = '';
-        document.getElementById('imgFile').value = '';
-    });
-
-    function insertImage(src, w, h) {
+    function wrapTable(table) {
         const wrapper = document.createElement('div');
-        wrapper.style.position = 'absolute';
-        wrapper.style.left = '100px';
-        wrapper.style.top = '200px';
-        wrapper.style.zIndex = '10';
+        wrapper.className = 'table-wrapper';
+        table.parentNode.insertBefore(wrapper, table);
+        wrapper.appendChild(table);
         
-        const img = document.createElement('img');
-        img.src = src;
-        img.className = 'resizable-img';
-        img.style.width = w + 'px';
-        img.style.height = h + 'px';
-        img.style.display = 'block';
+        // مقبض السحب
+        const dragHandle = document.createElement('div');
+        dragHandle.className = 'drag-handle';
+        dragHandle.innerHTML = '⋮⋮ اسحب الجدول ⋮⋮';
+        wrapper.appendChild(dragHandle);
         
-        // أزرار التحكم
-        const controls = document.createElement('div');
-        controls.className = 'img-controls';
-        controls.innerHTML = `
-            <button class="control-btn" style="background: #007bff; color: white;" onclick="changeZIndex(this, 1)">▲ للأمام</button>
-            <button class="control-btn" style="background: #6c757d; color: white;" onclick="changeZIndex(this, -1)">▼ للخلف</button>
-            <button class="control-btn" style="background: #dc3545; color: white;" onclick="deleteImg(this)">🗑️</button>
-        `;
-        
-        // مقابض التكبير/التصغير
-        const handles = ['nw', 'ne', 'sw', 'se', 'n', 's', 'w', 'e'];
-        handles.forEach(pos => {
+        // 8 مقابض للتكبير
+        const positions = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
+        positions.forEach(pos => {
             const handle = document.createElement('div');
             handle.className = `resize-handle handle-${pos}`;
             handle.dataset.pos = pos;
             wrapper.appendChild(handle);
         });
         
-        wrapper.appendChild(img);
-        wrapper.appendChild(controls);
-        container.appendChild(wrapper);
+        makeTableInteractive(wrapper, table);
+    }
+
+    function makeTableInteractive(wrapper, table) {
+        // تحديد الجدول
+        table.addEventListener('click', function(e) {
+            if (!editMode) return;
+            e.stopPropagation();
+            selectTable(wrapper, table);
+        });
         
         // السحب
-        img.addEventListener('mousedown', function(e) {
+        const dragHandle = wrapper.querySelector('.drag-handle');
+        dragHandle.addEventListener('mousedown', function(e) {
             if (!editMode) return;
-            if (e.target.classList.contains('resize-handle')) return;
-            
             e.preventDefault();
-            deselectAll();
-            img.classList.add('selected');
-            selectedImg = img;
+            e.stopPropagation();
             
-            const rect = wrapper.getBoundingClientRect();
-            const offsetX = e.clientX - rect.left;
-            const offsetY = e.clientY - rect.top;
+            // حساب الـ offset بشكل صحيح
+            const startX = e.pageX;
+            const startY = e.pageY;
+            const startLeft = wrapper.offsetLeft;
+            const startTop = wrapper.offsetTop;
+            
+            // تحويل إلى absolute
+            if (wrapper.style.position !== 'absolute') {
+                const rect = wrapper.getBoundingClientRect();
+                wrapper.style.position = 'absolute';
+                wrapper.style.left = (rect.left + window.scrollX) + 'px';
+                wrapper.style.top = (rect.top + window.scrollY) + 'px';
+                wrapper.style.zIndex = '100';
+            }
             
             function move(e) {
-                wrapper.style.left = (e.clientX - offsetX) + 'px';
-                wrapper.style.top = (e.clientY - offsetY) + 'px';
+                const dx = e.pageX - startX;
+                const dy = e.pageY - startY;
+                wrapper.style.left = (startLeft + dx) + 'px';
+                wrapper.style.top = (startTop + dy) + 'px';
             }
             
             function stop() {
@@ -1502,77 +1163,443 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // التكبير/التصغير
-        wrapper.addEventListener('mousedown', function(e) {
-            if (!editMode) return;
-            if (!e.target.classList.contains('resize-handle')) return;
+        const handles = wrapper.querySelectorAll('.resize-handle');
+        handles.forEach(handle => {
+            handle.addEventListener('mousedown', function(e) {
+                if (!editMode) return;
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const pos = handle.dataset.pos;
+                const startX = e.clientX;
+                const startY = e.clientY;
+                const startWidth = table.offsetWidth;
+                const startHeight = table.offsetHeight;
+                
+                function resize(e) {
+                    const dx = e.clientX - startX;
+                    const dy = e.clientY - startY;
+                    
+                    let newWidth = startWidth;
+                    let newHeight = startHeight;
+                    
+                    // عرض
+                    if (pos.includes('e')) {
+                        newWidth = startWidth + dx;
+                    } else if (pos.includes('w')) {
+                        newWidth = startWidth - dx;
+                    }
+                    
+                    // ارتفاع
+                    if (pos.includes('s')) {
+                        newHeight = startHeight + dy;
+                    } else if (pos.includes('n')) {
+                        newHeight = startHeight - dy;
+                    }
+                    
+                    if (newWidth > 100) {
+                        table.style.width = newWidth + 'px';
+                    }
+                    
+                    if (newHeight > 50) {
+                        table.style.height = newHeight + 'px';
+                    }
+                }
+                
+                function stopResize() {
+                    document.removeEventListener('mousemove', resize);
+                    document.removeEventListener('mouseup', stopResize);
+                    toast('✅ تم تغيير حجم الجدول', '#28a745');
+                }
+                
+                document.addEventListener('mousemove', resize);
+                document.addEventListener('mouseup', stopResize);
+            });
+        });
+        
+        // تغيير عرض الأعمدة
+        addColumnResizers(table);
+    }
+
+    function addColumnResizers(table) {
+        const rows = table.rows;
+        if (rows.length === 0) return;
+        
+        const firstRow = rows[0];
+        const cells = firstRow.cells;
+        
+        for (let i = 0; i < cells.length - 1; i++) {
+            const cell = cells[i];
+            const resizer = document.createElement('div');
+            resizer.className = 'col-resizer';
+            resizer.style.right = '-2px';
+            cell.style.position = 'relative';
+            cell.appendChild(resizer);
             
+            resizer.addEventListener('mousedown', function(e) {
+                if (!editMode) return;
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const startX = e.clientX;
+                const startWidth = cell.offsetWidth;
+                
+                function resize(e) {
+                    const dx = e.clientX - startX;
+                    const newWidth = startWidth + dx;
+                    
+                    if (newWidth > 30) {
+                        // تطبيق على كل الخلايا في هذا العمود
+                        for (let row of rows) {
+                            if (row.cells[i]) {
+                                row.cells[i].style.width = newWidth + 'px';
+                            }
+                        }
+                    }
+                }
+                
+                function stopResize() {
+                    document.removeEventListener('mousemove', resize);
+                    document.removeEventListener('mouseup', stopResize);
+                }
+                
+                document.addEventListener('mousemove', resize);
+                document.addEventListener('mouseup', stopResize);
+            });
+        }
+    }
+
+    function selectTable(wrapper, table) {
+        // إلغاء التحديد السابق
+        document.querySelectorAll('.table-wrapper.selected').forEach(w => {
+            w.classList.remove('selected');
+        });
+        
+        wrapper.classList.add('selected');
+        selectedTable = table;
+        
+        // إظهار أدوات الجدول
+        showTableTools(wrapper);
+    }
+
+    function showTableTools(wrapper) {
+        const tools = document.getElementById('tableTools');
+        const rect = wrapper.getBoundingClientRect();
+        
+        tools.style.display = 'flex';
+        tools.style.left = rect.left + 'px';
+        tools.style.top = (rect.top - 60) + 'px';
+    }
+
+    // ========== عمليات الجدول ==========
+    function getCellIndex(cell) {
+        return Array.from(cell.parentElement.cells).indexOf(cell);
+    }
+
+    document.getElementById('addRowAbove').addEventListener('click', () => {
+        if (!selectedTable) return;
+        const sel = window.getSelection();
+        const cell = sel.anchorNode;
+        let tr = cell;
+        while (tr && tr.tagName !== 'TR') tr = tr.parentElement;
+        
+        if (tr) {
+            const newRow = tr.parentElement.insertBefore(document.createElement('tr'), tr);
+            for (let i = 0; i < selectedTable.rows[0].cells.length; i++) {
+                const td = newRow.insertCell();
+                td.style.border = '1px solid #ddd';
+                td.style.padding = '5.4pt';
+                td.textContent = 'خلية';
+            }
+            toast('✅ تم إضافة صف فوق', '#28a745');
+        }
+    });
+
+    document.getElementById('addRowBelow').addEventListener('click', () => {
+        if (!selectedTable) return;
+        const sel = window.getSelection();
+        const cell = sel.anchorNode;
+        let tr = cell;
+        while (tr && tr.tagName !== 'TR') tr = tr.parentElement;
+        
+        if (tr) {
+            const newRow = selectedTable.insertRow(tr.rowIndex + 1);
+            for (let i = 0; i < selectedTable.rows[0].cells.length; i++) {
+                const td = newRow.insertCell();
+                td.style.border = '1px solid #ddd';
+                td.style.padding = '5.4pt';
+                td.textContent = 'خلية';
+            }
+            toast('✅ تم إضافة صف تحت', '#28a745');
+        }
+    });
+
+    document.getElementById('addColLeft').addEventListener('click', () => {
+        if (!selectedTable) return;
+        const sel = window.getSelection();
+        let cell = sel.anchorNode;
+        while (cell && cell.tagName !== 'TD' && cell.tagName !== 'TH') {
+            cell = cell.parentElement;
+        }
+        
+        if (cell) {
+            const idx = getCellIndex(cell);
+            for (let row of selectedTable.rows) {
+                const newCell = row.insertCell(idx);
+                newCell.style.border = '1px solid #ddd';
+                newCell.style.padding = '5.4pt';
+                newCell.textContent = 'خلية';
+            }
+            toast('✅ تم إضافة عمود يسار', '#28a745');
+        }
+    });
+
+    document.getElementById('addColRight').addEventListener('click', () => {
+        if (!selectedTable) return;
+        const sel = window.getSelection();
+        let cell = sel.anchorNode;
+        while (cell && cell.tagName !== 'TD' && cell.tagName !== 'TH') {
+            cell = cell.parentElement;
+        }
+        
+        if (cell) {
+            const idx = getCellIndex(cell) + 1;
+            for (let row of selectedTable.rows) {
+                const newCell = row.insertCell(idx);
+                newCell.style.border = '1px solid #ddd';
+                newCell.style.padding = '5.4pt';
+                newCell.textContent = 'خلية';
+            }
+            toast('✅ تم إضافة عمود يمين', '#28a745');
+        }
+    });
+
+    document.getElementById('delRow').addEventListener('click', () => {
+        if (!selectedTable) return;
+        const sel = window.getSelection();
+        let cell = sel.anchorNode;
+        while (cell && cell.tagName !== 'TR') cell = cell.parentElement;
+        
+        if (cell && selectedTable.rows.length > 1) {
+            cell.remove();
+            toast('✅ تم حذف الصف', '#dc3545');
+        } else {
+            toast('⚠️ لا يمكن حذف آخر صف', '#ffc107');
+        }
+    });
+
+    document.getElementById('delCol').addEventListener('click', () => {
+        if (!selectedTable) return;
+        const sel = window.getSelection();
+        let cell = sel.anchorNode;
+        while (cell && cell.tagName !== 'TD' && cell.tagName !== 'TH') {
+            cell = cell.parentElement;
+        }
+        
+        if (cell && selectedTable.rows[0].cells.length > 1) {
+            const idx = getCellIndex(cell);
+            for (let row of selectedTable.rows) {
+                row.deleteCell(idx);
+            }
+            toast('✅ تم حذف العمود', '#dc3545');
+        } else {
+            toast('⚠️ لا يمكن حذف آخر عمود', '#ffc107');
+        }
+    });
+
+    document.getElementById('delTable').addEventListener('click', () => {
+        if (!selectedTable && confirm('هل تريد حذف الجدول؟')) {
+            selectedTable.closest('.table-wrapper').remove();
+            selectedTable = null;
+            document.getElementById('tableTools').style.display = 'none';
+            toast('🗑️ تم حذف الجدول', '#dc3545');
+        }
+    });
+
+    // ========== إدراج جدول جديد ==========
+    document.getElementById('insertTable').addEventListener('click', () => {
+        if (!editMode) return;
+        document.getElementById('tableModal').style.display = 'flex';
+    });
+
+    document.getElementById('cancelInsert').addEventListener('click', () => {
+        document.getElementById('tableModal').style.display = 'none';
+    });
+
+    document.getElementById('confirmInsert').addEventListener('click', () => {
+        const rows = parseInt(document.getElementById('newRows').value);
+        const cols = parseInt(document.getElementById('newCols').value);
+        
+        const table = document.createElement('table');
+        table.style.border = '1px solid #ddd';
+        table.style.borderCollapse = 'collapse';
+        
+        for (let i = 0; i < rows; i++) {
+            const tr = table.insertRow();
+            for (let j = 0; j < cols; j++) {
+                const td = tr.insertCell();
+                td.style.border = '1px solid #ddd';
+                td.style.padding = '5.4pt';
+                td.textContent = 'خلية';
+            }
+        }
+        
+        container.appendChild(table);
+        wrapTable(table);
+        
+        document.getElementById('tableModal').style.display = 'none';
+        toast('✅ تم إدراج جدول جديد!', '#28a745');
+    });
+
+    // ========== الصور ==========
+    document.getElementById('insertImage').addEventListener('click', () => {
+        if (!editMode) return;
+        document.getElementById('imgModal').style.display = 'flex';
+    });
+
+    document.getElementById('cancelImg').addEventListener('click', () => {
+        document.getElementById('imgModal').style.display = 'none';
+    });
+
+    document.getElementById('confirmImg').addEventListener('click', () => {
+        const url = document.getElementById('imgUrl').value;
+        const file = document.getElementById('imgFile').files[0];
+        
+        if (url) {
+            insertImg(url);
+        } else if (file) {
+            const reader = new FileReader();
+            reader.onload = e => insertImg(e.target.result);
+            reader.readAsDataURL(file);
+        }
+        
+        document.getElementById('imgModal').style.display = 'none';
+        document.getElementById('imgUrl').value = '';
+        document.getElementById('imgFile').value = '';
+    });
+
+    function insertImg(src) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'img-wrapper';
+        wrapper.style.position = 'absolute';
+        wrapper.style.left = '100px';
+        wrapper.style.top = '200px';
+        
+        const img = document.createElement('img');
+        img.src = src;
+        img.style.width = '200px';
+        img.style.maxWidth = '100%';
+        
+        const positions = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
+        positions.forEach(pos => {
+            const handle = document.createElement('div');
+            handle.className = `resize-handle handle-${pos}`;
+            handle.dataset.pos = pos;
+            wrapper.appendChild(handle);
+        });
+        
+        wrapper.appendChild(img);
+        container.appendChild(wrapper);
+        
+        // السحب
+        img.addEventListener('mousedown', function(e) {
+            if (!editMode) return;
+            if (e.target.classList.contains('resize-handle')) return;
+            e.preventDefault();
+            
+            wrapper.classList.add('selected');
+            
+            const startX = e.pageX;
+            const startY = e.pageY;
+            const startLeft = wrapper.offsetLeft;
+            const startTop = wrapper.offsetTop;
+            
+            function move(e) {
+                const dx = e.pageX - startX;
+                const dy = e.pageY - startY;
+                wrapper.style.left = (startLeft + dx) + 'px';
+                wrapper.style.top = (startTop + dy) + 'px';
+            }
+            
+            function stop() {
+                document.removeEventListener('mousemove', move);
+                document.removeEventListener('mouseup', stop);
+            }
+            
+            document.addEventListener('mousemove', move);
+            document.addEventListener('mouseup', stop);
+        });
+        
+        // التكبير/التصغير مع دعم Shift للنسبة الثابتة
+        wrapper.addEventListener('mousedown', function(e) {
+            if (!editMode || !e.target.classList.contains('resize-handle')) return;
             e.preventDefault();
             e.stopPropagation();
             
             const handle = e.target;
             const pos = handle.dataset.pos;
-            const startX = e.clientX;
-            const startY = e.clientY;
+            const startX = e.pageX;
+            const startY = e.pageY;
             const startW = img.offsetWidth;
             const startH = img.offsetHeight;
-            const startLeft = wrapper.offsetLeft;
-            const startTop = wrapper.offsetTop;
-            const shiftKey = e.shiftKey;
+            const aspectRatio = startW / startH; // حفظ النسبة
             
             function resize(e) {
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
+                const dx = e.pageX - startX;
+                const dy = e.pageY - startY;
                 
                 let newW = startW;
                 let newH = startH;
-                let newLeft = startLeft;
-                let newTop = startTop;
                 
-                if (shiftKey) {
-                    // Shift: تغيير متناسب من جميع الجوانب
-                    const delta = Math.max(dx, dy);
-                    if (pos.includes('e') || pos.includes('w')) {
-                        newW = startW + (pos.includes('e') ? delta : -delta);
-                        newH = (newW / startW) * startH;
-                        if (pos.includes('w')) {
-                            newLeft = startLeft - (newW - startW);
-                        }
-                    }
-                    if (pos.includes('n') || pos.includes('s')) {
-                        newTop = startTop + (pos.includes('s') ? delta / 2 : -delta / 2);
-                        newLeft = startLeft - delta / 4;
-                    }
-                } else {
-                    // عادي: تغيير من الجانب المحدد فقط
+                if (e.shiftKey) {
+                    // Shift مضغوط: تكبير/تصغير متناسب (قفل النسبة)
                     if (pos.includes('e')) {
                         newW = startW + dx;
-                    }
-                    if (pos.includes('w')) {
+                        newH = newW / aspectRatio;
+                    } else if (pos.includes('w')) {
                         newW = startW - dx;
-                        newLeft = startLeft + dx;
-                    }
-                    if (pos.includes('s')) {
+                        newH = newW / aspectRatio;
+                    } else if (pos.includes('s')) {
                         newH = startH + dy;
-                    }
-                    if (pos.includes('n')) {
+                        newW = newH * aspectRatio;
+                    } else if (pos.includes('n')) {
                         newH = startH - dy;
-                        newTop = startTop + dy;
+                        newW = newH * aspectRatio;
                     }
+                    // الزوايا
+                    else if (pos === 'se' || pos === 'nw') {
+                        const avgDelta = (dx + dy) / 2;
+                        newW = startW + (pos === 'se' ? avgDelta : -avgDelta);
+                        newH = newW / aspectRatio;
+                    } else if (pos === 'ne' || pos === 'sw') {
+                        const avgDelta = (dx - dy) / 2;
+                        newW = startW + (pos === 'ne' ? avgDelta : -avgDelta);
+                        newH = newW / aspectRatio;
+                    }
+                    
+                    // رسالة Shift نشطة
+                    if (!handle.dataset.shiftMsgShown) {
+                        handle.dataset.shiftMsgShown = 'true';
+                        toast('🔒 Shift: النسبة مقفولة', '#17a2b8');
+                    }
+                } else {
+                    // عادي: تكبير/تصغير حر
+                    if (pos.includes('e')) newW = startW + dx;
+                    if (pos.includes('w')) newW = startW - dx;
+                    if (pos.includes('s')) newH = startH + dy;
+                    if (pos.includes('n')) newH = startH - dy;
+                    
+                    handle.dataset.shiftMsgShown = 'false';
                 }
                 
-                if (newW > 50) {
-                    img.style.width = newW + 'px';
-                    wrapper.style.left = newLeft + 'px';
-                }
-                if (newH > 50) {
-                    img.style.height = newH + 'px';
-                    wrapper.style.top = newTop + 'px';
-                }
+                if (newW > 50) img.style.width = newW + 'px';
+                if (newH > 50) img.style.height = newH + 'px';
             }
             
             function stopResize() {
                 document.removeEventListener('mousemove', resize);
                 document.removeEventListener('mouseup', stopResize);
+                toast('✅ تم تغيير حجم الصورة', '#28a745');
             }
             
             document.addEventListener('mousemove', resize);
@@ -1582,60 +1609,127 @@ document.addEventListener('DOMContentLoaded', function() {
         toast('✅ تم إدراج الصورة!', '#28a745');
     }
 
-    // وظائف الصور
-    window.changeZIndex = function(btn, delta) {
-        const wrapper = btn.closest('div').parentElement;
-        const currentZ = parseInt(wrapper.style.zIndex || 10);
-        wrapper.style.zIndex = Math.max(1, currentZ + delta);
-        toast(delta > 0 ? '▲ للأمام' : '▼ للخلف', '#17a2b8');
-    };
-
-    window.deleteImg = function(btn) {
-        if (confirm('هل تريد حذف الصورة؟')) {
-            btn.closest('div').parentElement.remove();
-            toast('🗑️ تم حذف الصورة', '#dc3545');
+    // ========== التنسيق ==========
+    function changeFontSize(delta) {
+        if (!editMode) return;
+        
+        const sel = window.getSelection();
+        if (!sel.rangeCount || sel.isCollapsed) {
+            toast('⚠️ حدد النص أولاً', '#ffc107');
+            return;
         }
-    };
-
-    function deselectAll() {
-        document.querySelectorAll('.resizable-img.selected').forEach(img => {
-            img.classList.remove('selected');
-        });
+        
+        const range = sel.getRangeAt(0);
+        const span = document.createElement('span');
+        
+        let parent = range.commonAncestorContainer;
+        if (parent.nodeType === 3) parent = parent.parentElement;
+        
+        let size = parseFloat(window.getComputedStyle(parent).fontSize) * 0.75;
+        size = Math.round(size) + delta;
+        size = Math.max(8, Math.min(72, size));
+        
+        span.style.fontSize = size + 'pt';
+        
+        try {
+            const contents = range.extractContents();
+            span.appendChild(contents);
+            range.insertNode(span);
+            
+            document.getElementById('fontDisplay').textContent = size + 'pt';
+            toast(`📏 ${size}pt`, '#28a745');
+            
+            range.selectNodeContents(span);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        } catch(e) {}
     }
 
-    document.addEventListener('click', function(e) {
-        if (!e.target.classList.contains('resizable-img') && !e.target.classList.contains('control-btn')) {
-            deselectAll();
+    document.getElementById('fontUp').addEventListener('click', () => changeFontSize(2));
+    document.getElementById('fontDown').addEventListener('click', () => changeFontSize(-2));
+
+    document.getElementById('bold').addEventListener('click', () => {
+        if (editMode) document.execCommand('bold');
+    });
+    
+    document.getElementById('italic').addEventListener('click', () => {
+        if (editMode) document.execCommand('italic');
+    });
+    
+    document.getElementById('under').addEventListener('click', () => {
+        if (editMode) document.execCommand('underline');
+    });
+
+    document.getElementById('textColor').addEventListener('input', function() {
+        if (!editMode) return;
+        const sel = window.getSelection();
+        if (!sel.rangeCount || sel.isCollapsed) return;
+        
+        const range = sel.getRangeAt(0);
+        const span = document.createElement('span');
+        span.style.color = this.value;
+        
+        try {
+            const contents = range.extractContents();
+            span.appendChild(contents);
+            range.insertNode(span);
+            toast('🎨 تم تغيير اللون', '#28a745');
+        } catch(e) {}
+    });
+
+    document.getElementById('bgColor').addEventListener('input', function() {
+        if (!editMode) return;
+        const sel = window.getSelection();
+        if (!sel.rangeCount || sel.isCollapsed) return;
+        
+        const range = sel.getRangeAt(0);
+        const span = document.createElement('span');
+        span.style.backgroundColor = this.value;
+        
+        try {
+            const contents = range.extractContents();
+            span.appendChild(contents);
+            range.insertNode(span);
+            toast('🎨 تم تغيير الخلفية', '#28a745');
+        } catch(e) {}
+    });
+
+    // ========== وضع التحرير ==========
+    document.getElementById('toggleEdit').addEventListener('click', function() {
+        editMode = !editMode;
+        container.contentEditable = editMode;
+        
+        const icon = document.getElementById('editIcon');
+        const txt = document.getElementById('editText');
+        const tools = document.getElementById('editTools');
+        
+        if (editMode) {
+            icon.textContent = '🔒';
+            txt.textContent = 'قفل';
+            tools.style.display = 'flex';
+            container.focus();
+            toast('✅ وضع التحرير مفعل', '#28a745');
+        } else {
+            icon.textContent = '🔓';
+            txt.textContent = 'تحرير';
+            tools.style.display = 'none';
+            document.getElementById('tableTools').style.display = 'none';
+            document.querySelectorAll('.table-wrapper.selected').forEach(w => {
+                w.classList.remove('selected');
+            });
+            selectedTable = null;
+            toast('🔒 تم القفل', '#17a2b8');
         }
     });
 
-    // ========== اختصارات لوحة المفاتيح ==========
-    document.addEventListener('keydown', function(e) {
-        if (!editMode) return;
-        
-        if (e.ctrlKey) {
-            switch(e.key) {
-                case 'b': case 'B':
-                    e.preventDefault();
-                    document.execCommand('bold');
-                    break;
-                case 'i': case 'I':
-                    e.preventDefault();
-                    document.execCommand('italic');
-                    break;
-                case 'u': case 'U':
-                    e.preventDefault();
-                    document.execCommand('underline');
-                    break;
-                case 'د':
-                    e.preventDefault();
-                    changeFontSize(2);
-                    break;
-                case 'ج':
-                    e.preventDefault();
-                    changeFontSize(-2);
-                    break;
-            }
+    // إخفاء أدوات الجدول عند النقر خارجه
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.table-wrapper') && !e.target.closest('#tableTools')) {
+            document.querySelectorAll('.table-wrapper.selected').forEach(w => {
+                w.classList.remove('selected');
+            });
+            document.getElementById('tableTools').style.display = 'none';
+            selectedTable = null;
         }
     });
 
@@ -1650,30 +1744,15 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => t.remove(), 3000);
     }
 
-    function updateCount() {
-        const text = container.innerText || '';
-        const words = text.trim().split(/\s+/).filter(w => w.length > 0);
-        document.getElementById('words').textContent = words.length + ' كلمة';
-        document.getElementById('chars').textContent = text.length + ' حرف';
-    }
-
-    container.addEventListener('input', updateCount);
-    
-    // الطباعة
-    document.getElementById('printBtn').addEventListener('click', () => window.print());
-
-    // تهيئة
-    updateCount();
-    setTimeout(() => makeTablesDraggable(), 500);
-    
-    console.log('✅ محرر VOLGA جاهز 100%!');
+    // ========== التهيئة ==========
+    initTables();
+    console.log('✅ نظام Word جاهز!');
 });
 
 // الكود الأصلي
 function calculateTotal() {
     const qty1 = parseInt(document.getElementById('qty1')?.textContent.replace(/,/g, '')) || 0;
     const price1 = parseInt(document.getElementById('price1')?.textContent.replace(/,/g, '')) || 0;
-    
     const subtotal = qty1 * price1;
     const vat = Math.round(subtotal * 0.15);
     const total = subtotal + vat;
@@ -1686,7 +1765,6 @@ function calculateTotal() {
 
 if (document.getElementById('qty1')) document.getElementById('qty1').addEventListener('input', calculateTotal);
 if (document.getElementById('price1')) document.getElementById('price1').addEventListener('input', calculateTotal);
-
 calculateTotal();
 </script>
 
