@@ -274,6 +274,86 @@ body {
     padding-top: 140px !important;
 }
 
+/* ضبط A4 بالضبط */
+.page-container {
+    width: 210mm !important;
+    min-height: 297mm !important;
+    max-width: 210mm !important;
+    margin: 20px auto !important;
+    padding: 0.5in !important;
+    background: white;
+    box-sizing: border-box;
+}
+
+@media screen {
+    .page-container {
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+}
+
+@media print {
+    /* ضبط الصفحة على A4 */
+    @page {
+        size: A4;
+        margin: 0;
+    }
+    
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+    }
+    
+    .page-container {
+        width: 210mm !important;
+        height: 297mm !important;
+        min-height: 297mm !important;
+        max-width: 210mm !important;
+        margin: 0 !important;
+        padding: 0.5in !important;
+        box-shadow: none !important;
+        page-break-after: always;
+    }
+    
+    /* إخفاء عناصر التحرير */
+    #toolbar, 
+    #tableTools, 
+    #tableModal, 
+    #imgModal, 
+    .resize-handle, 
+    .drag-handle, 
+    .col-resizer {
+        display: none !important;
+    }
+    
+    /* إزالة outline من العناصر */
+    .table-wrapper, 
+    .img-wrapper,
+    .table-wrapper.selected,
+    .img-wrapper.selected {
+        outline: none !important;
+        position: relative !important;
+    }
+    
+    /* الجداول في الطباعة */
+    table {
+        page-break-inside: auto;
+    }
+    
+    tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+    
+    thead {
+        display: table-header-group;
+    }
+    
+    tfoot {
+        display: table-footer-group;
+    }
+}
+
 .page-container[contenteditable="true"] {
     caret-color: #0070C0;
     cursor: text;
