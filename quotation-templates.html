@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختر القالب</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .template-card {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        .template-card:hover {
+            border-color: #0070C0;
+            box-shadow: 0 4px 12px rgba(0,112,192,0.2);
+            transform: translateY(-2px);
+        }
+        .template-card h3 {
+            color: #0070C0;
+            margin-bottom: 10px;
+        }
+        .template-card p {
+            color: #666;
+            font-size: 14px;
+        }
+        .template-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>📋 اختر قالب عرض السعر</h2>
+            <button class="btn btn-danger" onclick="goBack()">رجوع للقائمة</button>
+        </div>
+
+        <div class="templates-grid">
+            <div class="template-card" onclick="selectTemplate('volga')">
+                <div class="template-icon">📄</div>
+                <h3>قالب VOLGA</h3>
+                <p>القالب الافتراضي لشركة VOLGA Cooling Technologies</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const user = localStorage.getItem('currentUser');
+        if (!user) window.location.href = 'index.html';
+
+        function selectTemplate(templateName) {
+            window.location.href = `quotation-editor-new.html?template=${templateName}`;
+        }
+
+        function goBack() {
+            window.location.href = 'quotations.html';
+        }
+    </script>
+</body>
+</html>
