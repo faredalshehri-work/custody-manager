@@ -1,2078 +1,500 @@
 <!DOCTYPE html>
-<html>
+<html dir="rtl" lang="ar">
 <head>
-<meta http-equiv=Content-Type content="text/html; charset=utf-8">
-<meta name=Generator content="Microsoft Word 15 (filtered)">
-<title>عرض سعر - VOLGA</title>
-<style>
-<!--
-body {
-    font-family: 'Times New Roman', serif;
-    font-size: 12pt;
-    margin: 0;
-    padding: 0;
-    background: #f5f5f5;
-}
-
-.page-container {
-    width: 210mm;
-    min-height: 297mm;
-    margin: 20px auto;
-    background: white;
-    padding: 0.5in;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-}
-
-/* Editor Header */
-.editor-header {
-    background: #0070C0;
-    padding: 15px;
-    margin: -0.5in -0.5in 20px -0.5in;
-    text-align: center;
-    color: white;
-}
-
-.editor-header h2 {
-    margin: 0 0 10px 0;
-    font-size: 18pt;
-}
-
-.editor-actions {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-}
-
-.btn {
-    padding: 8px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.btn-save { background: #28a745; color: white; }
-.btn-print { background: white; color: #0070C0; }
-.btn-cancel { background: #dc3545; color: white; }
-
-/* الهيدر */
-.page-header {
-    text-align: center;
-    margin-bottom: 10pt;
-    padding-bottom: 10pt;
-    border-bottom: 2px solid #003399;
-    position: relative;
-}
-
-.logo {
-    position: absolute;
-    right: 0;
-    top: 0;
-    max-width: 120px;
-}
-
-.company-name-ar {
-    font-size: 18pt;
-    font-weight: bold;
-    color: #003399;
-    margin: 5pt 0;
-}
-
-.company-name-en {
-    font-size: 14pt;
-    font-weight: bold;
-    color: #003399;
-    margin: 5pt 0;
-}
-
-.company-details {
-    font-size: 8pt;
-    font-weight: bold;
-    color: #003399;
-    margin: 3pt 0;
-}
-
-.company-description {
-    font-size: 10.5pt;
-    color: #C00000;
-    margin: 5pt 0;
-    font-weight: bold;
-}
-
-/* حقول قابلة للتعديل */
-.editable {
-    background: #fffacd;
-    border: 1px dashed #0070C0;
-    padding: 1px 3px;
-    min-width: 30px;
-    display: inline-block;
-    cursor: text;
-}
-
-.editable:focus {
-    outline: 2px solid #0070C0;
-    background: #fff;
-}
-
-/* الجداول */
-p.MsoNormal {
-    margin: 0in;
-    font-size: 12.0pt;
-    font-family: "Times New Roman", serif;
-}
-
-table {
-    border-collapse: collapse;
-}
-
-td {
-    padding: 5.4pt;
-    vertical-align: top;
-}
-
-.header-table td {
-    border: solid windowtext 1.0pt;
-}
-
-.info-table td {
-    border: solid #BFBFBF 1.0pt;
-}
-
-.price-table td {
-    border: solid #BFBFBF 1.0pt;
-}
-
-@media print {
-    body {
-        background: white;
-        margin: 0;
-    }
-    .page-container {
-        box-shadow: none;
-        margin: 0;
-        width: auto;
-    }
-    .editor-header {
-        display: none !important;
-    }
-    .editable {
-        background: transparent !important;
-        border: none !important;
-    }
-}
-
-@page {
-    size: A4;
-    margin: 0.5in;
-}
--->
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محرر عرض السعر</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #e0e0e0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .editor-sidebar {
+            width: 350px;
+            background: white;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .editor-preview {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+        }
+        
+        .form-group textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+        
+        .btn-save {
+            width: 100%;
+            padding: 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .btn-cancel {
+            width: 100%;
+            padding: 12px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .btn-print {
+            width: 100%;
+            padding: 12px;
+            background: #0070C0;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .items-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
+        }
+        
+        .item-row {
+            background: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .btn-remove-item {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .btn-add-item {
+            width: 100%;
+            padding: 10px;
+            background: #0070C0;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .total-section {
+            background: #e8f4f8;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            border: 2px solid #0070C0;
+        }
+        
+        .total-section h4 {
+            margin: 0 0 10px 0;
+            color: #0070C0;
+        }
+        
+        .preview-document {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            margin: 0 auto;
+            padding: 10mm;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        }
+        
+        @media print {
+            body {
+                background: white;
+            }
+            .editor-sidebar {
+                display: none;
+            }
+            .editor-preview {
+                padding: 0;
+            }
+            .preview-document {
+                box-shadow: none;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+        }
+    </style>
 </head>
-
-<body lang=EN-US link="#0563C1" vlink="#954F72" style='word-wrap:break-word'>
-
-<!-- شريط الأدوات -->
-<div id="toolbar" style="position: fixed; top: 0; left: 0; right: 0; z-index: 10000; background: linear-gradient(135deg, #0070C0, #003d7a); padding: 12px 25px; box-shadow: 0 3px 15px rgba(0,0,0,0.4); color: white; font-family: 'Segoe UI', Tahoma, sans-serif;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h2 style="margin: 0; font-size: 20px;">📝 محرر VOLGA (نظام Word)</h2>
-        <div style="display: flex; gap: 8px;">
-            <button id="toggleEdit" style="padding: 10px 18px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                <span id="editIcon">🔓</span> <span id="editText">تحرير</span>
-            </button>
-            <button onclick="window.print()" style="padding: 10px 18px; background: #ffc107; color: #000; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">🖨️ طباعة</button>
-        </div>
-    </div>
-    
-    <div id="editTools" style="display: none; background: rgba(255,255,255,0.15); padding: 10px; border-radius: 8px; gap: 10px; flex-wrap: wrap;">
-        <!-- الخط -->
-        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
-            <button id="fontDown" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">A-</button>
-            <span id="fontDisplay" style="padding: 6px 12px; background: white; color: #0070C0; border-radius: 4px; font-weight: bold; min-width: 45px; text-align: center;">12pt</span>
-            <button id="fontUp" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">A+</button>
+<body>
+    <div class="editor-sidebar">
+        <h2>📝 تحرير عرض السعر</h2>
+        
+        <div class="form-group">
+            <label>رقم العرض:</label>
+            <input type="text" id="serial_number" readonly style="background:#f0f0f0;">
         </div>
         
-        <!-- التنسيق -->
-        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
-            <button id="bold" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">B</button>
-            <button id="italic" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; font-style: italic;">I</button>
-            <button id="under" style="padding: 6px 12px; background: white; color: #0070C0; border: none; border-radius: 4px; cursor: pointer; text-decoration: underline;">U</button>
+        <div class="form-group">
+            <label>التاريخ:</label>
+            <input type="date" id="quote_date">
         </div>
         
-        <!-- الألوان -->
-        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
-            <input type="color" id="textColor" value="#000000" style="width: 40px; height: 34px; border: none; cursor: pointer; border-radius: 4px;" title="لون النص">
-            <input type="color" id="bgColor" value="#ffffff" style="width: 40px; height: 34px; border: none; cursor: pointer; border-radius: 4px;" title="لون الخلفية">
+        <div class="form-group">
+            <label>مدة الصلاحية (يوم):</label>
+            <input type="number" id="validity_days" value="30">
         </div>
         
-        <!-- الجداول -->
-        <div style="display: inline-flex; gap: 4px; padding: 0 10px; border-right: 2px solid rgba(255,255,255,0.3);">
-            <button id="insertTable" style="padding: 6px 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">⊞ جدول</button>
+        <div class="form-group">
+            <label>اسم العميل:</label>
+            <input type="text" id="client_name" placeholder="اسم العميل">
         </div>
         
-        <!-- الصور -->
-        <div style="display: inline-flex; gap: 4px; padding: 0 10px;">
-            <button id="insertImage" style="padding: 6px 12px; background: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">🖼️ صورة</button>
-        </div>
-    </div>
-</div>
-
-<!-- أدوات الجدول المحدد -->
-<div id="tableTools" style="display: none; position: fixed; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 3px 15px rgba(0,0,0,0.3); z-index: 9999; border: 2px solid #0070C0;">
-    <div style="display: flex; gap: 8px; align-items: center;">
-        <span style="font-weight: bold; color: #0070C0; margin-left: 10px;">🔧 أدوات الجدول:</span>
-        <button id="resetTablePos" style="padding: 6px 12px; background: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">↩️ إعادة المكان</button>
-        <button id="addRowAbove" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">⬆️ صف فوق</button>
-        <button id="addRowBelow" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">⬇️ صف تحت</button>
-        <button id="addColLeft" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">⬅️ عمود يسار</button>
-        <button id="addColRight" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">➡️ عمود يمين</button>
-        <button id="delRow" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️ حذف صف</button>
-        <button id="delCol" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️ حذف عمود</button>
-        <button id="delTable" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️ حذف جدول</button>
-    </div>
-</div>
-
-<!-- Modal جدول جديد -->
-<div id="tableModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; justify-content: center; align-items: center;">
-    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 400px; width: 90%;">
-        <h3 style="color: #0070C0; margin: 0 0 20px 0;">⊞ إدراج جدول</h3>
-        <div style="margin-bottom: 15px;">
-            <label style="display: block; font-weight: bold; margin-bottom: 8px;">الصفوف</label>
-            <input type="number" id="newRows" value="3" min="1" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px;">
-        </div>
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; font-weight: bold; margin-bottom: 8px;">الأعمدة</label>
-            <input type="number" id="newCols" value="3" min="1" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px;">
-        </div>
-        <div style="display: flex; gap: 10px;">
-            <button id="confirmInsert" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">إدراج</button>
-            <button id="cancelInsert" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer;">إلغاء</button>
-        </div>
-    </div>
-</div>
-
-<!-- Modal صورة -->
-<div id="imgModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; justify-content: center; align-items: center;">
-    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; width: 90%;">
-        <h3 style="color: #0070C0; margin: 0 0 20px 0;">🖼️ إدراج صورة</h3>
-        <div style="margin-bottom: 15px;">
-            <label style="display: block; font-weight: bold; margin-bottom: 8px;">رابط الصورة</label>
-            <input type="text" id="imgUrl" placeholder="https://..." style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px;">
-        </div>
-        <div style="margin-bottom: 15px;">
-            <label style="display: block; font-weight: bold; margin-bottom: 8px;">أو ارفع صورة</label>
-            <input type="file" id="imgFile" accept="image/*" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px;">
-        </div>
-        <div style="display: flex; gap: 10px;">
-            <button id="confirmImg" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">إدراج</button>
-            <button id="cancelImg" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer;">إلغاء</button>
-        </div>
-    </div>
-</div>
-
-<style>
-body {
-    padding-top: 140px !important;
-}
-
-/* ضبط A4 بالضبط - نظام صفحات Word */
-body {
-    background: #e0e0e0 !important; /* خلفية رمادية زي Word */
-}
-
-.page-container {
-    width: 210mm !important;
-    max-width: 210mm !important;
-    margin: 0 auto !important;
-    padding: 20px 0 !important;
-    background: #e0e0e0;
-}
-
-/* الصفحة الواحدة - A4 كاملة */
-.word-page {
-    width: 210mm;
-    height: 297mm;
-    background: white;
-    margin: 0 auto 20px auto;
-    padding: 0;
-    box-sizing: border-box;
-    position: relative;
-    page-break-after: always;
-}
-
-/* الهيدر */
-.page-header {
-    position: absolute;
-    top: 0.5in;
-    left: 0.75in;
-    right: 0.75in;
-    height: 40px;
-    border-bottom: 1px solid #d0d0d0;
-    padding-bottom: 8px;
-    font-size: 9pt;
-    color: #888;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-/* الفوتر */
-.page-footer {
-    position: absolute;
-    bottom: 0.5in;
-    left: 0.75in;
-    right: 0.75in;
-    height: 40px;
-    border-top: 1px solid #d0d0d0;
-    padding-top: 8px;
-    font-size: 9pt;
-    color: #888;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-/* محتوى الصفحة */
-.page-content {
-    position: absolute;
-    top: calc(0.5in + 50px);
-    bottom: calc(0.5in + 50px);
-    left: 0.75in;
-    right: 0.75in;
-    overflow: visible;
-}
-
-@media screen {
-    .word-page {
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    }
-}
-
-@media print {
-    /* ضبط الصفحة على A4 */
-    @page {
-        size: A4;
-        margin: 0;
-    }
-    
-    body {
-        margin: 0 !important;
-        padding: 0 !important;
-        background: white !important;
-    }
-    
-    .page-container {
-        width: 210mm !important;
-        height: 297mm !important;
-        min-height: 297mm !important;
-        max-width: 210mm !important;
-        margin: 0 !important;
-        padding: 0.5in !important;
-        box-shadow: none !important;
-        page-break-after: always;
-    }
-    
-    /* إخفاء عناصر التحرير */
-    #toolbar, 
-    #tableTools, 
-    #tableModal, 
-    #imgModal, 
-    .resize-handle, 
-    .drag-handle, 
-    .col-resizer {
-        display: none !important;
-    }
-    
-    /* إزالة outline من العناصر */
-    .table-wrapper, 
-    .img-wrapper,
-    .table-wrapper.selected,
-    .img-wrapper.selected {
-        outline: none !important;
-        position: relative !important;
-    }
-    
-    /* الجداول في الطباعة */
-    table {
-        page-break-inside: auto;
-    }
-    
-    tr {
-        page-break-inside: avoid;
-        page-break-after: auto;
-    }
-    
-    thead {
-        display: table-header-group;
-    }
-    
-    tfoot {
-        display: table-footer-group;
-    }
-}
-
-.page-container[contenteditable="true"] {
-    caret-color: #0070C0;
-    cursor: text;
-}
-
-/* نظام الجداول - زي Word */
-table {
-    position: relative;
-    border-collapse: collapse;
-}
-
-table.selected {
-    outline: 2px solid #0070C0;
-    box-shadow: 0 0 10px rgba(0,112,192,0.3);
-}
-
-/* wrapper للجدول */
-.table-wrapper {
-    position: relative;
-    display: inline-block;
-    margin: 10px;
-    width: auto !important; /* عرض تلقائي */
-}
-
-.table-wrapper.selected {
-    outline: 3px solid #0070C0;
-}
-
-.table-wrapper table {
-    display: table;
-    width: auto;
-}
-
-/* مقابض التكبير - 8 مقابض */
-.resize-handle {
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    background: #0070C0;
-    border: 2px solid white;
-    border-radius: 50%;
-    display: none;
-    z-index: 1000;
-}
-
-.table-wrapper.selected .resize-handle {
-    display: block;
-}
-
-.handle-nw { top: -6px; left: -6px; cursor: nw-resize; }
-.handle-n  { top: -6px; left: 50%; margin-left: -6px; cursor: n-resize; }
-.handle-ne { top: -6px; right: -6px; cursor: ne-resize; }
-.handle-e  { top: 50%; right: -6px; margin-top: -6px; cursor: e-resize; }
-.handle-se { bottom: -6px; right: -6px; cursor: se-resize; }
-.handle-s  { bottom: -6px; left: 50%; margin-left: -6px; cursor: s-resize; }
-.handle-sw { bottom: -6px; left: -6px; cursor: sw-resize; }
-.handle-w  { top: 50%; left: -6px; margin-top: -6px; cursor: w-resize; }
-
-/* مقبض السحب */
-.drag-handle {
-    position: absolute;
-    top: -35px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #0070C0;
-    color: white;
-    padding: 6px 20px;
-    border-radius: 8px 8px 0 0;
-    cursor: move;
-    font-size: 13px;
-    font-weight: bold;
-    display: none;
-    z-index: 1000;
-    white-space: nowrap;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-
-.table-wrapper.selected .drag-handle {
-    display: block;
-}
-
-/* تغيير عرض الأعمدة */
-.col-resizer {
-    position: absolute;
-    width: 4px;
-    height: 100%;
-    cursor: col-resize;
-    background: transparent;
-    z-index: 100;
-}
-
-.col-resizer:hover {
-    background: #0070C0;
-}
-
-/* الصور */
-.img-wrapper {
-    position: absolute;
-    display: inline-block;
-}
-
-.img-wrapper img {
-    display: block;
-    cursor: move;
-}
-
-.img-wrapper.selected {
-    outline: 2px solid #0070C0;
-}
-
-.img-wrapper .resize-handle {
-    display: none;
-}
-
-.img-wrapper.selected .resize-handle {
-    display: block;
-}
-
-.toast {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    padding: 15px 25px;
-    border-radius: 10px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.4);
-    z-index: 30000;
-    font-weight: bold;
-    animation: slideIn 0.3s;
-}
-
-@keyframes slideIn {
-    from { transform: translateX(-400px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-@media print {
-    /* ضبط الصفحة على A4 */
-    @page {
-        size: A4;
-        margin: 0;
-    }
-    
-    body {
-        margin: 0 !important;
-        padding: 0 !important;
-        background: white !important;
-    }
-    
-    .page-container {
-        background: white !important;
-        padding: 0 !important;
-    }
-    
-    .word-page {
-        width: 210mm !important;
-        height: 297mm !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        box-shadow: none !important;
-        page-break-after: always;
-    }
-    
-    .page-header,
-    .page-footer {
-        color: #666 !important;
-    }
-    
-    /* إخفاء أدوات التحرير فقط */
-    #toolbar, 
-    #tableTools, 
-    #tableModal, 
-    #imgModal, 
-    .resize-handle, 
-    .drag-handle, 
-    .col-resizer {
-        display: none !important;
-    }
-    
-    /* إزالة outline فقط */
-    .table-wrapper,
-    .table-wrapper.selected,
-    .img-wrapper,
-    .img-wrapper.selected {
-        outline: none !important;
-    }
-}
-</style>
-
-<div class="page-container">
-    <!-- الصفحة الأولى -->
-    <div class="word-page" id="page-1">
-        <!-- الهيدر -->
-        <div class="page-header">
-            <span>فولجا كولينج تيكنولوجيز - VOLGA COOLING TECHNOLOGIES</span>
-            <span>Ref: VTR-1225-001</span>
+        <div class="form-group">
+            <label>الشركة:</label>
+            <input type="text" id="client_company" placeholder="اسم الشركة">
         </div>
         
-        <!-- المحتوى -->
-        <div class="page-content" contenteditable="false">
-
-    <!-- Editor Header -->
-    <div class="editor-header">
-        <h2>✏️ محرر عرض السعر</h2>
-        <div class="editor-actions">
-            <button class="btn btn-save" onclick="saveQuotation()">💾 حفظ</button>
-            <button class="btn btn-print" onclick="window.print()">🖨️ طباعة/PDF</button>
-            <button class="btn btn-cancel" onclick="goBack()">❌ إلغاء</button>
+        <div class="form-group">
+            <label>رقم الهاتف:</label>
+            <input type="text" id="client_phone" placeholder="رقم الهاتف">
+        </div>
+        
+        <div class="form-group">
+            <label>رقم الجوال:</label>
+            <input type="text" id="client_mobile" placeholder="رقم الجوال">
+        </div>
+        
+        <div class="form-group">
+            <label>البريد الإلكتروني:</label>
+            <input type="email" id="client_email" placeholder="البريد الإلكتروني">
+        </div>
+        
+        <div class="form-group">
+            <label>العنوان:</label>
+            <textarea id="client_address" placeholder="عنوان العميل"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>عنوان العرض:</label>
+            <input type="text" id="quote_title" placeholder="عنوان عرض السعر">
+        </div>
+        
+        <div class="items-section">
+            <h3>البنود والأسعار</h3>
+            <div id="items-container"></div>
+            <button class="btn-add-item" onclick="addItem()">+ إضافة بند جديد</button>
+        </div>
+        
+        <div class="total-section">
+            <h4>الإجمالي</h4>
+            <p><strong>المجموع الفرعي:</strong> <span id="subtotal">0</span> ريال</p>
+            <p><strong>الضريبة (15%):</strong> <span id="vat">0</span> ريال</p>
+            <p style="font-size: 18px; color: #0070C0;"><strong>المجموع الكلي:</strong> <span id="total">0</span> ريال</p>
+        </div>
+        
+        <button class="btn-print" onclick="printDocument()">🖨️ طباعة</button>
+        <button class="btn-save" onclick="saveQuotation()">💾 حفظ</button>
+        <button class="btn-cancel" onclick="cancelEdit()">❌ إلغاء</button>
+    </div>
+    
+    <div class="editor-preview" id="preview-area">
+        <div class="preview-document" id="document-preview">
+            <p style="text-align: center; color: #999; padding: 50px;">
+                جاري التحميل...
+            </p>
         </div>
     </div>
 
-    <!-- الهيدر -->
-    <div class="page-header">
-        <img src="https://volga.sa/images/logo_en_911566.png" alt="VOLGA" class="logo">
+    <script>
+        const user = localStorage.getItem('currentUser');
+        if (!user) window.location.href = 'index.html';
+
+        let items = [];
+        let nextSerialNumber = 1;
         
-        <p class="company-name-ar">فولجا كولينج تيكنولوجيز</p>
-        <p class="company-name-en">VOLGA COOLING TECHNOLOGIES</p>
-        
-        <p class="company-details">C.R 4030353741 – I.L 4060011896</p>
-        <p class="company-details">VAT No. 300912764900003</p>
-        
-        <p class="company-description" dir="rtl">صناعة أبراج التبريد، مبردات الشلر، المبادلات الحرارية، ملفات ومبردات التكييف والتبريد، مركبات النقل المبرد والمجمد، غرف التبريد</p>
-        <p class="company-description">Cooling Tower, Industrial Chiller, Heat Exchanger, Cooling Coils, Transport Refrigerated, cooled rooms</p>
-    </div>
-
-    <!-- جدول الهيدر -->
-    <table class="header-table" align=left width=712 style='width:534.25pt;margin-left:6.75pt;margin-right:6.75pt'>
-     <tr style='height:15.8pt'>
-      <td width=90 valign=top style='width:67.65pt;padding:0in 5.4pt 0in 5.4pt;height:15.8pt'>
-      <p class=MsoNormal><b><u><span style='font-size:10.0pt'>Ref:</span></u></b></p>
-      </td>
-      <td width=163 valign=top style='width:122.05pt;border-left:none;background:black;padding:0in 5.4pt 0in 5.4pt;height:15.8pt'>
-      <p class=MsoNormal><span contenteditable="true" class="editable" id="serial_number" style='color:white;background:black'>VTR-1225-001</span></p>
-      </td>
-      <td width=325 valign=top style='width:244.1pt;border-left:none;padding:0in 5.4pt 0in 5.4pt;height:15.8pt'>
-      <p class=MsoNormal align=right style='text-align:right'><b><u><span style='font-size:9.0pt'><span style='text-decoration:none'>&nbsp;</span></span></u></b></p>
-      </td>
-      <td width=134 valign=top style='width:100.45pt;border-left:none;padding:0in 5.4pt 0in 5.4pt;height:15.8pt'>
-      <p class=MsoNormal align=right style='text-align:right'><span contenteditable="true" class="editable" id="quote_date">29/12/2025</span></p>
-      </td>
-     </tr>
-     <tr style='height:15.8pt'>
-      <td width=90 valign=top style='width:67.65pt;border-top:none;padding:0in 5.4pt 0in 5.4pt;height:15.8pt'>
-      <p class=MsoNormal>Valid for</p>
-      </td>
-      <td width=488 colspan=2 valign=top style='width:366.15pt;border-top:none;border-left:none;padding:0in 5.4pt 0in 5.4pt;height:15.8pt'>
-      <p class=MsoNormal align=center style='text-align:center'><span contenteditable="true" class="editable" id="validity_days">30 Days</span></p>
-      </td>
-      <td width=134 valign=top style='width:100.45pt;border-top:none;border-left:none;padding:0in 5.4pt 0in 5.4pt;height:15.8pt'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span lang=AR-SA>الصلاحية:</span></p>
-      </td>
-     </tr>
-    </table>
-
-    <p class=MsoNormal style='margin-left:2.0in;text-indent:.5in'><u><span style='font-size:22.0pt;color:#0070C0'>Quotation </span></u><u><span lang=AR-SA dir=RTL style='font-size:20.0pt;color:#0070C0'>عرض سعر</span></u></p>
-
-    <p class=MsoNormal style='margin-left:2.0in;text-indent:.5in'><b><u><span style='font-size:10.0pt'><span style='text-decoration:none'>&nbsp;</span></span></u></b></p>
-
-    <!-- جدول معلومات العميل -->
-    <table class="info-table" border=1 cellspacing=0 cellpadding=0 align=left width=707 style='width:529.9pt;margin-left:6.75pt;margin-right:6.75pt'>
-     <tr style='height:12.3pt'>
-      <td width=45 valign=top style='width:33.65pt;padding:0in 5.4pt 0in 5.4pt;height:12.3pt'>
-      <p class=MsoNormal><b><u><span style='font-size:10.0pt'>To:</span></u></b></p>
-      </td>
-      <td width=596 colspan=6 valign=top style='width:446.65pt;border-left:none;padding:0in 5.4pt 0in 5.4pt;height:12.3pt'>
-      <p class=MsoNormal align=center style='text-align:center'><span contenteditable="true" class="editable" id="client_name" style='font-size:11.0pt'>اسم العميل</span></p>
-      </td>
-      <td width=66 valign=top style='width:49.6pt;border-left:none;padding:0in 5.4pt 0in 5.4pt;height:12.3pt'>
-      <p class=MsoNormal><span lang=AR-SA dir=RTL style='font-size:11.0pt'>إلى:</span></p>
-      </td>
-     </tr>
-     <tr style='height:12.3pt'>
-      <td width=45 valign=top style='width:33.65pt;border-top:none;padding:0in 5.4pt 0in 5.4pt;height:12.3pt'>
-      <p class=MsoNormal><b><u><span style='font-size:10.0pt'>Project:</span></u></b></p>
-      </td>
-      <td width=596 colspan=6 valign=top style='width:446.65pt;border-top:none;border-left:none;padding:0in 5.4pt 0in 5.4pt;height:12.3pt'>
-      <p class=MsoNormal align=center style='text-align:center'><span contenteditable="true" class="editable" id="quote_title" style='font-size:11.0pt'>عنوان المشروع</span></p>
-      </td>
-      <td width=66 valign=top style='width:49.6pt;border-top:none;border-left:none;padding:0in 5.4pt 0in 5.4pt;height:12.3pt'>
-      <p class=MsoNormal><span lang=AR-SA dir=RTL style='font-size:11.0pt'>العنوان:</span></p>
-      </td>
-     </tr>
-    </table>
-
-    <p class=MsoNormal>&nbsp;</p>
-
-    <!-- القسم 1: المواصفات الفنية -->
-    <div align=right>
-    <table dir=rtl border=0 cellspacing=0 cellpadding=0 style='margin-left:-5.45pt'>
-     <tr>
-      <td width=335 valign=top style='width:250.95pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span dir=RTL></span><strong><span lang=AR-SA style='font-size:14.0pt;color:#0070C0'><span dir=RTL></span>1- المـواصـفـات الـفـنـيـة لوحدة التبريد:</span></strong></p>
-      </td>
-      <td width=377 valign=top style='width:282.65pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><span dir=LTR></span><strong><span style='font-size:14.0pt;color:#0070C0'><span dir=LTR></span>1-Unit Technical Specifications:</span></strong></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=335 valign=top style='width:250.95pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>الموديل والعلامة:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> </span><span dir=LTR style='font-size:10.0pt;color:#1F1F1F'>VOLGA HVAC</span><span dir=RTL></span><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'><span dir=RTL></span> (تجميع سعودي - تقنية أمريكية)</span></p>
-      </td>
-      <td width=377 valign=top style='width:282.65pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Model<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span> &amp; </span>Brand<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>:</span></span></b><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'> </span><span style='font-size:10.0pt;color:#1F1F1F'>VOLGA HVAC (KSA Assembly - USA Tech)</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=335 valign=top style='width:250.95pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>قوة التبريد:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> تصل إلى </span><span contenteditable="true" class="editable" id="temperature_range" style='font-size:10.0pt;color:#1F1F1F'>-25</span><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> درجة مئوية</span></p>
-      </td>
-      <td width=377 valign=top style='width:282.65pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Cooling Power<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>:</span></span></b><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'> </span><span style='font-size:10.0pt;color:#1F1F1F'>Down to </span><span contenteditable="true" class="editable" id="temperature_range_en" style='font-size:10.0pt;color:#1F1F1F'>-25</span><span style='font-size:10.0pt;color:#1F1F1F'>°C</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=335 valign=top style='width:250.95pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>تدفق الهواء:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> 1750 م³/ساعة (الأعلى في فئتها)</span></p>
-      </td>
-      <td width=377 valign=top style='width:282.65pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Airflow<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>:</span></span></b><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'> 1750 </span><span style='font-size:10.0pt;color:#1F1F1F'>m³/hr (Best in class)</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=335 valign=top style='width:250.95pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>الضاغط (الكمبريسور):</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> 5S14 معتمد (سعة 138cc)</span></p>
-      </td>
-      <td width=377 valign=top style='width:282.65pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Compressor<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>:</span></span></b><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'> </span><span style='font-size:10.0pt;color:#1F1F1F'>Approved 5S14 (138cc capacity)</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=335 valign=top style='width:250.95pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>تحمل الحرارة المحيطة:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> حتى 55 درجة مئوية</span></p>
-      </td>
-      <td width=377 valign=top style='width:282.65pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Ambient Temp Resistance<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>:</span></span></b><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'> </span><span style='font-size:10.0pt;color:#1F1F1F'>Up to 55°C</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=335 valign=top style='width:250.95pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>نظام التذويب:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> غاز ساخن (Hot Gas)</span></p>
-      </td>
-      <td width=377 valign=top style='width:282.65pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Defrosting System<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>:</span></span></b><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'> </span><span style='font-size:10.0pt;color:#1F1F1F'>Hot Gas Defrosting</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=335 valign=top style='width:250.95pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>الخامات:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> أنابيب نحاس / زعانف ألمنيوم (مضاد للميكروبات)</span></p>
-      </td>
-      <td width=377 valign=top style='width:282.65pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Materials<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>:</span></span></b><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'> </span><span style='font-size:10.0pt;color:#1F1F1F'>Copper tubes / Aluminum fins (Anti-microbial)</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=335 valign=top style='width:250.95pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>الجهد ونوع الفريون:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> 12 فولت DC / R404a (0.9kg)</span></p>
-      </td>
-      <td width=377 valign=top style='width:282.65pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Voltage<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span> &amp; </span>Refrigerant<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>:</span></span></b><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'> 12 </span><span style='font-size:10.0pt;color:#1F1F1F'>V DC / R404a (0.9kg)</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=335 valign=top style='width:250.95pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>أبعاد الوحدة الخارجية:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> 920 × 540 × 230 ملم</span></p>
-      </td>
-      <td width=377 valign=top style='width:282.65pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Outdoor Unit Dim<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>:</span></span></b><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'> 920 </span><span style='font-size:10.0pt;color:#1F1F1F'>x 540 x 230 mm</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=335 valign=top style='width:250.95pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>أبعاد الوحدة الداخلية:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> 1010 × 570 × 150 ملم</span></p>
-      </td>
-      <td width=377 valign=top style='width:282.65pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Indoor Unit Dim<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>:</span></span></b><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'> 1010 </span><span style='font-size:10.0pt;color:#1F1F1F'>x 570 x 150 mm</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=335 valign=top style='width:250.95pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>الوزن الصافي:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> خارجية 25 كجم / داخلية 15 كجم</span></p>
-      </td>
-      <td width=377 valign=top style='width:282.65pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Net Weight<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>:</span></span></b><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'> </span><span style='font-size:10.0pt;color:#1F1F1F'>Ext: 25 kg / Int: 15 kg</span></p>
-      </td>
-     </tr>
-    </table>
-    </div>
-
-    <p class=MsoNormal><span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>----------------------------------------------------------------------------------------------------------------------------</span></p>
-
-    <!-- القسم 2: الشاسيه والأرضية -->
-    <div align=right>
-    <table dir=rtl border=0 cellspacing=0 cellpadding=0 style='margin-left:-6.2pt'>
-     <tr>
-      <td width=333 valign=top style='width:250.0pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><strong><span lang=AR-SA style='font-size:14.0pt;color:#0070C0'>2- مواصفات الشاسيه والأرضية:</span></strong></p>
-      </td>
-      <td width=373 valign=top style='width:279.65pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><strong><span style='font-size:14.0pt;color:#0070C0'>2-Chassis<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span> &amp; </span>Flooring Specifications:</span></strong></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=333 valign=top style='width:250.0pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>هيكل الشاسيه:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> حديد معالج عالي التحمل للطرق الوعرة</span></p>
-      </td>
-      <td width=373 valign=top style='width:279.65pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Chassis Frame:<span dir=RTL></span><span dir=RTL><span dir=RTL></span> </span></span></b><span style='font-size:10.0pt;color:#1F1F1F'>Heavy-duty treated iron for off-road</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=333 valign=top style='width:250.0pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>أبعاد الصندوق (خارجي):</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> 2.30 ط × 1.70 ع × 1.60 ارتفاع (م)</span></p>
-      </td>
-      <td width=373 valign=top style='width:279.65pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Ext. Dimensions: </span></b><span dir=RTL></span><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'><span dir=RTL></span>2.30</span><span style='font-size:10.0pt;color:#1F1F1F'>L x 1.70W x 1.60H (m)</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=333 valign=top style='width:250.0pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>الفريم الخارجي:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> ألمنيوم مقاس 6×6 سم</span></p>
-      </td>
-      <td width=373 valign=top style='width:279.65pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Outer Frame: </span></b><span dir=RTL></span><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'><span dir=RTL></span>6</span><span style='font-size:10.0pt;color:#1F1F1F'>x6 cm Aluminum frame</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=333 valign=top style='width:250.0pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>طلاء الشاسيه:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> هيريسايت (راتنج فينولي) + طبقة سوداء</span></p>
-      </td>
-      <td width=373 valign=top style='width:279.65pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Chassis Coating<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>:</span></span></b><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'> </span><span style='font-size:10.0pt;color:#1F1F1F'>Heresite Phenolic Resin + Black coat</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=333 valign=top style='width:250.0pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>أرضية الصندوق:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> ألواح ألمنيوم مقوى بسماكة 4-6 ملم</span></p>
-      </td>
-      <td width=373 valign=top style='width:279.65pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Floor<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>:</span></span></b><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'> </span><span style='font-size:10.0pt;color:#1F1F1F'>Reinforced Aluminum sheets 4-6mm thick</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=333 valign=top style='width:250.0pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>العزل الأرضي:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> بولي يوريثان كثافة 40 كجم/م³ (100-120 ملم)</span></p>
-      </td>
-      <td width=373 valign=top style='width:279.65pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Floor Insulation<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>:</span></span></b><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'> </span><span style='font-size:10.0pt;color:#1F1F1F'>PU density 40kg/m³ (100-120mm)</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=333 valign=top style='width:250.0pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>نظام الختم:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> ربر لاصق بين القواطع لمنع التسرب الحراري</span></p>
-      </td>
-      <td width=373 valign=top style='width:279.65pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Sealing<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>:</span></span></b><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'> </span><span style='font-size:10.0pt;color:#1F1F1F'>Adhesive rubber seals to prevent heat leak</span></p>
-      </td>
-     </tr>
-    </table>
-    </div>
-
-    <p class=MsoNormal><span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>----------------------------------------------------------------------------------------------------------------------------</span></p>
-
-    <!-- القسم 3: الألواح والعزل -->
-    <div align=right>
-    <table dir=rtl border=0 cellspacing=0 cellpadding=0 style='margin-left:-6.2pt'>
-     <tr>
-      <td width=333 valign=top style='width:249.6pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span dir=RTL></span><strong><span lang=AR-SA style='font-size:14.0pt;color:#0070C0'><span dir=RTL></span>3- مواصفات الألواح والعزل:</span></strong></p>
-      </td>
-      <td width=373 valign=top style='width:280.05pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><span dir=LTR></span><strong><span style='font-size:14.0pt;color:#0070C0'><span dir=LTR></span>3-Insulation<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span> &amp; </span>Cladding Specifications:</span></strong></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=333 valign=top style='width:249.6pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>نوع الألواح:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> ألواح مسبقة الصب معتمدة من </span><span dir=LTR style='font-size:10.0pt;color:#1F1F1F'>CTI</span></p>
-      </td>
-      <td width=373 valign=top style='width:280.05pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Panel Type<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>:</span></span></b><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'> </span><span style='font-size:10.0pt;color:#1F1F1F'>CTI certified prefabricated panels</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=333 valign=top style='width:249.6pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>سماكة العزل:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> 10 سم</span></p>
-      </td>
-      <td width=373 valign=top style='width:280.05pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Insulation Thickness<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>:</span></span></b><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'> 10 </span><span style='font-size:10.0pt;color:#1F1F1F'>cm</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=333 valign=top style='width:249.6pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>مادة العزل:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> بوليوريثان (كثافة 38-40 كجم/م³)</span></p>
-      </td>
-      <td width=373 valign=top style='width:280.05pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Insulation Material<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>:</span></span></b><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'> </span><span style='font-size:10.0pt;color:#1F1F1F'>PU (Density 38-40 kg/m³)</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=333 valign=top style='width:249.6pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>معامل العزل الحراري:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> 0.02 واط/ م/ درجة مئوية</span></p>
-      </td>
-      <td width=373 valign=top style='width:280.05pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Thermal Conductivity<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>:</span></span></b><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'> 0.02 </span><span style='font-size:10.0pt;color:#1F1F1F'>W/m.K</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=333 valign=top style='width:249.6pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>التغطية الداخلية:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> صاج مجلفن معالج بالهيريسايت (0.6 مم)</span></p>
-      </td>
-      <td width=373 valign=top style='width:280.05pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Internal Cladding<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>:</span></span></b><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'> </span><span style='font-size:10.0pt;color:#1F1F1F'>Heresite-treated Galv. steel (0.6mm)</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td width=333 valign=top style='width:249.6pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>اللون:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> أبيض معزز بالإيبوكسي المقاوم</span></p>
-      </td>
-      <td width=373 valign=top style='width:280.05pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Finish<span dir=RTL></span><span lang=AR-SA dir=RTL><span dir=RTL></span>:</span></span></b><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'> </span><span style='font-size:10.0pt;color:#1F1F1F'>White, reinforced with resistant Epoxy</span></p>
-      </td>
-     </tr>
-    </table>
-    </div>
-
-    <p class=MsoNormal>&nbsp;</p>
-
-    <!-- جدول الأسعار -->
-    <div align=right>
-    <table class="price-table" dir=rtl border=1 cellspacing=0 cellpadding=0>
-     <tr>
-      <td valign=top style='padding:0in 5.4pt 0in 5.4pt'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><strong><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>البيان</span></strong></p>
-      </td>
-      <td valign=top style='border-right:none;padding:0in 5.4pt 0in 5.4pt'>
-      <p class=MsoNormal align=center dir=LTR style='text-align:center'><strong><span style='font-size:10.0pt;color:#1F1F1F'>Description</span></strong></p>
-      </td>
-      <td valign=top style='border-right:none;padding:0in 5.4pt 0in 5.4pt'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><strong><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>الكمية</span></strong><span dir=LTR style='font-size:11.0pt'>Qty</span></p>
-      </td>
-      <td valign=top style='border-right:none;padding:0in 5.4pt 0in 5.4pt'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><strong><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>السعر</span></strong><span dir=LTR style='font-size:10.0pt;color:#1F1F1F'>Price</span></p>
-      </td>
-      <td valign=top style='border-right:none;padding:0in 5.4pt 0in 5.4pt'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><strong><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>الإجمالي</span></strong><span dir=LTR style='font-size:11.0pt'>Total</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td valign=top style='border-top:none;padding:0in 5.4pt 0in 5.4pt'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>توريد وتركيب وحدة التبريد، تصنيع وتركيب الصندوق، وأعمال المعالجة والعزل الداخلي</span></p>
-      </td>
-      <td valign=top style='border-top:none;border-left:solid #BFBFBF 1.0pt;border-bottom:solid #BFBFBF 1.0pt;border-right:none;padding:0in 5.4pt 0in 5.4pt'>
-      <p class=MsoNormal align=center dir=LTR style='text-align:center'><span style='font-size:10.0pt;color:#1F1F1F'>Supply & Installation of Cooling Unit, Box Manufacturing, Treatment & Internal Insulation</span></p>
-      </td>
-      <td valign=top style='border-top:none;border-left:solid #BFBFBF 1.0pt;border-bottom:solid #BFBFBF 1.0pt;border-right:none;padding:0in 5.4pt 0in 5.4pt'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span dir=RTL></span><span contenteditable="true" class="editable" id="qty1" lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'><span dir=RTL></span>1</span></p>
-      </td>
-      <td valign=top style='border-top:none;border-left:solid #BFBFBF 1.0pt;border-bottom:solid #BFBFBF 1.0pt;border-right:none;padding:0in 5.4pt 0in 5.4pt'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span dir=RTL></span><span contenteditable="true" class="editable" id="price1" lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'><span dir=RTL></span>17,000</span></p>
-      </td>
-      <td valign=top style='border-top:none;border-left:solid #BFBFBF 1.0pt;border-bottom:solid #BFBFBF 1.0pt;border-right:none;padding:0in 5.4pt 0in 5.4pt'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span dir=RTL></span><span id="total1" lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'><span dir=RTL></span>17,000</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td valign=top style='border-top:none;padding:0in 5.4pt 0in 5.4pt'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>ضريبة القيمة المضافة (15%)</span></b></p>
-      </td>
-      <td valign=top style='border-top:none;border-left:solid #BFBFBF 1.0pt;border-bottom:solid #BFBFBF 1.0pt;border-right:none;padding:0in 5.4pt 0in 5.4pt'>
-      <p class=MsoNormal align=center dir=LTR style='text-align:center'><b><span style='font-size:10.0pt;color:#1F1F1F'>Value Added Tax (15%)</span></b></p>
-      </td>
-      <td valign=top style='border-top:none;border-left:solid #BFBFBF 1.0pt;border-bottom:solid #BFBFBF 1.0pt;border-right:none;padding:0in 5.4pt 0in 5.4pt'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>-</span></p>
-      </td>
-      <td valign=top style='border-top:none;border-left:solid #BFBFBF 1.0pt;border-bottom:solid #BFBFBF 1.0pt;border-right:none;padding:0in 5.4pt 0in 5.4pt'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span dir=RTL></span><span id="vat_amount" lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'><span dir=RTL></span>2,550</span></p>
-      </td>
-      <td valign=top style='border-top:none;border-left:solid #BFBFBF 1.0pt;border-bottom:solid #BFBFBF 1.0pt;border-right:none;padding:0in 5.4pt 0in 5.4pt'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span dir=RTL></span><span id="vat_total" lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'><span dir=RTL></span>2,550</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td valign=top style='border-top:none;padding:0in 5.4pt 0in 5.4pt'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>الإجمالي النهائي (شامل الضريبة)</span></b></p>
-      </td>
-      <td valign=top style='border-top:none;border-left:solid #BFBFBF 1.0pt;border-bottom:solid #BFBFBF 1.0pt;border-right:none;padding:0in 5.4pt 0in 5.4pt'>
-      <p class=MsoNormal align=center dir=LTR style='text-align:center'><b><span style='font-size:10.0pt;color:#1F1F1F'>Grand Total (Incl. VAT)</span></b></p>
-      </td>
-      <td valign=top style='border-top:none;border-left:solid #BFBFBF 1.0pt;border-bottom:solid #BFBFBF 1.0pt;border-right:none;padding:0in 5.4pt 0in 5.4pt'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span dir=RTL></span><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'><span dir=RTL></span>-</span></p>
-      </td>
-      <td valign=top style='border-top:none;border-left:solid #BFBFBF 1.0pt;border-bottom:solid #BFBFBF 1.0pt;border-right:none;padding:0in 5.4pt 0in 5.4pt'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span dir=RTL></span><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'><span dir=RTL></span>-</span></p>
-      </td>
-      <td valign=top style='border-top:none;border-left:solid #BFBFBF 1.0pt;border-bottom:solid #BFBFBF 1.0pt;border-right:none;padding:0in 5.4pt 0in 5.4pt'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span dir=RTL></span><b><span id="grand_total" lang=AR-SA style='font-size:13.0pt;color:#1F1F1F;background:yellow'><span dir=RTL></span>19,550</span></b></p>
-      </td>
-     </tr>
-    </table>
-    </div>
-
-    <p class=MsoNormal>&nbsp;</p>
-
-    <!-- الشروط والأحكام -->
-    <div align=right>
-    <table dir=rtl border=0 cellspacing=0 cellpadding=0 width=709 style='width:531.9pt;margin-left:-8.45pt'>
-     <tr>
-      <td valign=top style='padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><strong><span lang=AR-SA style='font-size:11.0pt;color:#1F1F1F'>الشروط والأحكام</span></strong></p>
-      </td>
-      <td width=383 valign=top style='width:287.2pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><strong><span style='font-size:11.0pt;color:#1F1F1F'>Terms & Conditions</span></strong></p>
-      </td>
-     </tr>
-     <tr>
-      <td valign=top style='padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:11.0pt;color:#1F1F1F'>طريقة الدفع:</span></b><span lang=AR-SA style='font-size:11.0pt;color:#1F1F1F'> 50% دفعة مقدمة عند التوقيع و50% عند الاستلام</span></p>
-      </td>
-      <td width=383 valign=top style='width:287.2pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:11.0pt;color:#1F1F1F'>Payment:</span></b><span lang=AR-SA dir=RTL style='font-size:11.0pt;color:#1F1F1F'> 50% </span><span style='font-size:11.0pt;color:#1F1F1F'>Down payment / 50% Upon delivery</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td valign=top style='padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:11.0pt;color:#1F1F1F'>مدة التنفيذ:</span></b><span lang=AR-SA style='font-size:11.0pt;color:#1F1F1F'> 20-25 يوم عمل لكل مركبة (من استلام الدفعة والسيارة)</span></p>
-      </td>
-      <td width=383 valign=top style='width:287.2pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:11.0pt;color:#1F1F1F'>Execution Time:</span></b><span lang=AR-SA dir=RTL style='font-size:11.0pt;color:#1F1F1F'> 20-25 </span><span style='font-size:11.0pt;color:#1F1F1F'>Working days per vehicle</span></p>
-      </td>
-     </tr>
-    </table>
-    </div>
-
-    <!-- الصفحة الثانية تبدأ هنا -->
-    <div style="page-break-before:always"></div>
-
-    <!-- القسم 4: الضمان -->
-    <div align=right>
-    <table dir=rtl border=0 cellspacing=0 cellpadding=0 width=709 style='width:531.9pt;margin-left:-5.4pt'>
-     <tr style='height:10.9pt'>
-      <td width=355 valign=top style='width:266.6pt;padding:0in 0in 0in 0in;height:10.9pt'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span dir=RTL></span><strong><span lang=AR-SA style='font-size:14.0pt;color:#0070C0'><span dir=RTL></span>4- الضمان:</span></strong></p>
-      </td>
-      <td width=354 valign=top style='width:265.3pt;padding:0in 0in 0in 0in;height:10.9pt'>
-      <p class=MsoNormal dir=LTR><span dir=LTR></span><strong><span style='font-size:14.0pt;color:#0070C0'><span dir=LTR></span>4- Warranty:</span></strong></p>
-      </td>
-     </tr>
-     <tr style='height:2.9pt'>
-      <td width=355 valign=top style='width:266.6pt;padding:0in 0in 0in 0in;height:2.9pt'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>ضمان وحدة التبريد:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> 3 سنوات أو 1900 ساعة (شامل القطع والصيانة)</span></p>
-      </td>
-      <td width=354 valign=top style='width:265.3pt;padding:0in 0in 0in 0in;height:2.9pt'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Unit Warranty:</span></b><span dir=RTL></span><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'><span dir=RTL></span> 3 </span><span style='font-size:10.0pt;color:#1F1F1F'>Years or 1900 hours (Parts & Labor)</span></p>
-      </td>
-     </tr>
-     <tr style='height:2.9pt'>
-      <td width=355 valign=top style='width:266.6pt;padding:0in 0in 0in 0in;height:2.9pt'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>ضمان الصندوق:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> 3 سنوات على العزل والهيكل</span></p>
-      </td>
-      <td width=354 valign=top style='width:265.3pt;padding:0in 0in 0in 0in;height:2.9pt'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Box Warranty:</span></b><span dir=RTL></span><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'><span dir=RTL></span> 3 </span><span style='font-size:10.0pt;color:#1F1F1F'>Years on insulation & structure</span></p>
-      </td>
-     </tr>
-     <tr style='height:6.65pt'>
-      <td width=355 valign=top style='width:266.6pt;padding:0in 0in 0in 0in;height:6.65pt'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>ميزة إضافية:</span></b><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'> خصم 5% لمدة سنة للعملاء على جميع المنتجات (تم التطبيق)</span></p>
-      </td>
-      <td width=354 valign=top style='width:265.3pt;padding:0in 0in 0in 0in;height:6.65pt'>
-      <p class=MsoNormal dir=LTR><b><span style='font-size:10.0pt;color:#1F1F1F'>Bonus:</span></b><span lang=AR-SA dir=RTL style='font-size:10.0pt;color:#1F1F1F'> 5% </span><span style='font-size:10.0pt;color:#1F1F1F'>Annual discount on all factory products (added)</span></p>
-      </td>
-     </tr>
-    </table>
-    </div>
-
-    <p class=MsoNormal>&nbsp;</p>
-
-    <!-- القسم 5: ملاحظات هامة -->
-    <div align=right>
-    <table dir=rtl border=0 cellspacing=0 cellpadding=0 width=719 style='width:539.0pt;margin-left:-8.45pt'>
-     <tr>
-      <td valign=top style='padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span dir=RTL></span><strong><span lang=AR-SA style='font-size:14.0pt;color:#0070C0'><span dir=RTL></span>5- ملاحظات هامة</span></strong></p>
-      </td>
-      <td width=427 valign=top style='width:4.45in;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><span dir=LTR></span><strong><span style='font-size:14.0pt;color:#0070C0'><span dir=LTR></span>5- Important Notes</span></strong></p>
-      </td>
-     </tr>
-     <tr>
-      <td valign=top style='padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>المصنع غير مسؤول عن صندوق السيارة الأصلي بعد الفك.</span></p>
-      </td>
-      <td width=427 valign=top style='width:4.45in;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><span style='font-size:10.0pt;color:#1F1F1F'>The factory is not responsible for the original box after removal.</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td valign=top style='padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>يجب على العميل استلام الصندوق الأصلي وقت أو قبل استلام السيارة.</span></p>
-      </td>
-      <td width=427 valign=top style='width:4.45in;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><span style='font-size:10.0pt;color:#1F1F1F'>Customer must collect the original box before or during delivery.</span></p>
-      </td>
-     </tr>
-     <tr>
-      <td valign=top style='padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>يحق للمصنع التصرف في الصندوق في حال عدم استلامه من العميل.</span></p>
-      </td>
-      <td width=427 valign=top style='width:4.45in;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><span style='font-size:10.0pt;color:#1F1F1F'>The factory reserves the right to dispose of the box if not collected.</span></p>
-      </td>
-     </tr>
-    </table>
-    </div>
-
-    <p class=MsoNormal>&nbsp;</p>
-
-    <!-- القسم 6: الصناعة والشهادات -->
-    <div align=right>
-    <table dir=rtl border=0 cellspacing=0 cellpadding=0 style='margin-left:-6.95pt'>
-     <tr>
-      <td valign=top style='padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span dir=RTL></span><strong><span lang=AR-SA style='font-size:14.0pt;color:#0070C0'><span dir=RTL></span>6- الصناعة والشهادات</span></strong></p>
-      </td>
-      <td width=385 valign=top style='width:289.0pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><strong><span style='font-size:14.0pt;color:#0070C0'>6- Manufacturing & Certificates</span></strong></p>
-      </td>
-     </tr>
-     <tr>
-      <td valign=top style='padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>المنشأ:<b> صناعة سعودية بترخيص من </b></span><b><span dir=LTR style='font-size:10.0pt;color:#1F1F1F'>VOLGA USA</span></b></p>
-      </td>
-      <td width=385 valign=top style='width:289.0pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><span style='font-size:10.0pt;color:#1F1F1F'>Origin:<b> Saudi Made under VOLGA USA license</b></span></p>
-      </td>
-     </tr>
-     <tr>
-      <td valign=top style='padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>الاعتمادات الدولية:<b> حاصلون على شهادة معهد التبريد الأمريكي </b></span><b><span dir=LTR style='font-size:10.0pt;color:#1F1F1F'>CTI</span></b></p>
-      </td>
-      <td width=385 valign=top style='width:289.0pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><span style='font-size:10.0pt;color:#1F1F1F'>Accreditation:<b> Approved by CTI (USA)</b></span></p>
-      </td>
-     </tr>
-     <tr>
-      <td valign=top style='padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>شهادات الأيزو:<b> حاصلون على </b></span><b><span dir=LTR style='font-size:10.0pt;color:#1F1F1F'>ISO 9001:2015 & ISO 45001:2018</span></b></p>
-      </td>
-      <td width=385 valign=top style='width:289.0pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><span style='font-size:10.0pt;color:#1F1F1F'>ISO Certs:<b> ISO 9001:2015 & ISO 45001:2018</b></span></p>
-      </td>
-     </tr>
-     <tr>
-      <td valign=top style='padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=RTL style='text-align:right;direction:rtl;unicode-bidi:embed'><span lang=AR-SA style='font-size:10.0pt;color:#1F1F1F'>شهادات أنظمة الجودة والسلامة:<b> </b></span><b><span dir=LTR style='font-size:10.0pt;color:#1F1F1F'>ASO: QCMS / CSAMS / OHSMS</span></b></p>
-      </td>
-      <td width=385 valign=top style='width:289.0pt;padding:0in 0in 0in 0in'>
-      <p class=MsoNormal dir=LTR><span style='font-size:10.0pt;color:#1F1F1F'>Quality Systems:<b> ASO: QCMS / CSAMS / OHSMS</b></span></p>
-      </td>
-     </tr>
-    </table>
-    </div>
-
-    <p class=MsoNormal>&nbsp;</p>
-
-    <!-- معلومات الشهادات -->
-    <p class=MsoNormal align=center style='text-align:center'><span style='font-size:9.0pt;font-family:"Arial Rounded MT Bold",sans-serif;color:#C00000;background:lightgrey'>(CTI), (ISO 9001:2015), (ISO 45001:2018), (ASO: QCMS: 1/2020), (ASO: CSAMS: 1/2021), (ASO: OHSMS: 1/2021) <b style="color:#0070C0">Certificates.</b></span></p>
-
-    <!-- Placeholders للشهادات -->
-    <p class=MsoNormal align=center style='text-align:center'>
-    <span style='font-size:8pt;color:#999;border:2px dashed #ccc;padding:10pt;background:#f9f9f9'>
-    [صورة الشهادات - سيتم إضافتها لاحقاً]
-    </span>
-    </p>
-
-    <!-- معلومات إضافية -->
-    <p class=MsoNormal align=center style='text-align:center;margin-top:10pt'><b><span style='font-size:10.0pt;color:black'>Conform/ </span></b><b><span style='font-size:9.0pt;color:black'>Designed</span></b><span style='font-size:9.0pt;color:#0070C0'> VOLGA - HVAC </span><b><span style='font-size:10.0pt'>• For KSA & GCC. Countries.</span></b></p>
-
-    <p class=MsoNormal align=center style='text-align:center'><b><span style='font-size:10.0pt;color:red'>Ambient Air Temperature 55°C</span></b></p>
-
-    <p class=MsoNormal align=center style='text-align:center'><span style='font-size:10.0pt;color:#0070C0'>2024 CTI<b style='color:black'>, </b><b>Standard • USA.</b></span></p>
-
-    <p class=MsoNormal align=center style='text-align:center'><span style='font-size:9.0pt;font-family:"Arial Rounded MT Bold",sans-serif'>VOLGA COOLING TECHNOLOGIES. KSA/USA</span></p>
-
-    <p class=MsoNormal>&nbsp;</p>
-
-    <!-- معلومات الاتصال -->
-    <p class=MsoNormal align=center style='text-align:center'><b><span style='font-size:15.0pt'>Best Regards • <span lang=AR-SA dir=RTL>أطيب التحيات</span></span></b></p>
-
-    <p class=MsoNormal align=center style='text-align:center'><b><span style='font-size:13.0pt'>Fareed ALshehri <span lang=AR-SA dir=RTL>فريد الشهري</span></span></b></p>
-
-    <p class=MsoNormal align=center style='text-align:center'><b><span style='font-size:13.0pt'>+966 555 038 099</span></b></p>
-
-    <p class=MsoNormal align=center style='text-align:center'><b><span style='font-size:13.0pt'>+966 557 040 238</span></b></p>
-
-        </div><!-- نهاية page-content -->
-        
-        <!-- الفوتر -->
-        <div class="page-footer">
-            <span>VOLGA COOLING TECHNOLOGIES | C.R 4030353741 – VAT No. 300912764900003</span>
-            <span>Page 1</span>
-        </div>
-    </div><!-- نهاية الصفحة الأولى -->
-    
-    <!-- الصفحة الثانية -->
-    <div class="word-page" id="page-2">
-        <!-- الهيدر -->
-        <div class="page-header">
-            <span>فولجا كولينج تيكنولوجيز - VOLGA COOLING TECHNOLOGIES</span>
-            <span>Ref: VTR-1225-001</span>
-        </div>
-        
-        <!-- المحتوى -->
-        <div class="page-content" contenteditable="false">
-            <p class=MsoNormal style='text-align:center'><i><span style='font-size:11.0pt;color:#666'>الصفحة الثانية - يمكن إضافة محتوى هنا</span></i></p>
-        </div>
-        
-        <!-- الفوتر -->
-        <div class="page-footer">
-            <span>VOLGA COOLING TECHNOLOGIES | C.R 4030353741 – VAT No. 300912764900003</span>
-            <span>Page 2</span>
-        </div>
-    </div><!-- نهاية الصفحة الثانية -->
-    
-</div><!-- نهاية page-container -->
-
-<script>
-function calculateTotal() {
-    const qty1 = parseInt(document.getElementById('qty1').textContent.replace(/,/g, '')) || 0;
-    const price1 = parseInt(document.getElementById('price1').textContent.replace(/,/g, '')) || 0;
-    
-    const subtotal = qty1 * price1;
-    const vat = Math.round(subtotal * 0.15);
-    const total = subtotal + vat;
-    
-    document.getElementById('total1').textContent = subtotal.toLocaleString();
-    document.getElementById('vat_amount').textContent = vat.toLocaleString();
-    document.getElementById('vat_total').textContent = vat.toLocaleString();
-    document.getElementById('grand_total').textContent = total.toLocaleString();
-}
-
-document.getElementById('temperature_range').addEventListener('input', function() {
-    document.getElementById('temperature_range_en').textContent = this.textContent;
-    calculateTotal();
-});
-
-document.getElementById('temperature_range_en').addEventListener('input', function() {
-    document.getElementById('temperature_range').textContent = this.textContent;
-    calculateTotal();
-});
-
-document.getElementById('qty1').addEventListener('input', calculateTotal);
-document.getElementById('price1').addEventListener('input', calculateTotal);
-
-function saveQuotation() {
-    const data = {
-        serial_number: document.getElementById('serial_number').textContent.trim(),
-        quote_date: document.getElementById('quote_date').textContent.trim(),
-        validity_days: document.getElementById('validity_days').textContent.trim(),
-        client_name: document.getElementById('client_name').textContent.trim(),
-        quote_title: document.getElementById('quote_title').textContent.trim(),
-        temperature_range: document.getElementById('temperature_range').textContent.trim(),
-        qty1: document.getElementById('qty1').textContent.trim(),
-        price1: document.getElementById('price1').textContent.trim(),
-        total: document.getElementById('grand_total').textContent.trim(),
-        saved_at: new Date().toISOString()
-    };
-
-    if (!data.client_name || data.client_name === 'اسم العميل') {
-        alert('⚠️ من فضلك أدخل اسم العميل');
-        document.getElementById('client_name').focus();
-        return;
-    }
-
-    const quotations = JSON.parse(localStorage.getItem('quotations') || '[]');
-    quotations.push(data);
-    localStorage.setItem('quotations', JSON.stringify(quotations));
-    
-    alert('✅ تم حفظ عرض السعر بنجاح!');
-}
-
-function goBack() {
-    if (confirm('هل أنت متأكد من الإلغاء؟ لن يتم حفظ التغييرات.')) {
-        window.history.back();
-    }
-}
-
-calculateTotal();
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 نظام VOLGA - Word Style');
-    
-    let editMode = false;
-    let selectedTable = null;
-    let selectedCell = null;
-    const container = document.querySelector('.page-container');
-    const pages = document.querySelectorAll('.page-content');
-    
-    if (!container || pages.length === 0) return;
-    
-    // دالة لتطبيق contenteditable على كل الصفحات
-    function setEditMode(mode) {
-        pages.forEach(page => {
-            page.contentEditable = mode;
-        });
-    }
-
-    // ========== تحضير الجداول الموجودة ==========
-    function initTables() {
-        const tables = container.querySelectorAll('table');
-        tables.forEach(table => {
-            if (!table.parentElement.classList.contains('table-wrapper')) {
-                wrapTable(table);
+        // تحميل القالب
+        async function loadTemplate() {
+            try {
+                const response = await fetch('template-volga.html');
+                const html = await response.text();
+                
+                // استخراج المحتوى فقط (بدون أدوات التحرير)
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // إزالة شريط الأدوات واللوحة الجانبية
+                const toolbar = doc.querySelector('.toolbar');
+                if (toolbar) toolbar.remove();
+                
+                const sidebar = doc.querySelector('.sidebar');
+                if (sidebar) sidebar.remove();
+                
+                const lineSpacing = doc.getElementById('line-spacing-tools');
+                if (lineSpacing) lineSpacing.remove();
+                
+                // إزالة أزرار الحذف
+                const deleteButtons = doc.querySelectorAll('.delete-page-btn');
+                deleteButtons.forEach(btn => btn.remove());
+                
+                // إزالة السكريبتات
+                const scripts = doc.querySelectorAll('script');
+                scripts.forEach(script => script.remove());
+                
+                // جعل المحتوى غير قابل للتحرير
+                const editables = doc.querySelectorAll('[contenteditable]');
+                editables.forEach(el => el.removeAttribute('contenteditable'));
+                
+                return doc.body.innerHTML;
+            } catch (error) {
+                console.error('خطأ في تحميل القالب:', error);
+                return '<p>خطأ في تحميل القالب</p>';
             }
-        });
-        console.log(`✅ تم تحضير ${tables.length} جدول`);
-    }
-
-    function wrapTable(table) {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'table-wrapper';
-        wrapper.style.display = 'inline-block';
-        wrapper.style.position = 'relative';
+        }
         
-        table.parentNode.insertBefore(wrapper, table);
-        wrapper.appendChild(table);
-        
-        // مقبض السحب
-        const dragHandle = document.createElement('div');
-        dragHandle.className = 'drag-handle';
-        dragHandle.innerHTML = '⋮⋮ اسحب الجدول ⋮⋮';
-        wrapper.appendChild(dragHandle);
-        
-        // 8 مقابض للتكبير
-        const positions = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
-        positions.forEach(pos => {
-            const handle = document.createElement('div');
-            handle.className = `resize-handle handle-${pos}`;
-            handle.dataset.pos = pos;
-            wrapper.appendChild(handle);
-        });
-        
-        makeTableInteractive(wrapper, table);
-    }
-
-    function makeTableInteractive(wrapper, table) {
-        // تحديد الجدول
-        table.addEventListener('click', function(e) {
-            if (!editMode) return;
-            e.stopPropagation();
-            selectTable(wrapper, table);
-        });
-        
-        // السحب - نظام جديد بالكامل
-        const dragHandle = wrapper.querySelector('.drag-handle');
-        dragHandle.addEventListener('mousedown', function(e) {
-            if (!editMode) return;
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const startX = e.pageX;
-            const startY = e.pageY;
-            let startLeft = wrapper.offsetLeft;
-            let startTop = wrapper.offsetTop;
-            let isDragging = false;
-            let hasMovedEnough = false;
-            
-            function move(e) {
-                const dx = e.pageX - startX;
-                const dy = e.pageY - startY;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                // التحويل لـ absolute فقط بعد تحرك 10px
-                if (!hasMovedEnough && distance > 10) {
-                    hasMovedEnough = true;
-                    isDragging = true;
-                    
-                    // احفظ المكان الحالي
-                    const rect = wrapper.getBoundingClientRect();
-                    
-                    // حول لـ absolute
-                    wrapper.style.position = 'absolute';
-                    wrapper.style.left = (rect.left + window.scrollX) + 'px';
-                    wrapper.style.top = (rect.top + window.scrollY) + 'px';
-                    wrapper.style.zIndex = '100';
-                    wrapper.style.width = table.offsetWidth + 'px';
-                    wrapper.dataset.wasFloated = 'true'; // علامة إنه صار floating
-                    
-                    // حدث القيم من جديد
-                    startLeft = parseInt(wrapper.style.left);
-                    startTop = parseInt(wrapper.style.top);
-                    
-                    toast('✋ جاري السحب...', '#17a2b8');
-                }
-                
-                if (isDragging) {
-                    wrapper.style.left = (startLeft + dx) + 'px';
-                    wrapper.style.top = (startTop + dy) + 'px';
+        // تهيئة الصفحة
+        async function initializePage() {
+            // تحديد الرقم التسلسلي التالي
+            const quotations = JSON.parse(localStorage.getItem('quotations') || '[]');
+            if (quotations.length > 0) {
+                const lastSerial = quotations[quotations.length - 1].serial_number;
+                const match = lastSerial.match(/(\d+)$/);
+                if (match) {
+                    nextSerialNumber = parseInt(match[1]) + 1;
                 }
             }
             
-            function stop() {
-                document.removeEventListener('mousemove', move);
-                document.removeEventListener('mouseup', stop);
-                
-                if (isDragging) {
-                    toast('✅ تم نقل الجدول', '#28a745');
-                }
-            }
+            document.getElementById('serial_number').value = `VCT/Q/${new Date().getFullYear()}/${String(nextSerialNumber).padStart(4, '0')}`;
             
-            document.addEventListener('mousemove', move);
-            document.addEventListener('mouseup', stop);
-        });
+            // تعيين التاريخ الحالي
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('quote_date').value = today;
+            
+            // إضافة بند افتراضي
+            addItem();
+            
+            // تحميل القالب
+            const templateHTML = await loadTemplate();
+            updatePreview(templateHTML);
+        }
         
-        // التكبير/التصغير
-        const handles = wrapper.querySelectorAll('.resize-handle');
-        handles.forEach(handle => {
-            handle.addEventListener('mousedown', function(e) {
-                if (!editMode) return;
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const pos = handle.dataset.pos;
-                const startX = e.pageX;
-                const startY = e.pageY;
-                const startWidth = table.offsetWidth;
-                const startHeight = table.offsetHeight;
-                
-                function resize(e) {
-                    const dx = e.pageX - startX;
-                    const dy = e.pageY - startY;
-                    
-                    let newWidth = startWidth;
-                    let newHeight = startHeight;
-                    
-                    if (pos.includes('e')) newWidth = startWidth + dx;
-                    if (pos.includes('w')) newWidth = startWidth - dx;
-                    if (pos.includes('s')) newHeight = startHeight + dy;
-                    if (pos.includes('n')) newHeight = startHeight - dy;
-                    
-                    if (newWidth > 100) {
-                        table.style.width = newWidth + 'px';
-                        wrapper.style.width = newWidth + 'px';
-                    }
-                    
-                    if (newHeight > 50) {
-                        table.style.height = newHeight + 'px';
-                    }
-                }
-                
-                function stopResize() {
-                    document.removeEventListener('mousemove', resize);
-                    document.removeEventListener('mouseup', stopResize);
-                    toast('✅ تم تغيير حجم الجدول', '#28a745');
-                }
-                
-                document.addEventListener('mousemove', resize);
-                document.addEventListener('mouseup', stopResize);
+        // إضافة بند جديد
+        function addItem() {
+            const itemId = Date.now();
+            items.push({
+                id: itemId,
+                description_ar: '',
+                description_en: '',
+                quantity: 1,
+                price: 0
             });
+            
+            renderItems();
+            calculateTotals();
+        }
+        
+        // حذف بند
+        function removeItem(itemId) {
+            items = items.filter(item => item.id !== itemId);
+            renderItems();
+            calculateTotals();
+        }
+        
+        // عرض البنود
+        function renderItems() {
+            const container = document.getElementById('items-container');
+            container.innerHTML = items.map((item, index) => `
+                <div class="item-row">
+                    <div class="item-header">
+                        <strong>البند ${index + 1}</strong>
+                        <button class="btn-remove-item" onclick="removeItem(${item.id})">🗑️ حذف</button>
+                    </div>
+                    <div class="form-group">
+                        <label>الوصف بالعربي:</label>
+                        <textarea onchange="updateItem(${item.id}, 'description_ar', this.value)">${item.description_ar}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>الوصف بالإنجليزي:</label>
+                        <textarea onchange="updateItem(${item.id}, 'description_en', this.value)">${item.description_en}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>الكمية:</label>
+                        <input type="number" value="${item.quantity}" onchange="updateItem(${item.id}, 'quantity', this.value); calculateTotals()">
+                    </div>
+                    <div class="form-group">
+                        <label>السعر (ريال):</label>
+                        <input type="number" value="${item.price}" onchange="updateItem(${item.id}, 'price', this.value); calculateTotals()">
+                    </div>
+                    <p style="text-align: center; background: #e8f4f8; padding: 8px; border-radius: 3px; margin: 0;">
+                        <strong>الإجمالي:</strong> ${(item.quantity * item.price).toFixed(2)} ريال
+                    </p>
+                </div>
+            `).join('');
+        }
+        
+        // تحديث بند
+        function updateItem(itemId, field, value) {
+            const item = items.find(i => i.id === itemId);
+            if (item) {
+                item[field] = field === 'quantity' || field === 'price' ? parseFloat(value) || 0 : value;
+                updatePreview();
+            }
+        }
+        
+        // حساب الإجماليات
+        function calculateTotals() {
+            const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+            const vat = subtotal * 0.15;
+            const total = subtotal + vat;
+            
+            document.getElementById('subtotal').textContent = subtotal.toFixed(2);
+            document.getElementById('vat').textContent = vat.toFixed(2);
+            document.getElementById('total').textContent = total.toFixed(2);
+            
+            updatePreview();
+        }
+        
+        // تحديث المعاينة
+        async function updatePreview(templateHTML) {
+            if (!templateHTML) {
+                const response = await fetch('template-volga.html');
+                const html = await response.text();
+                
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                const toolbar = doc.querySelector('.toolbar');
+                if (toolbar) toolbar.remove();
+                const sidebar = doc.querySelector('.sidebar');
+                if (sidebar) sidebar.remove();
+                const lineSpacing = doc.getElementById('line-spacing-tools');
+                if (lineSpacing) lineSpacing.remove();
+                const deleteButtons = doc.querySelectorAll('.delete-page-btn');
+                deleteButtons.forEach(btn => btn.remove());
+                const scripts = doc.querySelectorAll('script');
+                scripts.forEach(script => script.remove());
+                const editables = doc.querySelectorAll('[contenteditable]');
+                editables.forEach(el => el.removeAttribute('contenteditable'));
+                
+                templateHTML = doc.body.innerHTML;
+            }
+            
+            // استبدال المتغيرات
+            let preview = templateHTML;
+            preview = preview.replace(/\{\{serial_number\}\}/g, document.getElementById('serial_number').value);
+            preview = preview.replace(/\{\{client_name\}\}/g, document.getElementById('client_name').value || 'غير محدد');
+            preview = preview.replace(/\{\{client_company\}\}/g, document.getElementById('client_company').value || 'غير محدد');
+            preview = preview.replace(/\{\{client_phone\}\}/g, document.getElementById('client_phone').value || '');
+            preview = preview.replace(/\{\{client_mobile\}\}/g, document.getElementById('client_mobile').value || '');
+            preview = preview.replace(/\{\{client_email\}\}/g, document.getElementById('client_email').value || '');
+            preview = preview.replace(/\{\{client_address\}\}/g, document.getElementById('client_address').value || '');
+            preview = preview.replace(/\{\{quote_title\}\}/g, document.getElementById('quote_title').value || 'غير محدد');
+            
+            // استبدال التاريخ
+            const dateValue = document.getElementById('quote_date').value;
+            if (dateValue) {
+                const [year, month, day] = dateValue.split('-');
+                preview = preview.replace(/00\/00\/2026/g, `${day}/${month}/${year}`);
+            }
+            
+            // إضافة البنود إلى الجدول
+            // هنا نحتاج لإيجاد الجدول وإضافة البنود
+            
+            document.getElementById('document-preview').innerHTML = preview;
+        }
+        
+        // حفظ عرض السعر
+        function saveQuotation() {
+            const quotation = {
+                serial_number: document.getElementById('serial_number').value,
+                quote_date: document.getElementById('quote_date').value,
+                validity_days: document.getElementById('validity_days').value,
+                client_name: document.getElementById('client_name').value,
+                client_company: document.getElementById('client_company').value,
+                client_phone: document.getElementById('client_phone').value,
+                client_mobile: document.getElementById('client_mobile').value,
+                client_email: document.getElementById('client_email').value,
+                client_address: document.getElementById('client_address').value,
+                quote_title: document.getElementById('quote_title').value,
+                items: items,
+                created_at: new Date().toISOString()
+            };
+            
+            const quotations = JSON.parse(localStorage.getItem('quotations') || '[]');
+            quotations.push(quotation);
+            localStorage.setItem('quotations', JSON.stringify(quotations));
+            
+            alert('✅ تم حفظ عرض السعر بنجاح!');
+            window.location.href = 'quotations.html';
+        }
+        
+        // إلغاء التحرير
+        function cancelEdit() {
+            if (confirm('هل أنت متأكد من إلغاء التحرير؟ سيتم فقدان جميع التغييرات.')) {
+                window.location.href = 'quotations.html';
+            }
+        }
+        
+        // طباعة المستند
+        function printDocument() {
+            window.print();
+        }
+        
+        // تهيئة عند تحميل الصفحة
+        initializePage();
+        
+        // إضافة مستمعين للتحديث التلقائي
+        ['client_name', 'client_company', 'client_phone', 'client_mobile', 'client_email', 'client_address', 'quote_title', 'quote_date'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updatePreview);
         });
-        
-        // تغيير عرض الأعمدة
-        addColumnResizers(table);
-    }
-
-    function addColumnResizers(table) {
-        const rows = table.rows;
-        if (rows.length === 0) return;
-        
-        const firstRow = rows[0];
-        const cells = firstRow.cells;
-        
-        for (let i = 0; i < cells.length - 1; i++) {
-            const cell = cells[i];
-            const resizer = document.createElement('div');
-            resizer.className = 'col-resizer';
-            resizer.style.right = '-2px';
-            cell.style.position = 'relative';
-            cell.appendChild(resizer);
-            
-            resizer.addEventListener('mousedown', function(e) {
-                if (!editMode) return;
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const startX = e.clientX;
-                const startWidth = cell.offsetWidth;
-                
-                function resize(e) {
-                    const dx = e.clientX - startX;
-                    const newWidth = startWidth + dx;
-                    
-                    if (newWidth > 30) {
-                        // تطبيق على كل الخلايا في هذا العمود
-                        for (let row of rows) {
-                            if (row.cells[i]) {
-                                row.cells[i].style.width = newWidth + 'px';
-                            }
-                        }
-                    }
-                }
-                
-                function stopResize() {
-                    document.removeEventListener('mousemove', resize);
-                    document.removeEventListener('mouseup', stopResize);
-                }
-                
-                document.addEventListener('mousemove', resize);
-                document.addEventListener('mouseup', stopResize);
-            });
-        }
-    }
-
-    function selectTable(wrapper, table) {
-        // إلغاء التحديد السابق
-        document.querySelectorAll('.table-wrapper.selected').forEach(w => {
-            w.classList.remove('selected');
-        });
-        
-        wrapper.classList.add('selected');
-        selectedTable = table;
-        
-        // إظهار أدوات الجدول
-        showTableTools(wrapper);
-    }
-
-    function showTableTools(wrapper) {
-        const tools = document.getElementById('tableTools');
-        const rect = wrapper.getBoundingClientRect();
-        
-        tools.style.display = 'flex';
-        tools.style.left = rect.left + 'px';
-        tools.style.top = (rect.top - 60) + 'px';
-    }
-
-    // ========== عمليات الجدول ==========
-    function getCellIndex(cell) {
-        return Array.from(cell.parentElement.cells).indexOf(cell);
-    }
-
-    // إعادة الجدول للمكان الأصلي
-    document.getElementById('resetTablePos').addEventListener('click', () => {
-        if (!selectedTable) return;
-        
-        const wrapper = selectedTable.closest('.table-wrapper');
-        if (wrapper) {
-            // إزالة position absolute
-            wrapper.style.position = 'relative';
-            wrapper.style.left = '';
-            wrapper.style.top = '';
-            wrapper.style.zIndex = '';
-            wrapper.style.width = '';
-            wrapper.style.display = 'inline-block';
-            delete wrapper.dataset.wasFloated; // حذف العلامة
-            
-            toast('↩️ تم إرجاع الجدول للمكان الأصلي', '#6f42c1');
-        }
-    });
-
-    document.getElementById('addRowAbove').addEventListener('click', () => {
-        if (!selectedTable) return;
-        const sel = window.getSelection();
-        const cell = sel.anchorNode;
-        let tr = cell;
-        while (tr && tr.tagName !== 'TR') tr = tr.parentElement;
-        
-        if (tr) {
-            const newRow = tr.parentElement.insertBefore(document.createElement('tr'), tr);
-            for (let i = 0; i < selectedTable.rows[0].cells.length; i++) {
-                const td = newRow.insertCell();
-                td.style.border = '1px solid #ddd';
-                td.style.padding = '5.4pt';
-                td.textContent = 'خلية';
-            }
-            toast('✅ تم إضافة صف فوق', '#28a745');
-        }
-    });
-
-    document.getElementById('addRowBelow').addEventListener('click', () => {
-        if (!selectedTable) return;
-        const sel = window.getSelection();
-        const cell = sel.anchorNode;
-        let tr = cell;
-        while (tr && tr.tagName !== 'TR') tr = tr.parentElement;
-        
-        if (tr) {
-            const newRow = selectedTable.insertRow(tr.rowIndex + 1);
-            for (let i = 0; i < selectedTable.rows[0].cells.length; i++) {
-                const td = newRow.insertCell();
-                td.style.border = '1px solid #ddd';
-                td.style.padding = '5.4pt';
-                td.textContent = 'خلية';
-            }
-            toast('✅ تم إضافة صف تحت', '#28a745');
-        }
-    });
-
-    document.getElementById('addColLeft').addEventListener('click', () => {
-        if (!selectedTable) return;
-        const sel = window.getSelection();
-        let cell = sel.anchorNode;
-        while (cell && cell.tagName !== 'TD' && cell.tagName !== 'TH') {
-            cell = cell.parentElement;
-        }
-        
-        if (cell) {
-            const idx = getCellIndex(cell);
-            for (let row of selectedTable.rows) {
-                const newCell = row.insertCell(idx);
-                newCell.style.border = '1px solid #ddd';
-                newCell.style.padding = '5.4pt';
-                newCell.textContent = 'خلية';
-            }
-            toast('✅ تم إضافة عمود يسار', '#28a745');
-        }
-    });
-
-    document.getElementById('addColRight').addEventListener('click', () => {
-        if (!selectedTable) return;
-        const sel = window.getSelection();
-        let cell = sel.anchorNode;
-        while (cell && cell.tagName !== 'TD' && cell.tagName !== 'TH') {
-            cell = cell.parentElement;
-        }
-        
-        if (cell) {
-            const idx = getCellIndex(cell) + 1;
-            for (let row of selectedTable.rows) {
-                const newCell = row.insertCell(idx);
-                newCell.style.border = '1px solid #ddd';
-                newCell.style.padding = '5.4pt';
-                newCell.textContent = 'خلية';
-            }
-            toast('✅ تم إضافة عمود يمين', '#28a745');
-        }
-    });
-
-    document.getElementById('delRow').addEventListener('click', () => {
-        if (!selectedTable) return;
-        const sel = window.getSelection();
-        let cell = sel.anchorNode;
-        while (cell && cell.tagName !== 'TR') cell = cell.parentElement;
-        
-        if (cell && selectedTable.rows.length > 1) {
-            cell.remove();
-            toast('✅ تم حذف الصف', '#dc3545');
-        } else {
-            toast('⚠️ لا يمكن حذف آخر صف', '#ffc107');
-        }
-    });
-
-    document.getElementById('delCol').addEventListener('click', () => {
-        if (!selectedTable) return;
-        const sel = window.getSelection();
-        let cell = sel.anchorNode;
-        while (cell && cell.tagName !== 'TD' && cell.tagName !== 'TH') {
-            cell = cell.parentElement;
-        }
-        
-        if (cell && selectedTable.rows[0].cells.length > 1) {
-            const idx = getCellIndex(cell);
-            for (let row of selectedTable.rows) {
-                row.deleteCell(idx);
-            }
-            toast('✅ تم حذف العمود', '#dc3545');
-        } else {
-            toast('⚠️ لا يمكن حذف آخر عمود', '#ffc107');
-        }
-    });
-
-    document.getElementById('delTable').addEventListener('click', () => {
-        if (!selectedTable && confirm('هل تريد حذف الجدول؟')) {
-            selectedTable.closest('.table-wrapper').remove();
-            selectedTable = null;
-            document.getElementById('tableTools').style.display = 'none';
-            toast('🗑️ تم حذف الجدول', '#dc3545');
-        }
-    });
-
-    // ========== إدراج جدول جديد ==========
-    document.getElementById('insertTable').addEventListener('click', () => {
-        if (!editMode) return;
-        document.getElementById('tableModal').style.display = 'flex';
-    });
-
-    document.getElementById('cancelInsert').addEventListener('click', () => {
-        document.getElementById('tableModal').style.display = 'none';
-    });
-
-    document.getElementById('confirmInsert').addEventListener('click', () => {
-        const rows = parseInt(document.getElementById('newRows').value);
-        const cols = parseInt(document.getElementById('newCols').value);
-        
-        const table = document.createElement('table');
-        table.style.border = '1px solid #ddd';
-        table.style.borderCollapse = 'collapse';
-        table.style.width = 'auto'; // عرض تلقائي حسب المحتوى
-        
-        for (let i = 0; i < rows; i++) {
-            const tr = table.insertRow();
-            for (let j = 0; j < cols; j++) {
-                const td = tr.insertCell();
-                td.style.border = '1px solid #ddd';
-                td.style.padding = '8px';
-                td.style.minWidth = '80px';
-                td.textContent = 'خلية';
-            }
-        }
-        
-        // إضافة الجدول للـ container
-        container.appendChild(document.createElement('br')); // مسافة
-        container.appendChild(table);
-        
-        // wrap الجدول
-        wrapTable(table);
-        
-        // تحديث حجم wrapper بعد إضافة الجدول
-        setTimeout(() => {
-            const wrapper = table.closest('.table-wrapper');
-            if (wrapper) {
-                wrapper.style.width = 'auto';
-                wrapper.style.display = 'inline-block';
-            }
-        }, 100);
-        
-        document.getElementById('tableModal').style.display = 'none';
-        toast('✅ تم إدراج جدول جديد!', '#28a745');
-    });
-
-    // ========== الصور ==========
-    document.getElementById('insertImage').addEventListener('click', () => {
-        if (!editMode) return;
-        document.getElementById('imgModal').style.display = 'flex';
-    });
-
-    document.getElementById('cancelImg').addEventListener('click', () => {
-        document.getElementById('imgModal').style.display = 'none';
-    });
-
-    document.getElementById('confirmImg').addEventListener('click', () => {
-        const url = document.getElementById('imgUrl').value;
-        const file = document.getElementById('imgFile').files[0];
-        
-        if (url) {
-            insertImg(url);
-        } else if (file) {
-            const reader = new FileReader();
-            reader.onload = e => insertImg(e.target.result);
-            reader.readAsDataURL(file);
-        }
-        
-        document.getElementById('imgModal').style.display = 'none';
-        document.getElementById('imgUrl').value = '';
-        document.getElementById('imgFile').value = '';
-    });
-
-    function insertImg(src) {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'img-wrapper';
-        wrapper.style.position = 'absolute';
-        wrapper.style.left = '100px';
-        wrapper.style.top = '200px';
-        wrapper.dataset.wasFloated = 'true'; // علامة إنها floating
-        
-        const img = document.createElement('img');
-        img.src = src;
-        img.style.width = '200px';
-        img.style.maxWidth = '100%';
-        
-        const positions = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
-        positions.forEach(pos => {
-            const handle = document.createElement('div');
-            handle.className = `resize-handle handle-${pos}`;
-            handle.dataset.pos = pos;
-            wrapper.appendChild(handle);
-        });
-        
-        wrapper.appendChild(img);
-        container.appendChild(wrapper);
-        
-        // السحب مع drag threshold
-        img.addEventListener('mousedown', function(e) {
-            if (!editMode) return;
-            if (e.target.classList.contains('resize-handle')) return;
-            e.preventDefault();
-            
-            wrapper.classList.add('selected');
-            
-            const startX = e.pageX;
-            const startY = e.pageY;
-            const originalLeft = wrapper.offsetLeft;
-            const originalTop = wrapper.offsetTop;
-            let isDragging = false;
-            let hasMovedEnough = false;
-            
-            function move(e) {
-                const dx = e.pageX - startX;
-                const dy = e.pageY - startY;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                // التحويل للسحب فقط بعد تحرك 5px على الأقل
-                if (!hasMovedEnough && distance > 5) {
-                    hasMovedEnough = true;
-                    isDragging = true;
-                    toast('✋ جاري نقل الصورة...', '#17a2b8');
-                }
-                
-                if (isDragging) {
-                    wrapper.style.left = (originalLeft + dx) + 'px';
-                    wrapper.style.top = (originalTop + dy) + 'px';
-                }
-            }
-            
-            function stop() {
-                document.removeEventListener('mousemove', move);
-                document.removeEventListener('mouseup', stop);
-                
-                if (isDragging) {
-                    toast('✅ تم نقل الصورة', '#28a745');
-                }
-            }
-            
-            document.addEventListener('mousemove', move);
-            document.addEventListener('mouseup', stop);
-        });
-        
-        // التكبير/التصغير مع دعم Shift للنسبة الثابتة
-        wrapper.addEventListener('mousedown', function(e) {
-            if (!editMode || !e.target.classList.contains('resize-handle')) return;
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const handle = e.target;
-            const pos = handle.dataset.pos;
-            const startX = e.pageX;
-            const startY = e.pageY;
-            const startW = img.offsetWidth;
-            const startH = img.offsetHeight;
-            const aspectRatio = startW / startH; // حفظ النسبة
-            
-            function resize(e) {
-                const dx = e.pageX - startX;
-                const dy = e.pageY - startY;
-                
-                let newW = startW;
-                let newH = startH;
-                
-                if (e.shiftKey) {
-                    // Shift مضغوط: تكبير/تصغير متناسب (قفل النسبة)
-                    if (pos.includes('e')) {
-                        newW = startW + dx;
-                        newH = newW / aspectRatio;
-                    } else if (pos.includes('w')) {
-                        newW = startW - dx;
-                        newH = newW / aspectRatio;
-                    } else if (pos.includes('s')) {
-                        newH = startH + dy;
-                        newW = newH * aspectRatio;
-                    } else if (pos.includes('n')) {
-                        newH = startH - dy;
-                        newW = newH * aspectRatio;
-                    }
-                    // الزوايا
-                    else if (pos === 'se' || pos === 'nw') {
-                        const avgDelta = (dx + dy) / 2;
-                        newW = startW + (pos === 'se' ? avgDelta : -avgDelta);
-                        newH = newW / aspectRatio;
-                    } else if (pos === 'ne' || pos === 'sw') {
-                        const avgDelta = (dx - dy) / 2;
-                        newW = startW + (pos === 'ne' ? avgDelta : -avgDelta);
-                        newH = newW / aspectRatio;
-                    }
-                    
-                    // رسالة Shift نشطة
-                    if (!handle.dataset.shiftMsgShown) {
-                        handle.dataset.shiftMsgShown = 'true';
-                        toast('🔒 Shift: النسبة مقفولة', '#17a2b8');
-                    }
-                } else {
-                    // عادي: تكبير/تصغير حر
-                    if (pos.includes('e')) newW = startW + dx;
-                    if (pos.includes('w')) newW = startW - dx;
-                    if (pos.includes('s')) newH = startH + dy;
-                    if (pos.includes('n')) newH = startH - dy;
-                    
-                    handle.dataset.shiftMsgShown = 'false';
-                }
-                
-                if (newW > 50) img.style.width = newW + 'px';
-                if (newH > 50) img.style.height = newH + 'px';
-            }
-            
-            function stopResize() {
-                document.removeEventListener('mousemove', resize);
-                document.removeEventListener('mouseup', stopResize);
-                toast('✅ تم تغيير حجم الصورة', '#28a745');
-            }
-            
-            document.addEventListener('mousemove', resize);
-            document.addEventListener('mouseup', stopResize);
-        });
-        
-        toast('✅ تم إدراج الصورة!', '#28a745');
-    }
-
-    // ========== التنسيق ==========
-    function changeFontSize(delta) {
-        if (!editMode) return;
-        
-        const sel = window.getSelection();
-        if (!sel.rangeCount || sel.isCollapsed) {
-            toast('⚠️ حدد النص أولاً', '#ffc107');
-            return;
-        }
-        
-        const range = sel.getRangeAt(0);
-        const span = document.createElement('span');
-        
-        let parent = range.commonAncestorContainer;
-        if (parent.nodeType === 3) parent = parent.parentElement;
-        
-        let size = parseFloat(window.getComputedStyle(parent).fontSize) * 0.75;
-        size = Math.round(size) + delta;
-        size = Math.max(8, Math.min(72, size));
-        
-        span.style.fontSize = size + 'pt';
-        
-        try {
-            const contents = range.extractContents();
-            span.appendChild(contents);
-            range.insertNode(span);
-            
-            document.getElementById('fontDisplay').textContent = size + 'pt';
-            toast(`📏 ${size}pt`, '#28a745');
-            
-            range.selectNodeContents(span);
-            sel.removeAllRanges();
-            sel.addRange(range);
-        } catch(e) {}
-    }
-
-    document.getElementById('fontUp').addEventListener('click', () => changeFontSize(2));
-    document.getElementById('fontDown').addEventListener('click', () => changeFontSize(-2));
-
-    document.getElementById('bold').addEventListener('click', () => {
-        if (editMode) document.execCommand('bold');
-    });
-    
-    document.getElementById('italic').addEventListener('click', () => {
-        if (editMode) document.execCommand('italic');
-    });
-    
-    document.getElementById('under').addEventListener('click', () => {
-        if (editMode) document.execCommand('underline');
-    });
-
-    document.getElementById('textColor').addEventListener('input', function() {
-        if (!editMode) return;
-        const sel = window.getSelection();
-        if (!sel.rangeCount || sel.isCollapsed) return;
-        
-        const range = sel.getRangeAt(0);
-        const span = document.createElement('span');
-        span.style.color = this.value;
-        
-        try {
-            const contents = range.extractContents();
-            span.appendChild(contents);
-            range.insertNode(span);
-            toast('🎨 تم تغيير اللون', '#28a745');
-        } catch(e) {}
-    });
-
-    document.getElementById('bgColor').addEventListener('input', function() {
-        if (!editMode) return;
-        const sel = window.getSelection();
-        if (!sel.rangeCount || sel.isCollapsed) return;
-        
-        const range = sel.getRangeAt(0);
-        const span = document.createElement('span');
-        span.style.backgroundColor = this.value;
-        
-        try {
-            const contents = range.extractContents();
-            span.appendChild(contents);
-            range.insertNode(span);
-            toast('🎨 تم تغيير الخلفية', '#28a745');
-        } catch(e) {}
-    });
-
-    // ========== وضع التحرير ==========
-    document.getElementById('toggleEdit').addEventListener('click', function() {
-        editMode = !editMode;
-        setEditMode(editMode); // تطبيق على كل الصفحات
-        
-        const icon = document.getElementById('editIcon');
-        const txt = document.getElementById('editText');
-        const tools = document.getElementById('editTools');
-        
-        if (editMode) {
-            icon.textContent = '🔒';
-            txt.textContent = 'قفل';
-            tools.style.display = 'flex';
-            pages[0].focus(); // focus على الصفحة الأولى
-            toast('✅ وضع التحرير مفعل', '#28a745');
-        } else {
-            icon.textContent = '🔓';
-            txt.textContent = 'تحرير';
-            tools.style.display = 'none';
-            document.getElementById('tableTools').style.display = 'none';
-            document.querySelectorAll('.table-wrapper.selected').forEach(w => {
-                w.classList.remove('selected');
-            });
-            selectedTable = null;
-            toast('🔒 تم القفل', '#17a2b8');
-        }
-    });
-
-    // إخفاء أدوات الجدول عند النقر خارجه
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.table-wrapper') && !e.target.closest('#tableTools')) {
-            document.querySelectorAll('.table-wrapper.selected').forEach(w => {
-                w.classList.remove('selected');
-            });
-            document.getElementById('tableTools').style.display = 'none';
-            selectedTable = null;
-        }
-    });
-
-    // ========== المساعدات ==========
-    function toast(msg, color) {
-        const t = document.createElement('div');
-        t.className = 'toast';
-        t.style.background = color;
-        t.style.color = color === '#ffc107' ? '#000' : 'white';
-        t.textContent = msg;
-        document.body.appendChild(t);
-        setTimeout(() => t.remove(), 3000);
-    }
-
-    // ========== التهيئة ==========
-    initTables();
-    console.log('✅ نظام Word جاهز!');
-});
-
-// الكود الأصلي
-function calculateTotal() {
-    const qty1 = parseInt(document.getElementById('qty1')?.textContent.replace(/,/g, '')) || 0;
-    const price1 = parseInt(document.getElementById('price1')?.textContent.replace(/,/g, '')) || 0;
-    const subtotal = qty1 * price1;
-    const vat = Math.round(subtotal * 0.15);
-    const total = subtotal + vat;
-    
-    if (document.getElementById('total1')) document.getElementById('total1').textContent = subtotal.toLocaleString();
-    if (document.getElementById('vat_amount')) document.getElementById('vat_amount').textContent = vat.toLocaleString();
-    if (document.getElementById('vat_total')) document.getElementById('vat_total').textContent = vat.toLocaleString();
-    if (document.getElementById('grand_total')) document.getElementById('grand_total').textContent = total.toLocaleString();
-}
-
-if (document.getElementById('qty1')) document.getElementById('qty1').addEventListener('input', calculateTotal);
-if (document.getElementById('price1')) document.getElementById('price1').addEventListener('input', calculateTotal);
-calculateTotal();
-</script>
-
+    </script>
 </body>
 </html>
