@@ -197,6 +197,9 @@
 <button onclick="toggleLockSection('header')" id="lockHeaderBtn" style="background: rgb(231, 76, 60);">🔒 فتح الهيدر</button>
 <button onclick="toggleLockSection('content')" id="lockContentBtn" style="background:#e67e22;">🔓 قفل المحتوى</button>
 <button onclick="toggleLockSection('footer')" id="lockFooterBtn" style="background: rgb(231, 76, 60);">🔒 فتح الفوتر</button>
+    <button onclick="restoreOriginal()" style="background:#e74c3c;" title="استعادة آخر نسخة محفوظة">
+        <i class="fas fa-undo"></i> استعادة الأصلي
+    </button>
     <button onclick="execCmd('bold')">B</button>
     <button onclick="execCmd('justifyCenter')">توسيط</button>
     <button onclick="exportAsFile()" style="background:#16a085;">تصدير كملف HTML 💾📄</button>
@@ -2715,6 +2718,80 @@ if (body) {
 	
 
 	
+
+// دالة استعادة المحتوى الأصلي من آخر نسخة محفوظة
+function restoreOriginal() {
+    const savedContent = localStorage.getItem("documentContent");
+    
+    if (!savedContent) {
+        alert("⚠️ لا توجد نسخة محفوظة!\n\nلم يتم حفظ أي نسخة سابقة. لا يمكن استعادة المحتوى الأصلي.");
+        return;
+    }
+    
+    if (!confirm("🔄 استعادة المحتوى الأصلي؟\n\nسيتم إرجاع جميع التعديلات في الهيدر والفوتر والمحتوى إلى آخر نسخة محفوظة.\n\nهل أنت متأكد؟")) {
+        return;
+    }
+    
+    const container = document.getElementById("document-container");
+    container.innerHTML = savedContent;
+    
+    document.querySelectorAll(".page").forEach(page => {
+        const deleteBtn = page.querySelector(".delete-page-btn");
+        if (deleteBtn) {
+            deleteBtn.onclick = function() {
+                if (confirm("هل تريد حذف هذه الصفحة؟")) {
+                    page.remove();
+                    saveToBrowser();
+                }
+            };
+            setupHeaderFooterSync();
+        }
+        const content = page.querySelector(".content");
+        if (content) setupContentMonitoring(content);
+    });
+    
+    document.querySelectorAll(".floating-img").forEach(img => {
+        img.onmousedown = startDragging;
+        img.onclick = (e) => { e.stopPropagation(); selectImage(img); };
+        img.onfocus = () => selectImage(img);
+    });
+    
+    const savedStyles = localStorage.getItem("marginStyles");
+    if (savedStyles) {
+        const styles = JSON.parse(savedStyles);
+        for (let prop in styles) {
+            if (styles[prop]) {
+                const cssVar = "--" + prop.replace(/([A-Z])/g, "-$1").toLowerCase();
+                document.documentElement.style.setProperty(cssVar, styles[prop]);
+            }
+        }
+        const marginInputs = document.querySelectorAll(".sidebar input");
+        if (marginInputs[0]) marginInputs[0].value = parseFloat(styles.pageMarginTop) || 10;
+        if (marginInputs[1]) marginInputs[1].value = parseFloat(styles.pageMarginBottom) || 20;
+        if (marginInputs[2]) marginInputs[2].value = parseFloat(styles.pageMarginRight) || 10;
+        if (marginInputs[3]) marginInputs[3].value = parseFloat(styles.pageMarginLeft) || 10;
+        if (marginInputs[4]) marginInputs[4].value = parseFloat(styles.headerMargin) || 5;
+        if (marginInputs[5]) marginInputs[5].value = parseFloat(styles.footerMargin) || 5;
+    }
+    
+    const savedLocks = localStorage.getItem("lockedSections");
+    if (savedLocks) {
+        const locks = JSON.parse(savedLocks);
+        for (let section in locks) {
+            if (locks[section]) {
+                lockedSections[section] = true;
+                document.querySelectorAll("." + section).forEach(el => {
+                    el.setAttribute("contenteditable", "false");
+                    el.classList.add("locked-section");
+                });
+            }
+        }
+        updateLockButtons();
+    }
+    
+    alert("✅ تم استعادة المحتوى الأصلي بنجاح!\n\nجميع التعديلات تم إرجاعها إلى آخر نسخة محفوظة.");
+}
+
 // تشغيل checkSavedData عند التحميل
 window.addEventListener('load', function() {
     if (typeof checkSavedData === 'function') {
