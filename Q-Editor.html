@@ -2634,36 +2634,51 @@ if (body) {
 }
 
     
-    // إنشاء HTML القالب
     var templateHTML = '<!DOCTYPE html>\n' + clonedDoc.outerHTML;
+    var blob = new Blob([templateHTML], { type: 'text/html;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = 'قالب_' + new Date().toISOString().slice(0,10) + '.html';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    alert('تم تصدير القالب بنجاح! ✅\n\nالقالب يحتوي على:\n✓ زر طباعة فقط\n✓ حقول نصية قابلة للتعبئة\n✓ تاريخ اليوم تلقائياً\n✓ حساب تلقائي للأسعار مع الضريبة 15%');
     
-    // طلب اسم القالب من المستخدم
-    var templateName = prompt('أدخل اسم القالب:', 'قالب_' + new Date().toISOString().slice(0,10));
-    
-    if (!templateName) {
-        alert('تم إلغاء حفظ القالب.');
-        return;
-    }
-    
-    if (!user) {
-        alert('يجب تسجيل الدخول أولاً!');
-        window.location.href = 'index.html';
-        return;
-    }
-    
-    // حفظ القالب في قاعدة البيانات
-    supabase.from('quotation_templates').insert({
-        username: user,
-        name: templateName,
-        template_html: templateHTML
-    }).then(function(result) {
-        if (result.error) {
-            alert('خطأ في حفظ القالب: ' + result.error.message);
-        } else {
-            alert('تم حفظ القالب بنجاح! ✅\n\nالقالب يحتوي على:\n✓ حقول نصية قابلة للتعبئة\n✓ تاريخ اليوم تلقائياً\n✓ حساب تلقائي للأسعار مع الضريبة 15%\n\nيمكنك الآن فتحه من قائمة القوالب.');
-            window.location.href = 'quotations.html';
+    // سؤال المستخدم إذا يبي يحفظ القالب في النظام
+    setTimeout(function() {
+        if (confirm('هل تريد حفظ هذا القالب في النظام؟\n(سيظهر في قائمة القوالب للتعبئة والطباعة)')) {
+            var templateName = prompt('أدخل اسم القالب:', 'قالب_' + new Date().toISOString().slice(0,10));
+            
+            if (!templateName) {
+                alert('تم إلغاء حفظ القالب في النظام.');
+                return;
+            }
+            
+            if (!currentUser) {
+                alert('يجب تسجيل الدخول أولاً!');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // حفظ القالب في قاعدة البيانات
+            supabase.from('quotation_templates').insert({
+                username: currentUser,
+                name: templateName,
+                template_html: templateHTML
+            }).then(function(result) {
+                if (result.error) {
+                    alert('خطأ في حفظ القالب: ' + result.error.message);
+                } else {
+                    alert('تم حفظ القالب في النظام بنجاح! ✅\n\nيمكنك الآن فتحه من قائمة القوالب.');
+                    if (confirm('هل تريد الذهاب إلى قائمة القوالب الآن؟')) {
+                        window.location.href = 'quotations.html';
+                    }
+                }
+            });
         }
-    });
+    }, 500);
 }
 
 
@@ -2689,7 +2704,7 @@ if (body) {
 	
 
 // Initialize Supabase
-const user = localStorage.getItem('currentUser');
+const currentUser = localStorage.getItem('currentUser');
 const supabase = window.supabase.createClient(
     'https://opyuncxyjdqxawddhdjn.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
