@@ -167,7 +167,7 @@
 <body>
 
 <div class="toolbar">
-    <button onclick="window.location.href='quotations.html'" style="background:#e74c3c;">← رجوع للقوالب</button>
+    <button onclick="window.location.href='quotations.html'" style="background:#e74c3c;">← رجوع</button>
     <button onclick="insertNewImage()" style="background:#e67e22;">إدراج صورة 🖼️</button>
     <button onclick="addNewPage()" style="background:#9b59b6;">إضافة صفحة جديدة 📄</button>
 <button onclick="toggleLockSection('header')" id="lockHeaderBtn" style="background: rgb(231, 76, 60);">🔒 فتح الهيدر</button>
@@ -2645,40 +2645,6 @@ if (body) {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     alert('تم تصدير القالب بنجاح! ✅\n\nالقالب يحتوي على:\n✓ زر طباعة فقط\n✓ حقول نصية قابلة للتعبئة\n✓ تاريخ اليوم تلقائياً\n✓ حساب تلقائي للأسعار مع الضريبة 15%');
-    
-    // سؤال المستخدم إذا يبي يحفظ القالب في النظام
-    setTimeout(function() {
-        if (confirm('هل تريد حفظ هذا القالب في النظام؟\n(سيظهر في قائمة القوالب للتعبئة والطباعة)')) {
-            var templateName = prompt('أدخل اسم القالب:', 'قالب_' + new Date().toISOString().slice(0,10));
-            
-            if (!templateName) {
-                alert('تم إلغاء حفظ القالب في النظام.');
-                return;
-            }
-            
-            if (!currentUser) {
-                alert('يجب تسجيل الدخول أولاً!');
-                window.location.href = 'index.html';
-                return;
-            }
-            
-            // حفظ القالب في قاعدة البيانات
-            supabase.from('quotation_templates').insert({
-                username: currentUser,
-                name: templateName,
-                template_html: templateHTML
-            }).then(function(result) {
-                if (result.error) {
-                    alert('خطأ في حفظ القالب: ' + result.error.message);
-                } else {
-                    alert('تم حفظ القالب في النظام بنجاح! ✅\n\nيمكنك الآن فتحه من قائمة القوالب.');
-                    if (confirm('هل تريد الذهاب إلى قائمة القوالب الآن؟')) {
-                        window.location.href = 'quotations.html';
-                    }
-                }
-            });
-        }
-    }, 500);
 }
 
 
@@ -2703,12 +2669,70 @@ if (body) {
     }
 	
 
-// Initialize Supabase
+// Initialize Supabase للحفظ في قاعدة البيانات
 const currentUser = localStorage.getItem('currentUser');
 const supabase = window.supabase.createClient(
     'https://opyuncxyjdqxawddhdjn.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
 );
+
+// حفظ الدالة الأصلية
+const originalExportAsTemplate = exportAsTemplate;
+
+// تعديل الدالة لإضافة خيار الحفظ
+exportAsTemplate = function() {
+    // استدعاء الدالة الأصلية أولاً
+    originalExportAsTemplate();
+    
+    // بعد التصدير، سؤال المستخدم
+    setTimeout(function() {
+        if (confirm('تم تنزيل القالب على جهازك ✅\n\nهل تريد أيضاً حفظه في قائمة القوالب؟')) {
+            var templateName = prompt('أدخل اسم القالب:', 'قالب_' + new Date().toISOString().slice(0,10));
+            
+            if (!templateName) return;
+            
+            if (!currentUser) {
+                alert('يجب تسجيل الدخول أولاً!');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // إعادة إنشاء القالب للحفظ
+            saveToBrowser();
+            var clonedDoc = document.documentElement.cloneNode(true);
+            var oldToolbar = clonedDoc.querySelector('.toolbar');
+            if (oldToolbar) {
+                oldToolbar.innerHTML = '<button onclick="window.print()" style="padding: 10px 30px; background: #2ecc71; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">طباعة 📑</button>';
+                oldToolbar.style.justifyContent = 'center';
+                oldToolbar.style.padding = '15px';
+            }
+            var sidebar = clonedDoc.querySelector('.sidebar');
+            if (sidebar) sidebar.remove();
+            var lineSpacing = clonedDoc.querySelector('#line-spacing-tools');
+            if (lineSpacing) lineSpacing.remove();
+            var deleteButtons = clonedDoc.querySelectorAll('.delete-page-btn');
+            deleteButtons.forEach(function(btn) { btn.remove(); });
+            
+            var templateHTML = '<!DOCTYPE html>\n' + clonedDoc.outerHTML;
+            
+            // حفظ في قاعدة البيانات
+            supabase.from('quotation_templates').insert({
+                username: currentUser,
+                name: templateName,
+                template_html: templateHTML
+            }).then(function(result) {
+                if (result.error) {
+                    alert('خطأ في الحفظ: ' + result.error.message);
+                } else {
+                    alert('✅ تم الحفظ في قائمة القوالب!');
+                    if (confirm('الذهاب إلى قائمة القوالب؟')) {
+                        window.location.href = 'quotations.html';
+                    }
+                }
+            });
+        }
+    }, 1000);
+};
 	
 // تشغيل checkSavedData عند التحميل
 window.addEventListener('load', function() {
