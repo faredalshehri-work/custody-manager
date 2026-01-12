@@ -146,11 +146,89 @@
 }
 
        @media print {
-    .toolbar, .sidebar, .delete-page-btn { display: none !important; }
-    .page { margin: 0; box-shadow: none; border: none; page-break-after: always; }
-    body { background: white; }
+    /* إخفاء العناصر غير المطلوبة فقط */
+    .toolbar, .sidebar, .delete-page-btn, #line-spacing-tools { 
+        display: none !important; 
+    }
     
-    /* إزالة تنسيق القفل عند الطباعة */
+    /* ضبط الـ body - بدون تغيير */
+    body { 
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    /* الصفحة - نفس التنسيق تماماً كالمحرر */
+    .page { 
+        /* نحتفظ بكل شيء كما هو في المحرر */
+        width: 210mm !important;
+        height: 297mm !important;
+        padding: var(--page-margin-top) var(--page-margin-right) var(--page-margin-bottom) var(--page-margin-left) !important;
+        margin: 0 !important; /* فقط نلغي الـ auto margin */
+        background: white !important;
+        position: relative !important;
+        box-sizing: border-box !important;
+        display: flex !important; /* نحتفظ بالـ flex */
+        flex-direction: column !important;
+        box-shadow: none !important; 
+        border: none !important;
+        page-break-after: always !important;
+        page-break-inside: avoid !important;
+    }
+    
+    /* الهيدر - نفس التنسيق */
+    .header { 
+        margin-bottom: var(--header-margin) !important;
+        border-bottom: 1px dashed #eee !important;
+        text-align: center !important;
+        position: relative !important;
+        min-height: 100px !important;
+        flex-shrink: 0 !important;
+        page-break-inside: avoid !important;
+        page-break-after: avoid !important;
+    }
+    
+    /* المحتوى - نفس التنسيق + تعديل صغير */
+    .content { 
+        flex-grow: 1 !important;
+        position: relative !important;
+        overflow: visible !important; /* visible بدل hidden للطباعة */
+        page-break-inside: auto !important;
+        /* نضيف min-height لدفع الفوتر للأسفل */
+        min-height: 0 !important;
+        /* منع فصل السطور الأخيرة عن الفوتر */
+        orphans: 3 !important;
+        widows: 3 !important;
+    }
+    
+    /* الفوتر - نفس التنسيق + منع الفصل */
+    .footer { 
+        margin-top: var(--footer-margin) !important;
+        border-top: 1px dashed #eee !important;
+        text-align: center !important;
+        position: relative !important;
+        min-height: 50px !important;
+        flex-shrink: 0 !important;
+        page-break-inside: avoid !important;
+        page-break-before: avoid !important;
+        /* إجبار الفوتر على البقاء مع المحتوى */
+        break-inside: avoid !important;
+        break-before: avoid-page !important;
+    }
+    
+    /* منع فصل المحتوى عن الفوتر بقوة */
+    .content + .footer {
+        break-before: avoid-page !important;
+        page-break-before: avoid !important;
+    }
+    
+    /* منع فصل آخر جزء من المحتوى */
+    .content > *:last-child {
+        page-break-after: avoid !important;
+        margin-bottom: 0 !important;
+    }
+    
+    /* إزالة تنسيق القفل */
     .locked-section {
         background-color: transparent !important;
         border: none !important;
@@ -159,6 +237,41 @@
     
     .locked-section::before {
         display: none !important;
+    }
+    
+    /* ضبط @page - هوامش صفر لأننا نستخدم padding */
+    @page {
+        size: A4 portrait;
+        margin: 0mm;
+    }
+    
+    /* الصور - نحتفظ بنفس التنسيق */
+    img, .floating-img {
+        max-width: 100% !important;
+        height: auto !important;
+        page-break-inside: avoid !important;
+    }
+    
+    /* الجداول */
+    table {
+        page-break-inside: auto !important;
+        width: 100% !important;
+    }
+    
+    table tr {
+        page-break-inside: avoid !important;
+    }
+    
+    /* الخطوط والمسافات - نحتفظ بكل شيء */
+    * {
+        /* نحتفظ بجميع font-size و line-height كما هي */
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    /* إزالة الصفحة الفارغة الأخيرة */
+    .page:last-child {
+        page-break-after: avoid !important;
     }
 }
     </style>
@@ -2519,8 +2632,9 @@ function exportAsTemplate() {
                         var isPhoneField = /phone|mobile|tel|mob/i.test(cleanName);
 						var isTempField = /temp|temperature|درجة|حرارة/i.test(cleanName);
 var fieldClass = isPhoneField ? 'template-field phone-field' : (isTempField ? 'template-field temp-field' : 'template-field');
-var minWidth = isPhoneField ? '80px' : (isTempField ? '10px' : '150px');
-return '<input type="text" class="' + fieldClass + '" placeholder="' + cleanName + '" value="" data-var="' + cleanName + '" style="border: 1px solid #3498db; padding: 0px 8px; border-radius: 3px; background: #e8f4f8; min-width: ' + minWidth + '; max-width: 1300px; text-align: center; font-family: inherit; font-size: inherit; display: inline-block;">';
+var minWidth = isPhoneField ? '80px' : (isTempField ? '35px' : '150px');
+var maxWidth = isTempField ? '60px' : '1300px';
+return '<input type="text" class="' + fieldClass + '" placeholder="' + cleanName + '" value="" data-var="' + cleanName + '" style="border: 1px solid #3498db; padding: 0px 8px; border-radius: 3px; background: #e8f4f8; min-width: ' + minWidth + '; max-width: ' + maxWidth + '; text-align: center; font-family: inherit; font-size: inherit; display: inline-block;">';
                     });
                     node.parentNode.replaceChild(span, node);
                 }
@@ -2622,7 +2736,7 @@ return '<input type="text" class="' + fieldClass + '" placeholder="' + cleanName
     var calcScript = document.createElement('script');
 
 	var autoResizeScript = document.createElement('script');
-autoResizeScript.textContent = 'function autoResizeInput(input) { var minWidth = input.classList.contains("temp-field") ? 10 : 100; var maxWidth = 800; var tempSpan = document.createElement("span"); tempSpan.style.visibility = "hidden"; tempSpan.style.position = "absolute"; tempSpan.style.whiteSpace = "nowrap"; tempSpan.style.font = window.getComputedStyle(input).font; tempSpan.textContent = input.value || input.placeholder || ""; document.body.appendChild(tempSpan); var newWidth = Math.max(minWidth, Math.min(maxWidth, tempSpan.offsetWidth + 20)); document.body.removeChild(tempSpan); input.style.width = newWidth + "px"; } document.addEventListener("DOMContentLoaded", function() { var allFields = document.querySelectorAll(".template-field"); allFields.forEach(function(field) { autoResizeInput(field); field.addEventListener("input", function() { autoResizeInput(this); }); }); });';
+autoResizeScript.textContent = 'function autoResizeInput(input) { var isTempField = input.classList.contains("temp-field"); var minWidth = isTempField ? 35 : 100; var maxWidth = isTempField ? 60 : 800; var tempSpan = document.createElement("span"); tempSpan.style.visibility = "hidden"; tempSpan.style.position = "absolute"; tempSpan.style.whiteSpace = "nowrap"; tempSpan.style.font = window.getComputedStyle(input).font; tempSpan.textContent = input.value || input.placeholder || ""; document.body.appendChild(tempSpan); var newWidth = Math.max(minWidth, Math.min(maxWidth, tempSpan.offsetWidth + 20)); document.body.removeChild(tempSpan); input.style.width = newWidth + "px"; } document.addEventListener("DOMContentLoaded", function() { var allFields = document.querySelectorAll(".template-field"); allFields.forEach(function(field) { autoResizeInput(field); field.addEventListener("input", function() { autoResizeInput(this); }); }); });';
 var body = clonedDoc.querySelector('body');
 if (body) {
     body.appendChild(autoResizeScript);
@@ -2641,24 +2755,24 @@ if (body) {
     
     var templateHTML = '<!DOCTYPE html>\n' + clonedDoc.outerHTML;
     
-    // طلب اسم القالب
+    // طلب اسم القالب من المستخدم
     var templateName = prompt('أدخل اسم القالب:', 'قالب_' + new Date().toISOString().slice(0,10));
     if (!templateName) return;
     
-    // الحصول على المستخدم
+    // الحصول على المستخدم الحالي
     var currentUser = localStorage.getItem('currentUser');
     if (!currentUser) {
         alert('يجب تسجيل الدخول أولاً!');
         return;
     }
     
-    // Supabase client
+    // إنشاء Supabase client
     var supabase = window.supabase.createClient(
         'https://opyuncxyjdqxawddhdjn.supabase.co',
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
     );
     
-    // حفظ في Supabase
+    // حفظ القالب في Supabase
     supabase.from('quotation_templates').insert({
         username: currentUser,
         name: templateName,
@@ -2667,7 +2781,8 @@ if (body) {
         if (response.error) {
             alert('خطأ في الحفظ: ' + response.error.message);
         } else {
-            alert('تم حفظ القالب بنجاح! ✅\n\nالقالب يحتوي على:\n✓ زر طباعة فقط\n✓ حقول نصية قابلة للتعبئة\n✓ تاريخ اليوم تلقائياً\n✓ حساب تلقائي للأسعار مع الضريبة 15%');
+            alert('تم حفظ القالب بنجاح! ✅\n\nالقالب يحتوي على:\n✓ زر طباعة فقط\n✓ حقول نصية قابلة للتعبئة\n✓ تاريخ اليوم تلقائياً\n✓ حساب تلقائي للأسعار مع الضريبة 15%\n\nيمكنك الآن العودة لقائمة عروض الأسعار لمشاهدة القالب.');
+            // العودة لقائمة عروض الأسعار
             window.location.href = 'quotations.html';
         }
     });
@@ -2697,18 +2812,22 @@ if (body) {
 
 	
 
-// دالة استعادة المحتوى الأصلي
+// دالة استعادة المحتوى الأصلي من آخر نسخة محفوظة
 function restoreOriginal() {
     const savedContent = localStorage.getItem("documentContent");
+    
     if (!savedContent) {
-        alert("⚠️ لا توجد نسخة محفوظة!");
+        alert("⚠️ لا توجد نسخة محفوظة!\n\nلم يتم حفظ أي نسخة سابقة. لا يمكن استعادة المحتوى الأصلي.");
         return;
     }
-    if (!confirm("🔄 استعادة المحتوى الأصلي؟\n\nسيتم إرجاع جميع التعديلات. هل أنت متأكد؟")) {
+    
+    if (!confirm("🔄 استعادة المحتوى الأصلي؟\n\nسيتم إرجاع جميع التعديلات في الهيدر والفوتر والمحتوى إلى آخر نسخة محفوظة.\n\nهل أنت متأكد؟")) {
         return;
     }
+    
     const container = document.getElementById("document-container");
     container.innerHTML = savedContent;
+    
     document.querySelectorAll(".page").forEach(page => {
         const deleteBtn = page.querySelector(".delete-page-btn");
         if (deleteBtn) {
@@ -2723,11 +2842,13 @@ function restoreOriginal() {
         const content = page.querySelector(".content");
         if (content) setupContentMonitoring(content);
     });
+    
     document.querySelectorAll(".floating-img").forEach(img => {
         img.onmousedown = startDragging;
         img.onclick = (e) => { e.stopPropagation(); selectImage(img); };
         img.onfocus = () => selectImage(img);
     });
+    
     const savedStyles = localStorage.getItem("marginStyles");
     if (savedStyles) {
         const styles = JSON.parse(savedStyles);
@@ -2737,7 +2858,15 @@ function restoreOriginal() {
                 document.documentElement.style.setProperty(cssVar, styles[prop]);
             }
         }
+        const marginInputs = document.querySelectorAll(".sidebar input");
+        if (marginInputs[0]) marginInputs[0].value = parseFloat(styles.pageMarginTop) || 10;
+        if (marginInputs[1]) marginInputs[1].value = parseFloat(styles.pageMarginBottom) || 20;
+        if (marginInputs[2]) marginInputs[2].value = parseFloat(styles.pageMarginRight) || 10;
+        if (marginInputs[3]) marginInputs[3].value = parseFloat(styles.pageMarginLeft) || 10;
+        if (marginInputs[4]) marginInputs[4].value = parseFloat(styles.headerMargin) || 5;
+        if (marginInputs[5]) marginInputs[5].value = parseFloat(styles.footerMargin) || 5;
     }
+    
     const savedLocks = localStorage.getItem("lockedSections");
     if (savedLocks) {
         const locks = JSON.parse(savedLocks);
@@ -2752,7 +2881,8 @@ function restoreOriginal() {
         }
         updateLockButtons();
     }
-    alert("✅ تم استعادة المحتوى الأصلي بنجاح!");
+    
+    alert("✅ تم استعادة المحتوى الأصلي بنجاح!\n\nجميع التعديلات تم إرجاعها إلى آخر نسخة محفوظة.");
 }
 
 // تشغيل checkSavedData عند التحميل
