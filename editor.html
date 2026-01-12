@@ -146,26 +146,85 @@
 }
 
        @media print {
-    .toolbar, .sidebar, .delete-page-btn, #line-spacing-tools { display: none !important; }
-    
-    /* ضبط الصفحة للطباعة */
-    .page { 
-        margin: 0 auto !important;
-        box-shadow: none !important; 
-        border: none !important; 
-        page-break-after: always !important;
-        width: 210mm !important;
-        height: 297mm !important;
-        padding: var(--page-margin-top) var(--page-margin-right) var(--page-margin-bottom) var(--page-margin-left) !important;
+    /* إخفاء العناصر غير المطلوبة */
+    .toolbar, .sidebar, .delete-page-btn, #line-spacing-tools { 
+        display: none !important; 
     }
     
+    /* ضبط الـ body */
     body { 
         background: white !important;
         margin: 0 !important;
         padding: 0 !important;
+        direction: rtl !important;
     }
     
-    /* إزالة تنسيق القفل عند الطباعة */
+    /* ضبط container الصفحات */
+    #document-container {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    /* ضبط الصفحة للطباعة - تعطيل flexbox */
+    .page { 
+        display: block !important; /* تعطيل flex */
+        flex-direction: initial !important;
+        margin: 0 !important;
+        padding: 15mm 15mm 15mm 15mm !important; /* هوامش متساوية */
+        box-shadow: none !important; 
+        border: none !important; 
+        page-break-after: always !important;
+        page-break-inside: avoid !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        min-height: 277mm !important; /* A4 height - margins */
+        position: relative !important;
+        box-sizing: border-box !important;
+        background: white !important;
+    }
+    
+    /* منع فصل الهيدر والفوتر - تعطيل flex */
+    .header {
+        display: block !important;
+        flex-shrink: initial !important;
+        page-break-inside: avoid !important;
+        page-break-after: avoid !important;
+        page-break-before: avoid !important;
+        width: 100% !important;
+        margin: 0 0 10mm 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        min-height: auto !important;
+    }
+    
+    .content {
+        display: block !important;
+        flex-grow: initial !important;
+        overflow: visible !important;
+        page-break-inside: auto !important;
+        width: 100% !important;
+        margin: 10mm 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        min-height: auto !important;
+    }
+    
+    .footer {
+        display: block !important;
+        flex-shrink: initial !important;
+        page-break-inside: avoid !important;
+        page-break-after: avoid !important;
+        page-break-before: avoid !important;
+        width: 100% !important;
+        margin: 10mm 0 0 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        min-height: auto !important;
+    }
+    
+    /* إزالة تنسيق القفل */
     .locked-section {
         background-color: transparent !important;
         border: none !important;
@@ -176,10 +235,38 @@
         display: none !important;
     }
     
-    /* ضبط اتجاه الطباعة */
+    /* ضبط الهوامش والحجم */
     @page {
-        size: A4;
-        margin: 10mm 10mm 10mm 15mm; /* top right bottom left - زيادة الهامش الأيسر */
+        size: A4 portrait;
+        margin: 0mm; /* نستخدم padding في .page بدلاً منها */
+    }
+    
+    /* ضبط الصور */
+    img, .floating-img {
+        max-width: 100% !important;
+        height: auto !important;
+        page-break-inside: avoid !important;
+    }
+    
+    /* ضبط الجداول */
+    table {
+        page-break-inside: auto !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    table tr {
+        page-break-inside: avoid !important;
+    }
+    
+    /* إزالة الصفحة الفارغة الأخيرة */
+    .page:last-child {
+        page-break-after: avoid !important;
+    }
+    
+    /* ضبط المسافات */
+    * {
+        box-sizing: border-box !important;
     }
 }
     </style>
