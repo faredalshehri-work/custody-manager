@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عروض الأسعار</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const user = localStorage.getItem('currentUser');
+        if (!user) window.location.href = 'index.html';
+
+        const supabase = window.supabase.createClient(
+            'https://opyuncxyjdqxawddhdjn.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
+        );
+
+        function QuotationsApp() {
+            const [templates, setTemplates] = useState([]);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => { loadTemplates(); }, []);
+
+            const loadTemplates = async () => {
+                setLoading(true);
+                const { data } = await supabase
+                    .from('quotation_templates')
+                    .select('*')
+                    .eq('username', user)
+                    .order('created_at', { ascending: false });
+                
+                setTemplates(data || []);
+                setLoading(false);
+            };
+
+            const deleteTemplate = async (id) => {
+                if (confirm('حذف القالب؟')) {
+                    await supabase.from('quotation_templates').delete().eq('id', id);
+                    loadTemplates();
+                }
+            };
+
+            const openTemplate = (template) => {
+                // حفظ القالب في localStorage
+                localStorage.setItem('currentTemplate', JSON.stringify(template));
+                window.location.href = 'template-viewer.html';
+            };
+
+            return (
+                <div className="app-container">
+                    <div className="top-bar">
+                        <button className="btn-back" onClick={() => window.location.href = 'dashboard.html'}>
+                            ← رجوع
+                        </button>
+                        <h2><i className="fas fa-file-invoice-dollar"></i> عروض الأسعار</h2>
+                        <button className="btn-main" onClick={() => window.location.href = 'Q-Editor.html'}>
+                            <i className="fas fa-plus"></i> محرر القوالب
+                        </button>
+                    </div>
+
+                    {loading ? (
+                        <div className="loader">
+                            <i className="fas fa-spinner fa-spin"></i>
+                            <p>جاري التحميل...</p>
+                        </div>
+                    ) : templates.length === 0 ? (
+                        <div className="no-data">
+                            <i className="fas fa-inbox"></i>
+                            <p>لا توجد قوالب محفوظة</p>
+                            <button className="btn-main" onClick={() => window.location.href = 'Q-Editor.html'}>
+                                <i className="fas fa-plus"></i> إنشاء قالب جديد
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="list-container">
+                            {templates.map(template => (
+                                <div key={template.id} className="list-item">
+                                    <div className="list-item-content">
+                                        <strong><i className="fas fa-file-alt"></i> {template.name}</strong>
+                                        <small style={{color: '#65676b'}}>
+                                            <i className="far fa-calendar"></i> {new Date(template.created_at).toLocaleDateString('ar-SA')}
+                                        </small>
+                                    </div>
+                                    <div className="list-item-actions">
+                                        <button className="icon-btn edit-btn" onClick={() => openTemplate(template)} title="فتح وتعبئة">
+                                            <i className="fas fa-edit"></i>
+                                        </button>
+                                        <button className="icon-btn del-btn" onClick={() => deleteTemplate(template.id)} title="حذف">
+                                            <i className="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<QuotationsApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
