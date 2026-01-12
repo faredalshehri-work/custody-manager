@@ -146,82 +146,86 @@
 }
 
        @media print {
-    /* إخفاء العناصر غير المطلوبة */
+    /* إخفاء العناصر غير المطلوبة فقط */
     .toolbar, .sidebar, .delete-page-btn, #line-spacing-tools { 
         display: none !important; 
     }
     
-    /* ضبط الـ body */
+    /* ضبط الـ body - بدون تغيير */
     body { 
         background: white !important;
         margin: 0 !important;
         padding: 0 !important;
-        direction: rtl !important;
     }
     
-    /* ضبط container الصفحات */
-    #document-container {
-        width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-    
-    /* ضبط الصفحة للطباعة - تعطيل flexbox */
+    /* الصفحة - نفس التنسيق تماماً كالمحرر */
     .page { 
-        display: block !important; /* تعطيل flex */
-        flex-direction: initial !important;
-        margin: 0 !important;
-        padding: 15mm 15mm 15mm 15mm !important; /* هوامش متساوية */
-        box-shadow: none !important; 
-        border: none !important; 
-        page-break-after: always !important;
-        page-break-inside: avoid !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        height: auto !important;
-        min-height: 277mm !important; /* A4 height - margins */
+        /* نحتفظ بكل شيء كما هو في المحرر */
+        width: 210mm !important;
+        height: 297mm !important;
+        padding: var(--page-margin-top) var(--page-margin-right) var(--page-margin-bottom) var(--page-margin-left) !important;
+        margin: 0 !important; /* فقط نلغي الـ auto margin */
+        background: white !important;
         position: relative !important;
         box-sizing: border-box !important;
-        background: white !important;
+        display: flex !important; /* نحتفظ بالـ flex */
+        flex-direction: column !important;
+        box-shadow: none !important; 
+        border: none !important;
+        page-break-after: always !important;
+        page-break-inside: avoid !important;
     }
     
-    /* منع فصل الهيدر والفوتر - تعطيل flex */
-    .header {
-        display: block !important;
-        flex-shrink: initial !important;
+    /* الهيدر - نفس التنسيق */
+    .header { 
+        margin-bottom: var(--header-margin) !important;
+        border-bottom: 1px dashed #eee !important;
+        text-align: center !important;
+        position: relative !important;
+        min-height: 100px !important;
+        flex-shrink: 0 !important;
         page-break-inside: avoid !important;
         page-break-after: avoid !important;
-        page-break-before: avoid !important;
-        width: 100% !important;
-        margin: 0 0 10mm 0 !important;
-        padding: 0 !important;
-        box-sizing: border-box !important;
-        min-height: auto !important;
     }
     
-    .content {
-        display: block !important;
-        flex-grow: initial !important;
-        overflow: visible !important;
+    /* المحتوى - نفس التنسيق + تعديل صغير */
+    .content { 
+        flex-grow: 1 !important;
+        position: relative !important;
+        overflow: visible !important; /* visible بدل hidden للطباعة */
         page-break-inside: auto !important;
-        width: 100% !important;
-        margin: 10mm 0 !important;
-        padding: 0 !important;
-        box-sizing: border-box !important;
-        min-height: auto !important;
+        /* نضيف min-height لدفع الفوتر للأسفل */
+        min-height: 0 !important;
+        /* منع فصل السطور الأخيرة عن الفوتر */
+        orphans: 3 !important;
+        widows: 3 !important;
     }
     
-    .footer {
-        display: block !important;
-        flex-shrink: initial !important;
+    /* الفوتر - نفس التنسيق + منع الفصل */
+    .footer { 
+        margin-top: var(--footer-margin) !important;
+        border-top: 1px dashed #eee !important;
+        text-align: center !important;
+        position: relative !important;
+        min-height: 50px !important;
+        flex-shrink: 0 !important;
         page-break-inside: avoid !important;
-        page-break-after: avoid !important;
         page-break-before: avoid !important;
-        width: 100% !important;
-        margin: 10mm 0 0 0 !important;
-        padding: 0 !important;
-        box-sizing: border-box !important;
-        min-height: auto !important;
+        /* إجبار الفوتر على البقاء مع المحتوى */
+        break-inside: avoid !important;
+        break-before: avoid-page !important;
+    }
+    
+    /* منع فصل المحتوى عن الفوتر بقوة */
+    .content + .footer {
+        break-before: avoid-page !important;
+        page-break-before: avoid !important;
+    }
+    
+    /* منع فصل آخر جزء من المحتوى */
+    .content > *:last-child {
+        page-break-after: avoid !important;
+        margin-bottom: 0 !important;
     }
     
     /* إزالة تنسيق القفل */
@@ -235,38 +239,39 @@
         display: none !important;
     }
     
-    /* ضبط الهوامش والحجم */
+    /* ضبط @page - هوامش صفر لأننا نستخدم padding */
     @page {
         size: A4 portrait;
-        margin: 0mm; /* نستخدم padding في .page بدلاً منها */
+        margin: 0mm;
     }
     
-    /* ضبط الصور */
+    /* الصور - نحتفظ بنفس التنسيق */
     img, .floating-img {
         max-width: 100% !important;
         height: auto !important;
         page-break-inside: avoid !important;
     }
     
-    /* ضبط الجداول */
+    /* الجداول */
     table {
         page-break-inside: auto !important;
         width: 100% !important;
-        box-sizing: border-box !important;
     }
     
     table tr {
         page-break-inside: avoid !important;
     }
     
+    /* الخطوط والمسافات - نحتفظ بكل شيء */
+    * {
+        /* نحتفظ بجميع font-size و line-height كما هي */
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
     /* إزالة الصفحة الفارغة الأخيرة */
     .page:last-child {
         page-break-after: avoid !important;
-    }
-    
-    /* ضبط المسافات */
-    * {
-        box-sizing: border-box !important;
     }
 }
     </style>
