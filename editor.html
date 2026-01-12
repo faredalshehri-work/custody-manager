@@ -294,6 +294,7 @@
     </button>
     <button onclick="execCmd('bold')">B</button>
     <button onclick="execCmd('justifyCenter')">توسيط</button>
+	<button onclick="saveToSupabase()" style="background:#27ae60;">💾 حفظ أونلاين</button>
     <button onclick="exportAsFile()" style="background:#16a085;">تصدير كملف HTML 💾📄</button>
 <button onclick="exportAsTemplate()" style="background:#8e44ad;">تصدير كقالب 📋✨</button>
     <button onclick="window.print()">طباعة 📑</button>
@@ -2787,7 +2788,43 @@ if (body) {
         }
     });
 }
-
+async function saveToSupabase() {
+    // حفظ في المتصفح أولاً
+    saveToBrowser();
+    
+    // الحصول على المستخدم
+    const currentUser = localStorage.getItem('currentUser');
+    if (!currentUser) {
+        alert('يجب تسجيل الدخول أولاً!');
+        return;
+    }
+    
+    // إنشاء اسم تلقائي
+    const now = new Date();
+    const autoName = 'عرض_' + now.getFullYear() + '-' + (now.getMonth()+1) + '-' + now.getDate() + '_' + now.getHours() + ':' + now.getMinutes();
+    
+    // نسخ المحتوى الكامل للحفظ
+    const fullHTML = document.documentElement.outerHTML;
+    
+    // Supabase client
+    const supabase = window.supabase.createClient(
+        'https://opyuncxyjdqxawddhdjn.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
+    );
+    
+    // الحفظ
+    const { data, error } = await supabase.from('quotation_templates').insert({
+        username: currentUser,
+        name: autoName,
+        html_content: fullHTML
+    });
+    
+    if (error) {
+        alert('❌ خطأ في الحفظ: ' + error.message);
+    } else {
+        alert('✅ تم الحفظ أونلاين بنجاح!\n\nالاسم: ' + autoName + '\n\nيحتوي على:\n• كل الهوامش\n• كل المحتوى\n• كل الصور\n• كل التنسيقات');
+    }
+}
 
     function exportAsFile() {
         // حفظ المحتوى الحالي أولاً
