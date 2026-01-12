@@ -162,25 +162,18 @@
     }
 }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
 <div class="toolbar">
-    <button onclick="window.location.href='quotations.html'" style="background:#3498db;">
-        <i class="fas fa-arrow-right"></i> رجوع
-    </button>
     <button onclick="insertNewImage()" style="background:#e67e22;">إدراج صورة 🖼️</button>
     <button onclick="addNewPage()" style="background:#9b59b6;">إضافة صفحة جديدة 📄</button>
 <button onclick="toggleLockSection('header')" id="lockHeaderBtn" style="background: rgb(231, 76, 60);">🔒 فتح الهيدر</button>
 <button onclick="toggleLockSection('content')" id="lockContentBtn" style="background:#e67e22;">🔓 قفل المحتوى</button>
 <button onclick="toggleLockSection('footer')" id="lockFooterBtn" style="background: rgb(231, 76, 60);">🔒 فتح الفوتر</button>
-    <button onclick="restoreOriginal()" style="background:#e74c3c;" title="استعادة آخر نسخة محفوظة">
-        <i class="fas fa-undo"></i> استعادة الأصلي
-    </button>
     <button onclick="execCmd('bold')">B</button>
     <button onclick="execCmd('justifyCenter')">توسيط</button>
+    <button onclick="saveToBrowser()" style="background:#2ecc71;">حفظ التغييرات 💾</button>
     <button onclick="exportAsFile()" style="background:#16a085;">تصدير كملف HTML 💾📄</button>
 <button onclick="exportAsTemplate()" style="background:#8e44ad;">تصدير كقالب 📋✨</button>
     <button onclick="window.print()">طباعة 📑</button>
@@ -981,7 +974,7 @@ embed"><br></p>
   line-height:normal"><b><span lang="AR-SA" style="font-size:10.0pt;font-family:
   &quot;Times New Roman&quot;,&quot;serif&quot;;mso-fareast-font-family:&quot;Times New Roman&quot;;
   color:#1F1F1F;border:none windowtext 1.0pt;mso-border-alt:none windowtext 0cm;
-  padding:0cm;mso-font-kerning:0pt">قوة التبريد:</span></b><span lang="AR-SA" style="font-size:10.0pt;font-family:&quot;Times New Roman&quot;,&quot;serif&quot;;mso-fareast-font-family:&quot;Times New Roman&quot;;color:#1F1F1F;border:none windowtext 1.0pt;mso-border-alt:none windowtext 0cm;padding:0cm;mso-font-kerning:0pt"> تصل إلى <input type="text" class="template-field" placeholder="درجة الحرارة" style="border: 1px solid #3498db; padding: 2px 8px; border-radius: 3px; background: #e8f4f8; width: 80px; text-align: center; font-family: inherit; font-size: inherit;"> درجة مئوية</span><span dir="LTR" style="font-size:10.0pt;font-family:&quot;Times New Roman&quot;,&quot;serif&quot;;mso-fareast-font-family:&quot;Times New Roman&quot;;color:#1F1F1F;mso-font-kerning:0pt"><o:p></o:p></span></p>
+  padding:0cm;mso-font-kerning:0pt">قوة التبريد:</span></b><span lang="AR-SA" style="font-size:10.0pt;font-family:&quot;Times New Roman&quot;,&quot;serif&quot;;mso-fareast-font-family:&quot;Times New Roman&quot;;color:#1F1F1F;border:none windowtext 1.0pt;mso-border-alt:none windowtext 0cm;padding:0cm;mso-font-kerning:0pt"> تصل إلى <input type="text" id="temp-ar" class="template-field temp-sync" placeholder="درجة الحرارة" style="border: 1px solid #3498db; padding: 2px 8px; border-radius: 3px; background: #e8f4f8; width: 80px; text-align: center; font-family: inherit; font-size: 5pt;"> درجة مئوية</span><span dir="LTR" style="font-size:10.0pt;font-family:&quot;Times New Roman&quot;,&quot;serif&quot;;mso-fareast-font-family:&quot;Times New Roman&quot;;color:#1F1F1F;mso-font-kerning:0pt"><o:p></o:p></span></p>
   </td>
   <td width="471" valign="top" style="width:282.65pt;padding:0cm 0cm 0cm 0cm">
   <p class="MsoNormal" dir="LTR" style="margin-bottom: 0.0001pt; line-height: normal; direction: ltr; unicode-bidi: embed;"><b><span style="font-size:10.0pt;font-family:&quot;Times New Roman&quot;,&quot;serif&quot;;mso-fareast-font-family:
@@ -997,7 +990,7 @@ embed"><br></p>
   padding:0cm;background:yellow;mso-highlight:yellow;mso-font-kerning:0pt">Down
   to </span><span style="font-size:10.0pt;font-family:&quot;Times New Roman&quot;,&quot;serif&quot;;
   mso-fareast-font-family:&quot;Times New Roman&quot;;color:#1F1F1F;border:none windowtext 1.0pt;
-  mso-border-alt:none windowtext 0cm;padding:0cm;mso-font-kerning:0pt"><input type="text" class="template-field" placeholder="Temperature" style="border: 1px solid #3498db; padding: 2px 8px; border-radius: 3px; background: #e8f4f8; width: 80px; text-align: center; font-family: inherit; font-size: inherit;">°C</span><span style="font-size:10.0pt;font-family:&quot;Times New Roman&quot;,&quot;serif&quot;;mso-fareast-font-family:
+  mso-border-alt:none windowtext 0cm;padding:0cm;mso-font-kerning:0pt"><input type="text" id="temp-en" class="template-field temp-sync" placeholder="Temperature" style="border: 1px solid #3498db; padding: 2px 8px; border-radius: 3px; background: #e8f4f8; width: 80px; text-align: center; font-family: inherit; font-size: 5pt;">°C</span><span style="font-size:10.0pt;font-family:&quot;Times New Roman&quot;,&quot;serif&quot;;mso-fareast-font-family:
   &quot;Times New Roman&quot;;color:#1F1F1F;mso-font-kerning:0pt"><o:p></o:p></span></p>
   </td>
  </tr>
@@ -2638,39 +2631,26 @@ if (body) {
     body.appendChild(calcScript);
 }
 
+// إضافة script مزامنة درجة الحرارة للقالب المُصدَّر
+var tempSyncScript = document.createElement('script');
+tempSyncScript.textContent = 'window.addEventListener("load", function() { var tempAr = document.getElementById("temp-ar"); var tempEn = document.getElementById("temp-en"); if (tempAr && tempEn) { tempAr.addEventListener("input", function() { tempEn.value = this.value; }); tempEn.addEventListener("input", function() { tempAr.value = this.value; }); if (tempAr.value && !tempEn.value) { tempEn.value = tempAr.value; } else if (tempEn.value && !tempAr.value) { tempAr.value = tempEn.value; } } });';
+var body2 = clonedDoc.querySelector('body');
+if (body2) {
+    body2.appendChild(tempSyncScript);
+}
+
     
     var templateHTML = '<!DOCTYPE html>\n' + clonedDoc.outerHTML;
-    
-    // طلب اسم القالب
-    var templateName = prompt('أدخل اسم القالب:', 'قالب_' + new Date().toISOString().slice(0,10));
-    if (!templateName) return;
-    
-    // الحصول على المستخدم
-    var currentUser = localStorage.getItem('currentUser');
-    if (!currentUser) {
-        alert('يجب تسجيل الدخول أولاً!');
-        return;
-    }
-    
-    // Supabase client
-    var supabase = window.supabase.createClient(
-        'https://opyuncxyjdqxawddhdjn.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
-    );
-    
-    // حفظ في Supabase
-    supabase.from('quotation_templates').insert({
-        username: currentUser,
-        name: templateName,
-        html_content: templateHTML
-    }).then(function(response) {
-        if (response.error) {
-            alert('خطأ في الحفظ: ' + response.error.message);
-        } else {
-            alert('تم حفظ القالب بنجاح! ✅\n\nالقالب يحتوي على:\n✓ زر طباعة فقط\n✓ حقول نصية قابلة للتعبئة\n✓ تاريخ اليوم تلقائياً\n✓ حساب تلقائي للأسعار مع الضريبة 15%');
-            window.location.href = 'quotations.html';
-        }
-    });
+    var blob = new Blob([templateHTML], { type: 'text/html;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = 'قالب_' + new Date().toISOString().slice(0,10) + '.html';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    alert('تم تصدير القالب بنجاح! ✅\n\nالقالب يحتوي على:\n✓ زر طباعة فقط\n✓ حقول نصية قابلة للتعبئة\n✓ تاريخ اليوم تلقائياً\n✓ حساب تلقائي للأسعار مع الضريبة 15%');
 }
 
 
@@ -2696,71 +2676,40 @@ if (body) {
 	
 
 	
-
-// دالة استعادة المحتوى الأصلي
-function restoreOriginal() {
-    const savedContent = localStorage.getItem("documentContent");
-    if (!savedContent) {
-        alert("⚠️ لا توجد نسخة محفوظة!");
-        return;
-    }
-    if (!confirm("🔄 استعادة المحتوى الأصلي؟\n\nسيتم إرجاع جميع التعديلات. هل أنت متأكد؟")) {
-        return;
-    }
-    const container = document.getElementById("document-container");
-    container.innerHTML = savedContent;
-    document.querySelectorAll(".page").forEach(page => {
-        const deleteBtn = page.querySelector(".delete-page-btn");
-        if (deleteBtn) {
-            deleteBtn.onclick = function() {
-                if (confirm("هل تريد حذف هذه الصفحة؟")) {
-                    page.remove();
-                    saveToBrowser();
-                }
-            };
-            setupHeaderFooterSync();
-        }
-        const content = page.querySelector(".content");
-        if (content) setupContentMonitoring(content);
-    });
-    document.querySelectorAll(".floating-img").forEach(img => {
-        img.onmousedown = startDragging;
-        img.onclick = (e) => { e.stopPropagation(); selectImage(img); };
-        img.onfocus = () => selectImage(img);
-    });
-    const savedStyles = localStorage.getItem("marginStyles");
-    if (savedStyles) {
-        const styles = JSON.parse(savedStyles);
-        for (let prop in styles) {
-            if (styles[prop]) {
-                const cssVar = "--" + prop.replace(/([A-Z])/g, "-$1").toLowerCase();
-                document.documentElement.style.setProperty(cssVar, styles[prop]);
-            }
-        }
-    }
-    const savedLocks = localStorage.getItem("lockedSections");
-    if (savedLocks) {
-        const locks = JSON.parse(savedLocks);
-        for (let section in locks) {
-            if (locks[section]) {
-                lockedSections[section] = true;
-                document.querySelectorAll("." + section).forEach(el => {
-                    el.setAttribute("contenteditable", "false");
-                    el.classList.add("locked-section");
-                });
-            }
-        }
-        updateLockButtons();
-    }
-    alert("✅ تم استعادة المحتوى الأصلي بنجاح!");
-}
-
 // تشغيل checkSavedData عند التحميل
 window.addEventListener('load', function() {
     if (typeof checkSavedData === 'function') {
         checkSavedData();
     }
+    
+    // مزامنة حقول درجة الحرارة
+    setupTemperatureSync();
 });
+
+// دالة مزامنة درجة الحرارة بين العربي والإنجليزي
+function setupTemperatureSync() {
+    const tempAr = document.getElementById('temp-ar');
+    const tempEn = document.getElementById('temp-en');
+    
+    if (!tempAr || !tempEn) return;
+    
+    // عند الكتابة في الحقل العربي → تحديث الإنجليزي
+    tempAr.addEventListener('input', function() {
+        tempEn.value = this.value;
+    });
+    
+    // عند الكتابة في الحقل الإنجليزي → تحديث العربي
+    tempEn.addEventListener('input', function() {
+        tempAr.value = this.value;
+    });
+    
+    // مزامنة القيم الموجودة عند التحميل (إذا كان فيه قيم محفوظة)
+    if (tempAr.value && !tempEn.value) {
+        tempEn.value = tempAr.value;
+    } else if (tempEn.value && !tempAr.value) {
+        tempAr.value = tempEn.value;
+    }
+}
 </script>
 
 </body></html>
