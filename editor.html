@@ -2632,8 +2632,9 @@ function exportAsTemplate() {
                         var isPhoneField = /phone|mobile|tel|mob/i.test(cleanName);
 						var isTempField = /temp|temperature|درجة|حرارة/i.test(cleanName);
 var fieldClass = isPhoneField ? 'template-field phone-field' : (isTempField ? 'template-field temp-field' : 'template-field');
-var minWidth = isPhoneField ? '80px' : (isTempField ? '10px' : '150px');
-return '<input type="text" class="' + fieldClass + '" placeholder="' + cleanName + '" value="" data-var="' + cleanName + '" style="border: 1px solid #3498db; padding: 0px 8px; border-radius: 3px; background: #e8f4f8; min-width: ' + minWidth + '; max-width: 1300px; text-align: center; font-family: inherit; font-size: inherit; display: inline-block;">';
+var minWidth = isPhoneField ? '80px' : (isTempField ? '35px' : '150px');
+var maxWidth = isTempField ? '60px' : '1300px';
+return '<input type="text" class="' + fieldClass + '" placeholder="' + cleanName + '" value="" data-var="' + cleanName + '" style="border: 1px solid #3498db; padding: 0px 8px; border-radius: 3px; background: #e8f4f8; min-width: ' + minWidth + '; max-width: ' + maxWidth + '; text-align: center; font-family: inherit; font-size: inherit; display: inline-block;">';
                     });
                     node.parentNode.replaceChild(span, node);
                 }
@@ -2735,7 +2736,7 @@ return '<input type="text" class="' + fieldClass + '" placeholder="' + cleanName
     var calcScript = document.createElement('script');
 
 	var autoResizeScript = document.createElement('script');
-autoResizeScript.textContent = 'function autoResizeInput(input) { var minWidth = input.classList.contains("temp-field") ? 10 : 100; var maxWidth = 800; var tempSpan = document.createElement("span"); tempSpan.style.visibility = "hidden"; tempSpan.style.position = "absolute"; tempSpan.style.whiteSpace = "nowrap"; tempSpan.style.font = window.getComputedStyle(input).font; tempSpan.textContent = input.value || input.placeholder || ""; document.body.appendChild(tempSpan); var newWidth = Math.max(minWidth, Math.min(maxWidth, tempSpan.offsetWidth + 20)); document.body.removeChild(tempSpan); input.style.width = newWidth + "px"; } document.addEventListener("DOMContentLoaded", function() { var allFields = document.querySelectorAll(".template-field"); allFields.forEach(function(field) { autoResizeInput(field); field.addEventListener("input", function() { autoResizeInput(this); }); }); });';
+autoResizeScript.textContent = 'function autoResizeInput(input) { var isTempField = input.classList.contains("temp-field"); var minWidth = isTempField ? 35 : 100; var maxWidth = isTempField ? 60 : 800; var tempSpan = document.createElement("span"); tempSpan.style.visibility = "hidden"; tempSpan.style.position = "absolute"; tempSpan.style.whiteSpace = "nowrap"; tempSpan.style.font = window.getComputedStyle(input).font; tempSpan.textContent = input.value || input.placeholder || ""; document.body.appendChild(tempSpan); var newWidth = Math.max(minWidth, Math.min(maxWidth, tempSpan.offsetWidth + 20)); document.body.removeChild(tempSpan); input.style.width = newWidth + "px"; } document.addEventListener("DOMContentLoaded", function() { var allFields = document.querySelectorAll(".template-field"); allFields.forEach(function(field) { autoResizeInput(field); field.addEventListener("input", function() { autoResizeInput(this); }); }); });';
 var body = clonedDoc.querySelector('body');
 if (body) {
     body.appendChild(autoResizeScript);
