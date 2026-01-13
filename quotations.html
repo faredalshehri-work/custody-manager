@@ -106,7 +106,36 @@ async function savePrintedQuotation() {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
     );
     
-    const content = document.documentElement.outerHTML;
+    // تحويل المطبوعة لنسخة نهائية غير قابلة للتعديل
+    var clonedDoc = document.documentElement.cloneNode(true);
+    
+    // تحويل جميع input و textarea إلى نص عادي
+    clonedDoc.querySelectorAll('input, textarea').forEach(function(field) {
+        var span = document.createElement('span');
+        span.textContent = field.value || '';
+        span.style.cssText = field.style.cssText;
+        span.style.border = 'none';
+        span.style.background = 'transparent';
+        span.style.padding = '0';
+        span.className = field.className;
+        field.parentNode.replaceChild(span, field);
+    });
+    
+    // إزالة contenteditable من جميع العناصر
+    clonedDoc.querySelectorAll('[contenteditable]').forEach(function(elem) {
+        elem.removeAttribute('contenteditable');
+    });
+    
+    // إزالة toolbar
+    var toolbar = clonedDoc.querySelector('.toolbar');
+    if (toolbar) toolbar.remove();
+    
+    // إزالة أي أزرار أخرى
+    clonedDoc.querySelectorAll('button').forEach(function(btn) {
+        btn.remove();
+    });
+    
+    const finalContent = clonedDoc.outerHTML;
     
     const { error } = await supabase
         .from('printed_quotations')
@@ -114,7 +143,7 @@ async function savePrintedQuotation() {
             template_id: window.TEMPLATE_ID,
             template_name: window.TEMPLATE_NAME,
             serial_number: window.SERIAL_NUMBER,
-            content: content,
+            content: finalContent,
             username: window.USERNAME
         });
     
