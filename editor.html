@@ -2601,41 +2601,56 @@ function getSectionName(type) {
     return names[type] || type;
 }
 function exportAsTemplate() {
-    saveToBrowser();
-    var clonedDoc = document.documentElement.cloneNode(true);
-    var oldToolbar = clonedDoc.querySelector('.toolbar');
-    if (oldToolbar) {
-        oldToolbar.innerHTML = '<button onclick="window.print()" style="padding: 10px 30px; background: #2ecc71; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">طباعة 📑</button>';
-        oldToolbar.style.justifyContent = 'center';
-        oldToolbar.style.padding = '15px';
-    }
+    // نفس الكود لإنشاء القالب
+    var clonedDoc = document.cloneNode(true);
+    clonedDoc.querySelector('.toolbar').remove();
     var sidebar = clonedDoc.querySelector('.sidebar');
     if (sidebar) sidebar.remove();
-    var lineSpacing = clonedDoc.querySelector('#line-spacing-tools');
-    if (lineSpacing) lineSpacing.remove();
-    var deleteButtons = clonedDoc.querySelectorAll('.delete-page-btn');
-    deleteButtons.forEach(function(btn) { btn.remove(); });
+    var lineTools = clonedDoc.querySelector('#line-spacing-tools');
+    if (lineTools) lineTools.remove();
+    var scripts = clonedDoc.querySelectorAll('script');
+    scripts.forEach(function(script) {
+        var text = script.textContent || '';
+        if (text.includes('insertNewImage') || 
+            text.includes('startDragging') || 
+            text.includes('addPage') || 
+            text.includes('exportAsTemplate') ||
+            text.includes('exportAsFile') ||
+            text.includes('saveToBrowser') ||
+            text.includes('loadFromBrowser')) {
+            script.remove();
+        }
+    });
+    var allImages = clonedDoc.querySelectorAll('.floating-img');
+    allImages.forEach(function(img) {
+        img.classList.remove('active');
+        img.removeAttribute('tabindex');
+        img.style.border = 'none';
+    });
+    var newToolbar = clonedDoc.createElement('div');
+    newToolbar.className = 'toolbar';
+    newToolbar.innerHTML = '<button onclick="window.print()" style="background:#27ae60; font-size:16px;">طباعة 🖨️</button>';
+    clonedDoc.body.insertBefore(newToolbar, clonedDoc.body.firstChild);
     var allSections = clonedDoc.querySelectorAll('.header, .content, .footer');
     allSections.forEach(function(section) {
-        section.setAttribute('contenteditable', 'false');
         section.classList.remove('locked-section');
+        section.removeAttribute('contenteditable');
     });
     allSections.forEach(function(section) {
         var tempDiv = document.createElement('div');
         tempDiv.innerHTML = section.innerHTML;
         function replaceInTextNodes(node) {
             if (node.nodeType === 3) {
-                var text = node.textContent;
-                if (text.includes('{{') && text.includes('}}')) {
+                var pattern = /\{\{([^}]+)\}\}/g;
+                if (pattern.test(node.textContent)) {
                     var span = document.createElement('span');
-                    span.innerHTML = text.replace(/\{\{([^}]+)\}\}/g, function(match, varName) {
+                    span.innerHTML = node.textContent.replace(pattern, function(match, varName) {
                         var cleanName = varName.trim();
                         var isPhoneField = /phone|mobile|tel|mob/i.test(cleanName);
-						var isTempField = /temp|temperature|درجة|حرارة/i.test(cleanName);
-var fieldClass = isPhoneField ? 'template-field phone-field' : (isTempField ? 'template-field temp-field' : 'template-field');
-var minWidth = isPhoneField ? '80px' : (isTempField ? '35px' : '150px');
-var maxWidth = isTempField ? '60px' : '1300px';
-return '<input type="text" class="' + fieldClass + '" placeholder="' + cleanName + '" value="" data-var="' + cleanName + '" style="border: 1px solid #3498db; padding: 0px 8px; border-radius: 3px; background: #e8f4f8; min-width: ' + minWidth + '; max-width: ' + maxWidth + '; text-align: center; font-family: inherit; font-size: inherit; display: inline-block;">';
+                        var isTempField = /temp|temperature|درجة|حرارة/i.test(cleanName);
+                        var fieldClass = isPhoneField ? 'template-field phone-field' : (isTempField ? 'template-field temp-field' : 'template-field');
+                        var minWidth = isPhoneField ? '80px' : (isTempField ? '10px' : '150px');
+                        return '<input type="text" class="' + fieldClass + '" placeholder="' + cleanName + '" value="" data-var="' + cleanName + '" style="border: 1px solid #3498db; padding: 0px 8px; border-radius: 3px; background: #e8f4f8; min-width: ' + minWidth + '; max-width: 1300px; text-align: center; font-family: inherit; font-size: inherit; display: inline-block;">';
                     });
                     node.parentNode.replaceChild(span, node);
                 }
@@ -2655,8 +2670,8 @@ return '<input type="text" class="' + fieldClass + '" placeholder="' + cleanName
                 if (datePattern.test(node.textContent)) {
                     var span = document.createElement('span');
                     span.innerHTML = node.textContent.replace(datePattern, function(matchedDate) {
-    return '<input type="text" class="date-field" value="' + formattedDate + '" style="border: 1px solid #27ae60; padding: 0px 8px; border-radius: 3px; background: #e8f5e9; width: 150px; text-align: center; font-family: inherit; font-size: inherit; display: inline-block;">';
-});
+                        return '<input type="text" class="date-field" value="' + formattedDate + '" style="border: 1px solid #27ae60; padding: 0px 8px; border-radius: 3px; background: #e8f5e9; width: 150px; text-align: center; font-family: inherit; font-size: inherit; display: inline-block;">';
+                    });
                     node.parentNode.replaceChild(span, node);
                 }
             } else if (node.nodeType === 1) {
@@ -2669,47 +2684,33 @@ return '<input type="text" class="' + fieldClass + '" placeholder="' + cleanName
     tables.forEach(function(table) {
         var rows = table.querySelectorAll('tr');
         rows.forEach(function(row, rowIndex) {
-            if (rowIndex === 0) return; // تخطي الهيدر
-            
+            if (rowIndex === 0) return;
             var cells = row.querySelectorAll('td');
             var rowText = row.textContent;
-            
-            // تخطي صفوف الضريبة والإجمالي
             if (rowText.includes('ضريبة') || rowText.includes('الإجمالي النهائي') || rowText.includes('Grand Total')) {
                 return;
             }
-            
-            // البحث عن الكمية والسعر والإجمالي
             var qtyCell = null;
             var priceCell = null;
             var totalCell = null;
-            
             cells.forEach(function(cell, idx) {
                 var text = cell.textContent.trim();
-                
-                // إذا الخلية فيها رقم صغير (1-100) = كمية
                 if (!qtyCell && text.match(/^[1-9]\d{0,2}$/) && !text.includes(',')) {
                     qtyCell = cell;
                 }
-                // إذا الخلية فيها رقم كبير مع فواصل = سعر
                 else if (!priceCell && text.match(/^\d{1,3}(,\d{3})*(\.\d+)?$/)) {
                     priceCell = cell;
                 }
-                // آخر خلية فيها رقم = إجمالي
                 if (text.match(/^\d{1,3}(,\d{3})*(\.\d+)?$/)) {
                     totalCell = cell;
                 }
             });
-            
-            // تحويل الكمية إلى input
             if (qtyCell) {
                 var qtyValue = parseFloat(qtyCell.textContent.trim());
                 if (!isNaN(qtyValue) && qtyValue > 0) {
                     qtyCell.innerHTML = '<input type="number" class="qty-field" value="' + qtyValue + '" min="1" style="width: 90%; text-align: center; border: 1px solid #3498db; padding: 0px; border-radius: 3px; background: #e8f4f8; font-size: 10pt;" oninput="calculateRow(this)">';
                 }
             }
-            
-            // تحويل السعر إلى input
             if (priceCell && priceCell !== totalCell) {
                 var priceText = priceCell.textContent.trim().replace(/[^\d.]/g, '');
                 var priceValue = parseFloat(priceText);
@@ -2717,8 +2718,6 @@ return '<input type="text" class="' + fieldClass + '" placeholder="' + cleanName
                     priceCell.innerHTML = '<input type="number" class="price-field" value="' + priceValue + '" min="0" step="0.01" style="width: 90%; text-align: center; border: 1px solid #3498db; padding: 0px; border-radius: 3px; background: #e8f4f8; font-size: 10pt;" oninput="calculateRow(this)">';
                 }
             }
-            
-            // تعليم خلية الإجمالي
             if (totalCell) {
                 totalCell.classList.add('item-total');
             }
@@ -2735,45 +2734,40 @@ return '<input type="text" class="' + fieldClass + '" placeholder="' + cleanName
         }
     });
     var calcScript = document.createElement('script');
-
-	var autoResizeScript = document.createElement('script');
-autoResizeScript.textContent = 'function autoResizeInput(input) { var isTempField = input.classList.contains("temp-field"); var minWidth = isTempField ? 35 : 100; var maxWidth = isTempField ? 60 : 800; var tempSpan = document.createElement("span"); tempSpan.style.visibility = "hidden"; tempSpan.style.position = "absolute"; tempSpan.style.whiteSpace = "nowrap"; tempSpan.style.font = window.getComputedStyle(input).font; tempSpan.textContent = input.value || input.placeholder || ""; document.body.appendChild(tempSpan); var newWidth = Math.max(minWidth, Math.min(maxWidth, tempSpan.offsetWidth + 20)); document.body.removeChild(tempSpan); input.style.width = newWidth + "px"; } document.addEventListener("DOMContentLoaded", function() { var allFields = document.querySelectorAll(".template-field"); allFields.forEach(function(field) { autoResizeInput(field); field.addEventListener("input", function() { autoResizeInput(this); }); }); });';
-var body = clonedDoc.querySelector('body');
-if (body) {
-    body.appendChild(autoResizeScript);
-}
-var syncFieldsScript = document.createElement('script');
-syncFieldsScript.textContent = 'document.addEventListener("DOMContentLoaded", function() { var allFields = document.querySelectorAll(".template-field"); allFields.forEach(function(field) { field.addEventListener("input", function() { var varName = this.getAttribute("data-var"); var value = this.value; var matchingFields = document.querySelectorAll(".template-field[data-var=\\"" + varName + "\\"]"); matchingFields.forEach(function(matchField) { if (matchField !== field) { matchField.value = value; if (typeof autoResizeInput === "function") { autoResizeInput(matchField); } } }); }); }); });';if (body) {
-    body.appendChild(syncFieldsScript);
-}
+    var autoResizeScript = document.createElement('script');
+    autoResizeScript.textContent = 'function autoResizeInput(input) { var minWidth = input.classList.contains("temp-field") ? 10 : 100; var maxWidth = 800; var tempSpan = document.createElement("span"); tempSpan.style.visibility = "hidden"; tempSpan.style.position = "absolute"; tempSpan.style.whiteSpace = "nowrap"; tempSpan.style.font = window.getComputedStyle(input).font; tempSpan.textContent = input.value || input.placeholder || ""; document.body.appendChild(tempSpan); var newWidth = Math.max(minWidth, Math.min(maxWidth, tempSpan.offsetWidth + 20)); document.body.removeChild(tempSpan); input.style.width = newWidth + "px"; } document.addEventListener("DOMContentLoaded", function() { var allFields = document.querySelectorAll(".template-field"); allFields.forEach(function(field) { autoResizeInput(field); field.addEventListener("input", function() { autoResizeInput(this); }); }); });';
+    var body = clonedDoc.querySelector('body');
+    if (body) {
+        body.appendChild(autoResizeScript);
+    }
+    var syncFieldsScript = document.createElement('script');
+    syncFieldsScript.textContent = 'document.addEventListener("DOMContentLoaded", function() { var allFields = document.querySelectorAll(".template-field"); allFields.forEach(function(field) { field.addEventListener("input", function() { var varName = this.getAttribute("data-var"); var value = this.value; var matchingFields = document.querySelectorAll(".template-field[data-var=\\"" + varName + "\\"]"); matchingFields.forEach(function(matchField) { if (matchField !== field) { matchField.value = value; if (typeof autoResizeInput === "function") { autoResizeInput(matchField); } } }); }); }); });';
+    if (body) {
+        body.appendChild(syncFieldsScript);
+    }
+    calcScript.textContent = 'function calculateRow(input) { var row = input.closest("tr"); var qtyInput = row.querySelector(".qty-field"); var priceInput = row.querySelector(".price-field"); var totalCell = row.querySelector(".item-total"); if (qtyInput && priceInput && totalCell) { var qty = parseFloat(qtyInput.value) || 0; var price = parseFloat(priceInput.value) || 0; var total = qty * price; totalCell.textContent = total.toFixed(2).replace(/\\B(?=(\\d{3})+(?!\\d))/g, ","); } calculateGrandTotal(); } function calculateGrandTotal() { var itemTotals = document.querySelectorAll(".item-total"); var subtotal = 0; itemTotals.forEach(function(cell) { var value = parseFloat(cell.textContent.replace(/,/g, "")) || 0; subtotal += value; }); var taxAmount = subtotal * 0.15; var grandTotal = subtotal + taxAmount; var allCells = document.querySelectorAll("td"); allCells.forEach(function(cell) { var text = cell.textContent; if (text.includes("ضريبة") && !text.includes("الإجمالي")) { var row = cell.closest("tr"); var cells = row.querySelectorAll("td"); var lastCell = cells[cells.length - 1]; if (lastCell) lastCell.textContent = taxAmount.toFixed(2).replace(/\\B(?=(\\d{3})+(?!\\d))/g, ","); } if (text.includes("الإجمالي النهائي")) { var row = cell.closest("tr"); var cells = row.querySelectorAll("td"); var lastCell = cells[cells.length - 1]; if (lastCell) { lastCell.textContent = grandTotal.toFixed(2).replace(/\\B(?=(\\d{3})+(?!\\d))/g, ","); lastCell.style.fontWeight = "bold"; } } }); } window.addEventListener("load", function() { calculateGrandTotal(); });';
+    var body = clonedDoc.querySelector('body');
+    if (body) {
+        body.appendChild(calcScript);
+    }
     
-calcScript.textContent = 'function calculateRow(input) { var row = input.closest("tr"); var qtyInput = row.querySelector(".qty-field"); var priceInput = row.querySelector(".price-field"); var totalCell = row.querySelector(".item-total"); if (qtyInput && priceInput && totalCell) { var qty = parseFloat(qtyInput.value) || 0; var price = parseFloat(priceInput.value) || 0; var total = qty * price; totalCell.textContent = total.toFixed(2).replace(/\\B(?=(\\d{3})+(?!\\d))/g, ","); } calculateGrandTotal(); } function calculateGrandTotal() { var itemTotals = document.querySelectorAll(".item-total"); var subtotal = 0; itemTotals.forEach(function(cell) { var value = parseFloat(cell.textContent.replace(/,/g, "")) || 0; subtotal += value; }); var taxAmount = subtotal * 0.15; var grandTotal = subtotal + taxAmount; var allCells = document.querySelectorAll("td"); allCells.forEach(function(cell) { var text = cell.textContent; if (text.includes("ضريبة") && !text.includes("الإجمالي")) { var row = cell.closest("tr"); var cells = row.querySelectorAll("td"); var lastCell = cells[cells.length - 1]; if (lastCell) lastCell.textContent = taxAmount.toFixed(2).replace(/\\B(?=(\\d{3})+(?!\\d))/g, ","); } if (text.includes("الإجمالي النهائي")) { var row = cell.closest("tr"); var cells = row.querySelectorAll("td"); var lastCell = cells[cells.length - 1]; if (lastCell) { lastCell.textContent = grandTotal.toFixed(2).replace(/\\B(?=(\\d{3})+(?!\\d))/g, ","); lastCell.style.fontWeight = "bold"; } } }); } window.addEventListener("load", function() { calculateGrandTotal(); });';
-var body = clonedDoc.querySelector('body');
-if (body) {
-    body.appendChild(calcScript);
-}
-
-    
+    // هنا التعديل: الحفظ في Supabase بدلاً من التحميل
     var templateHTML = '<!DOCTYPE html>\n' + clonedDoc.outerHTML;
     
-    // طلب اسم القالب من المستخدم
     var templateName = prompt('أدخل اسم القالب:', 'قالب_' + new Date().toISOString().slice(0,10));
     if (!templateName) return;
     
-    // الحصول على المستخدم الحالي
     var currentUser = localStorage.getItem('currentUser');
     if (!currentUser) {
         alert('يجب تسجيل الدخول أولاً!');
         return;
     }
     
-    // إنشاء Supabase client
     var supabase = window.supabase.createClient(
         'https://opyuncxyjdqxawddhdjn.supabase.co',
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
     );
     
-    // حفظ القالب في Supabase
     supabase.from('quotation_templates').insert({
         username: currentUser,
         name: templateName,
@@ -2783,88 +2777,10 @@ if (body) {
             alert('خطأ في الحفظ: ' + response.error.message);
         } else {
             alert('تم حفظ القالب بنجاح! ✅\n\nالقالب يحتوي على:\n✓ زر طباعة فقط\n✓ حقول نصية قابلة للتعبئة\n✓ تاريخ اليوم تلقائياً\n✓ حساب تلقائي للأسعار مع الضريبة 15%\n\nيمكنك الآن العودة لقائمة عروض الأسعار لمشاهدة القالب.');
-            // العودة لقائمة عروض الأسعار
             window.location.href = 'quotations.html';
         }
     });
 }
-async function saveToSupabase() {
-    const currentUser = localStorage.getItem('currentUser');
-    if (!currentUser) {
-        alert('يجب تسجيل الدخول أولاً!');
-        return;
-    }
-    
-    const templateId = localStorage.getItem('currentTemplateId');
-    const fullHTML = document.documentElement.outerHTML;
-    
-    const supabase = window.supabase.createClient(
-        'https://opyuncxyjdqxawddhdjn.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
-    );
-    
-    if (templateId) {
-        // تحديث القالب الموجود
-        const { error } = await supabase
-            .from('quotation_templates')
-            .update({ 
-                html_content: fullHTML,
-                updated_at: new Date().toISOString()
-            })
-            .eq('id', templateId);
-        
-        if (error) {
-            alert('❌ خطأ في الحفظ: ' + error.message);
-        } else {
-            // تحديث localStorage
-            localStorage.setItem('currentTemplateContent', fullHTML);
-            alert('✅ تم حفظ التعديلات بنجاح!');
-        }
-    } else {
-        // إنشاء قالب جديد
-        const templateName = prompt('أدخل اسم القالب:', 'قالب_جديد_' + new Date().toLocaleDateString('ar-SA'));
-        if (!templateName) return;
-        
-        const { data, error } = await supabase
-            .from('quotation_templates')
-            .insert({
-                username: currentUser,
-                name: templateName,
-                html_content: fullHTML,
-                original_content: fullHTML
-            })
-            .select();
-        
-        if (error) {
-            alert('❌ خطأ في الحفظ: ' + error.message);
-        } else if (data && data[0]) {
-            localStorage.setItem('currentTemplateId', data[0].id);
-            localStorage.setItem('currentTemplateName', templateName);
-            localStorage.setItem('currentTemplateContent', fullHTML);
-            alert('✅ تم إنشاء القالب بنجاح!');
-        }
-    }
-}
-
-    function exportAsFile() {
-        // حفظ المحتوى الحالي أولاً
-        saveToBrowser();
-        
-        // نسخ الملف الحالي بالكامل
-        const htmlContent = document.documentElement.outerHTML;
-        
-        const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'مستند_' + new Date().toISOString().slice(0,10) + '.html';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        
-        alert('تم تصدير الملف بنجاح! ✅\nيمكنك الآن نسخه أو إرساله وسيحتفظ بكل التنسيقات.');
-    }
 	
 
 	
@@ -2984,6 +2900,46 @@ async function loadTemplateIfExists() {
         checkSavedData();
     }
 }
+	// تحميل القالب إذا كان موجود
+window.addEventListener('load', function() {
+    const templateId = localStorage.getItem('currentTemplateId');
+    const templateContent = localStorage.getItem('currentTemplateContent');
+    
+    if (templateId && templateContent) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(templateContent, 'text/html');
+        const container = doc.getElementById('document-container');
+        
+        if (container) {
+            document.getElementById('document-container').innerHTML = container.innerHTML;
+            
+            document.querySelectorAll('.page').forEach(page => {
+                const deleteBtn = page.querySelector('.delete-page-btn');
+                if (deleteBtn) {
+                    deleteBtn.onclick = function() {
+                        if (confirm('هل تريد حذف هذه الصفحة؟')) {
+                            page.remove();
+                        }
+                    };
+                }
+                const content = page.querySelector('.content');
+                if (content) setupContentMonitoring(content);
+            });
+            
+            document.querySelectorAll('.floating-img').forEach(img => {
+                img.onmousedown = startDragging;
+                img.onclick = (e) => { e.stopPropagation(); selectImage(img); };
+                img.onfocus = () => selectImage(img);
+            });
+            
+            if (typeof setupHeaderFooterSync === 'function') {
+                setupHeaderFooterSync();
+            }
+        }
+    } else if (typeof checkSavedData === 'function') {
+        checkSavedData();
+    }
+});
 </script>
 
 </body></html>
