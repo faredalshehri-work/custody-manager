@@ -2612,7 +2612,7 @@ function exportAsTemplate() {
                         
                         // معالجة خاصة لـ serial_number
                         if (/serial|سيريال/i.test(cleanName)) {
-                            return '<span class="serial-number-placeholder" style="font-weight: bold; color: #e74c3c;"></span>';
+                            return '<span class="serial-number-placeholder"></span>';
                         }
                         
                         var isPhoneField = /phone|mobile|tel|mob/i.test(cleanName);
