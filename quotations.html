@@ -38,22 +38,10 @@
                     .eq('username', user)
                     .order('created_at', { ascending: false });
                 
-                console.log('Loaded templates:', data);
-                console.log('Load error:', error);
-                
                 if (error) {
                     console.error('Error loading templates:', error);
                 } else {
                     setTemplates(data || []);
-                    // طباعة أول قالب كمثال
-                    if (data && data.length > 0) {
-                        console.log('First template:', {
-                            id: data[0].id,
-                            name: data[0].name,
-                            contentLength: data[0].html_content?.length || 0,
-                            contentPreview: data[0].html_content?.substring(0, 100) || 'EMPTY'
-                        });
-                    }
                 }
                 setLoading(false);
             };
@@ -66,22 +54,18 @@
             };
 
             const openTemplate = (template) => {
-    // التحقق من وجود محتوى
-    if (!template.html_content) {
-        alert('❌ القالب فارغ أو تالف!');
-        console.error('Template content is missing:', template);
-        return;
-    }
-    
-    // إنشاء نافذة جديدة وكتابة المحتوى
     const newWindow = window.open('', '_blank');
-    if (!newWindow) {
-        alert('⚠️ يرجى السماح بفتح النوافذ المنبثقة!');
-        return;
-    }
-    
     newWindow.document.write(template.html_content);
     newWindow.document.close();
+};
+
+const editTemplate = (template) => {
+    // حفظ ID القالب في localStorage
+    localStorage.setItem('currentTemplateId', template.id);
+    localStorage.setItem('currentTemplateName', template.name);
+    localStorage.setItem('currentTemplateContent', template.html_content);
+    // فتح المحرر
+    window.location.href = 'editor.html';
 };
 
             const filteredTemplates = templates.filter(t => 
@@ -142,6 +126,9 @@
                                                 </small>
                                             </div>
                                             <div className="action-btns">
+                                                <button className="icon-btn" onClick={() => editTemplate(template)} title="تعديل" style={{background: '#f39c12'}}>
+    <i className="fas fa-edit"></i>
+</button>
                                                 <button className="icon-btn" onClick={() => openTemplate(template)} title="فتح">
                                                     <i className="fas fa-eye"></i>
                                                 </button>
