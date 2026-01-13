@@ -167,7 +167,7 @@
 <body>
 
 <div class="toolbar">
-    <button onclick="window.location.href='quotations.html'" style="background:#34495e;">← رجوع للقوالب</button>
+    <button onclick="window.location.href='quotations.html'" style="background:#34495e;">← رجوع</button>
     <button onclick="insertNewImage()" style="background:#e67e22;">إدراج صورة 🖼️</button>
     <button onclick="addNewPage()" style="background:#9b59b6;">إضافة صفحة جديدة 📄</button>
 <button onclick="toggleLockSection('header')" id="lockHeaderBtn" style="background: rgb(231, 76, 60);">🔒 فتح الهيدر</button>
@@ -2606,7 +2606,7 @@ return '<input type="text" class="' + fieldClass + '" placeholder="' + cleanName
     });
     var style = clonedDoc.querySelector('style');
     if (style) {
-        style.textContent += '\n.template-field { border: 1px solid #3498db !important; padding: 2px 5px; border-radius: 3px; background: #e8f4f8; min-width: 100px; max-width: 100%; text-align: center; } .phone-field { min-width: 80px !important; } .template-field:focus { outline: 2px solid #2980b9; background: white; } @media print { .toolbar, .sidebar, .delete-page-btn { display: none !important; } .page { margin: 0; box-shadow: none; border: none; page-break-after: always; } body { background: white; } .locked-section { background-color: transparent !important; border: none !important; opacity: 1 !important; } .locked-section::before { display: none !important; } .template-field, .qty-field, .price-field { border: none !important; background: transparent !important; padding: 0 !important; } }';
+        style.textContent += '\n.template-field { border: 1px solid #3498db !important; padding: 2px 5px; border-radius: 3px; background: #e8f4f8; min-width: 100px; max-width: 100%; text-align: center; } .phone-field { min-width: 80px !important; } .template-field:focus { outline: 2px solid #2980b9; background: white; } @media print { .template-field, .qty-field, .price-field { border: none !important; background: transparent !important; padding: 0 !important; } }';
     }
     var scripts = clonedDoc.querySelectorAll('script');
     scripts.forEach(function(script) {
@@ -2636,16 +2636,6 @@ if (body) {
     
     var templateHTML = '<!DOCTYPE html>\n' + clonedDoc.outerHTML;
     
-    // التحقق من أن المحتوى ليس فارغاً
-    if (!templateHTML || templateHTML.length < 100) {
-        alert('❌ خطأ: القالب فارغ! تأكد من وجود محتوى في المحرر.');
-        console.error('Template HTML is empty or too short:', templateHTML);
-        return;
-    }
-    
-    console.log('Template HTML length:', templateHTML.length);
-    console.log('Template HTML preview:', templateHTML.substring(0, 200));
-    
     // طلب اسم القالب
     var templateName = prompt('أدخل اسم القالب:', 'قالب_' + new Date().toISOString().slice(0,10));
     if (!templateName) return;
@@ -2658,38 +2648,23 @@ if (body) {
         return;
     }
     
-    // إنشاء Supabase client
+    // حفظ في Supabase
     var supabase = window.supabase.createClient(
         'https://opyuncxyjdqxawddhdjn.supabase.co',
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
     );
     
-    console.log('Saving to Supabase...', { username: currentUser, name: templateName, contentLength: templateHTML.length });
-    
-    // حفظ القالب في Supabase
     supabase.from('quotation_templates').insert({
         username: currentUser,
         name: templateName,
         html_content: templateHTML
     }).then(function(response) {
-        console.log('Supabase response:', response);
         if (response.error) {
-            console.error('Supabase Error:', response.error);
             alert('خطأ في الحفظ: ' + response.error.message);
         } else {
-            alert('✅ تم حفظ القالب بنجاح!\n\nالقالب يحتوي على:\n✓ زر طباعة فقط\n✓ حقول نصية قابلة للتعبئة\n✓ تاريخ اليوم تلقائياً\n✓ حساب تلقائي للأسعار مع الضريبة 15%\n\nسيتم الانتقال لقائمة عروض الأسعار...');
-            // مسح بيانات القالب الحالي
-            localStorage.removeItem('currentTemplateId');
-            localStorage.removeItem('currentTemplateName');
-            localStorage.removeItem('currentTemplateContent');
-            // الانتقال لقائمة عروض الأسعار
-            setTimeout(function() {
-                window.location.href = 'quotations.html';
-            }, 1000);
+            alert('تم حفظ القالب بنجاح! ✅\n\nالقالب يحتوي على:\n✓ زر طباعة فقط\n✓ حقول نصية قابلة للتعبئة\n✓ تاريخ اليوم تلقائياً\n✓ حساب تلقائي للأسعار مع الضريبة 15%');
+            window.location.href = 'quotations.html';
         }
-    }).catch(function(error) {
-        console.error('Error:', error);
-        alert('خطأ في الاتصال بقاعدة البيانات!');
     });
 }
 
@@ -2716,59 +2691,47 @@ if (body) {
 	
 
 	
-// تحميل القالب عند الدخول من quotations.html
+// تشغيل checkSavedData عند التحميل
 window.addEventListener('load', function() {
+    // تحميل القالب إذا كان قادم من quotations.html
     const templateId = localStorage.getItem('currentTemplateId');
     const templateContent = localStorage.getItem('currentTemplateContent');
     
     if (templateId && templateContent) {
-        console.log('Loading template from localStorage...');
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(templateContent, 'text/html');
+        const container = doc.getElementById('document-container');
         
-        try {
-            // تحليل المحتوى
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(templateContent, 'text/html');
-            const container = doc.getElementById('document-container');
+        if (container) {
+            document.getElementById('document-container').innerHTML = container.innerHTML;
             
-            if (container) {
-                document.getElementById('document-container').innerHTML = container.innerHTML;
-                
-                // إعادة ربط الأحداث للصفحات
-                document.querySelectorAll('.page').forEach(page => {
-                    const deleteBtn = page.querySelector('.delete-page-btn');
-                    if (deleteBtn) {
-                        deleteBtn.onclick = function() {
-                            if (confirm('هل تريد حذف هذه الصفحة؟')) {
-                                page.remove();
-                            }
-                        };
-                    }
-                    const content = page.querySelector('.content');
-                    if (content && typeof setupContentMonitoring === 'function') {
-                        setupContentMonitoring(content);
-                    }
-                });
-                
-                // إعادة ربط الأحداث للصور
-                document.querySelectorAll('.floating-img').forEach(img => {
-                    img.onmousedown = startDragging;
-                    img.onclick = (e) => { e.stopPropagation(); selectImage(img); };
-                    img.onfocus = () => selectImage(img);
-                });
-                
-                // ربط الـ sync للهيدر والفوتر
-                if (typeof setupHeaderFooterSync === 'function') {
-                    setupHeaderFooterSync();
+            // إعادة ربط الأحداث
+            document.querySelectorAll('.page').forEach(page => {
+                const deleteBtn = page.querySelector('.delete-page-btn');
+                if (deleteBtn) {
+                    deleteBtn.onclick = function() {
+                        if (confirm('هل تريد حذف هذه الصفحة؟')) {
+                            page.remove();
+                        }
+                    };
                 }
-                
-                console.log('Template loaded successfully!');
+                const content = page.querySelector('.content');
+                if (content && typeof setupContentMonitoring === 'function') {
+                    setupContentMonitoring(content);
+                }
+            });
+            
+            document.querySelectorAll('.floating-img').forEach(img => {
+                img.onmousedown = startDragging;
+                img.onclick = (e) => { e.stopPropagation(); selectImage(img); };
+                img.onfocus = () => selectImage(img);
+            });
+            
+            if (typeof setupHeaderFooterSync === 'function') {
+                setupHeaderFooterSync();
             }
-        } catch (error) {
-            console.error('Error loading template:', error);
-            alert('خطأ في تحميل القالب!');
         }
     } else if (typeof checkSavedData === 'function') {
-        // تحميل البيانات المحفوظة في المتصفح
         checkSavedData();
     }
 });
