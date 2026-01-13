@@ -2605,7 +2605,7 @@ function exportAsTemplate() {
     var clonedDoc = document.documentElement.cloneNode(true);
     var oldToolbar = clonedDoc.querySelector('.toolbar');
     if (oldToolbar) {
-        oldToolbar.innerHTML = '<button onclick="window.print()" style="padding: 10px 30px; background: #2ecc71; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">طباعة 📑</button><button onclick="savePrintedQuotation()" style="padding: 10px 30px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 10px;">حفظ المطبوعة 💾</button>';
+        oldToolbar.innerHTML = '<button onclick="window.print()" style="padding: 10px 30px; background: #2ecc71; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-left: 10px;">طباعة 📑</button><button onclick="savePrintedQuotation()" style="padding: 10px 30px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">حفظ المطبوعة 💾</button>';
         oldToolbar.style.justifyContent = 'center';
         oldToolbar.style.padding = '15px';
     }
