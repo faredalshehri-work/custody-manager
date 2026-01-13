@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المطبوعات</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const user = localStorage.getItem('currentUser');
+        if (!user) window.location.href = 'index.html';
+
+        const templateId = localStorage.getItem('viewPrintsTemplateId');
+        const templateName = localStorage.getItem('viewPrintsTemplateName');
+        
+        if (!templateId) {
+            window.location.href = 'quotations.html';
+        }
+
+        const supabase = window.supabase.createClient(
+            'https://opyuncxyjdqxawddhdjn.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
+        );
+
+        function PrintsApp() {
+            const [prints, setPrints] = useState([]);
+            const [loading, setLoading] = useState(false);
+            const [searchTerm, setSearchTerm] = useState('');
+
+            useEffect(() => { loadPrints(); }, []);
+
+            const loadPrints = async () => {
+                setLoading(true);
+                const { data, error } = await supabase
+                    .from('printed_quotations')
+                    .select('*')
+                    .eq('template_id', templateId)
+                    .eq('username', user)
+                    .order('created_at', { ascending: false });
+                
+                if (error) {
+                    console.error('Error loading prints:', error);
+                } else {
+                    setPrints(data || []);
+                }
+                setLoading(false);
+            };
+
+            const deletePrint = async (id) => {
+                if (confirm('حذف المطبوعة؟')) {
+                    await supabase.from('printed_quotations').delete().eq('id', id);
+                    loadPrints();
+                }
+            };
+
+            const openPrint = (print) => {
+                const newWindow = window.open('', '_blank');
+                if (!newWindow) {
+                    alert('⚠️ يرجى السماح بفتح النوافذ المنبثقة!');
+                    return;
+                }
+                newWindow.document.write(print.content);
+                newWindow.document.close();
+            };
+
+            const filteredPrints = prints.filter(p => 
+                p.serial_number.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            return (
+                <div className="app-container">
+                    <div className="top-bar">
+                        <button className="btn-back" onClick={() => window.location.href = 'quotations.html'}>
+                            <i className="fas fa-arrow-right"></i>
+                        </button>
+                        <h2><i className="fas fa-print"></i> المطبوعات - {templateName}</h2>
+                    </div>
+
+                    <div className="panel">
+                        <div className="controls-row">
+                            <div className="search-field">
+                                <i className="fas fa-search"></i>
+                                <input 
+                                    type="text" 
+                                    placeholder="بحث بالرقم التسلسلي..." 
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                                {searchTerm && (
+                                    <i className="fas fa-times" onClick={() => setSearchTerm('')}></i>
+                                )}
+                            </div>
+                        </div>
+
+                        {loading ? (
+                            <div className="loader">
+                                <i className="fas fa-spinner fa-spin"></i>
+                                <p>جاري التحميل...</p>
+                            </div>
+                        ) : filteredPrints.length === 0 ? (
+                            <div className="no-data">
+                                <i className="fas fa-inbox"></i>
+                                <p>{searchTerm ? 'لا توجد نتائج' : 'لا توجد مطبوعات حالياً'}</p>
+                            </div>
+                        ) : (
+                            <div className="items-list grid">
+                                {filteredPrints.map(print => (
+                                    <div key={print.id} className="item-box">
+                                        <div className="item-top">
+                                            <div className="info-section">
+                                                <h4>Ref: {print.serial_number}</h4>
+                                                <small>
+                                                    <i className="far fa-calendar"></i>
+                                                    {new Date(print.created_at).toLocaleDateString('ar-SA')}
+                                                    {' '}
+                                                    <i className="far fa-clock"></i>
+                                                    {new Date(print.created_at).toLocaleTimeString('ar-SA', {hour: '2-digit', minute: '2-digit'})}
+                                                </small>
+                                            </div>
+                                            <div className="action-btns">
+                                                <button className="icon-btn" onClick={() => openPrint(print)} title="فتح">
+                                                    <i className="fas fa-eye"></i>
+                                                </button>
+                                                <button className="icon-btn del-btn" onClick={() => deletePrint(print.id)} title="حذف">
+                                                    <i className="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<PrintsApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
