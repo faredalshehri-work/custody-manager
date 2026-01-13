@@ -38,22 +38,10 @@
                     .eq('username', user)
                     .order('created_at', { ascending: false });
                 
-                console.log('Loaded templates:', data);
-                console.log('Load error:', error);
-                
                 if (error) {
                     console.error('Error loading templates:', error);
                 } else {
                     setTemplates(data || []);
-                    // طباعة أول قالب كمثال
-                    if (data && data.length > 0) {
-                        console.log('First template:', {
-                            id: data[0].id,
-                            name: data[0].name,
-                            contentLength: data[0].html_content?.length || 0,
-                            contentPreview: data[0].html_content?.substring(0, 100) || 'EMPTY'
-                        });
-                    }
                 }
                 setLoading(false);
             };
@@ -66,18 +54,14 @@
             };
 
             const openTemplate = (template) => {
-    // التحقق من وجود محتوى
-    if (!template.html_content) {
-        alert('❌ القالب فارغ أو تالف!');
-        console.error('Template content is missing:', template);
-        return;
-    }
-    
-    // إضافة template metadata في HTML
-    let modifiedHTML = template.html_content;
-    
-    // إضافة script في نهاية body يحتوي على template info
-    const templateInfoScript = `
+                if (!template.html_content) {
+                    alert('❌ القالب فارغ أو تالف!');
+                    return;
+                }
+                
+                let modifiedHTML = template.html_content;
+                
+                const templateInfoScript = `
 <script>
 window.TEMPLATE_ID = ${template.id};
 window.TEMPLATE_NAME = '${template.name.replace(/'/g, "\\'")}';
@@ -93,13 +77,11 @@ async function savePrintedQuotation() {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
     );
     
-    // توليد Serial Number
     const now = new Date();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const year = String(now.getFullYear()).slice(-2);
     const monthYear = month + year;
     
-    // الحصول على آخر رقم تسلسلي لهذا القالب في نفس الشهر/السنة
     const { data: lastPrint } = await supabase
         .from('printed_quotations')
         .select('serial_number')
@@ -119,11 +101,9 @@ async function savePrintedQuotation() {
     
     const serialNumber = String(sequentialNumber).padStart(3, '0') + '-' + monthYear;
     
-    // إضافة Serial Number في المحتوى
     const content = document.documentElement.outerHTML;
     const modifiedContent = content.replace(/<span[^>]*>Ref:<\\/span>/, '<span>Ref: ' + serialNumber + '</span>');
     
-    // حفظ المطبوعة
     const { error } = await supabase
         .from('printed_quotations')
         .insert({
@@ -140,24 +120,22 @@ async function savePrintedQuotation() {
         alert('✅ تم حفظ المطبوعة بنجاح!\\n\\nرقم المرجع: ' + serialNumber);
     }
 }
-</script>
+<\\/script>
 </body>`;
-    
-    modifiedHTML = modifiedHTML.replace('</body>', templateInfoScript);
-    
-    // إنشاء نافذة جديدة وكتابة المحتوى
-    const newWindow = window.open('', '_blank');
-    if (!newWindow) {
-        alert('⚠️ يرجى السماح بفتح النوافذ المنبثقة!');
-        return;
-    }
-    
-    newWindow.document.write(modifiedHTML);
-    newWindow.document.close();
-};
+                
+                modifiedHTML = modifiedHTML.replace('</body>', templateInfoScript);
+                
+                const newWindow = window.open('', '_blank');
+                if (!newWindow) {
+                    alert('⚠️ يرجى السماح بفتح النوافذ المنبثقة!');
+                    return;
+                }
+                
+                newWindow.document.write(modifiedHTML);
+                newWindow.document.close();
+            };
 
             const viewPrints = (template) => {
-                // حفظ template_id في localStorage والانتقال لصفحة المطبوعات
                 localStorage.setItem('viewPrintsTemplateId', template.id);
                 localStorage.setItem('viewPrintsTemplateName', template.name);
                 window.location.href = 'prints.html';
@@ -174,8 +152,8 @@ async function savePrintedQuotation() {
                             <i className="fas fa-arrow-right"></i>
                         </button>
                         <h2><i className="fas fa-file-invoice"></i> عروض الأسعار</h2>
-                        <button className="btn-main" onClick={() => window.location.href = 'editor.html'}>
-                            <i className="fas fa-edit"></i> محرر القوالب
+                        <button className="btn-primary" onClick={() => window.location.href = 'editor.html'}>
+                            <i className="fas fa-plus"></i> محرر القوالب
                         </button>
                     </div>
 
@@ -204,7 +182,7 @@ async function savePrintedQuotation() {
                             <div className="no-data">
                                 <i className="fas fa-inbox"></i>
                                 <p>{searchTerm ? 'لا توجد نتائج' : 'لا توجد قوالب حالياً'}</p>
-                                <button className="btn-main" onClick={() => window.location.href = 'editor.html'}>
+                                <button className="btn-primary" onClick={() => window.location.href = 'editor.html'}>
                                     <i className="fas fa-plus"></i> إنشاء قالب جديد
                                 </button>
                             </div>
