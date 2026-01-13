@@ -2584,7 +2584,7 @@ function exportAsTemplate() {
     var clonedDoc = document.documentElement.cloneNode(true);
     var oldToolbar = clonedDoc.querySelector('.toolbar');
     if (oldToolbar) {
-        oldToolbar.innerHTML = '<button onclick="window.print()" style="padding: 10px 30px; background: #2ecc71; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">طباعة 📑</button>';
+        oldToolbar.innerHTML = '<button onclick="window.print()" style="padding: 10px 30px; background: #2ecc71; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-left: 10px;">طباعة 📑</button><button onclick="savePrintedQuotation()" style="padding: 10px 30px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">حفظ المطبوعة 💾</button>';
         oldToolbar.style.justifyContent = 'center';
         oldToolbar.style.padding = '15px';
     }
@@ -2760,8 +2760,21 @@ if (body) {
         if (response.error) {
             alert('خطأ في الحفظ: ' + response.error.message);
         } else {
-            alert('تم حفظ القالب بنجاح! ✅\n\nالقالب يحتوي على:\n✓ زر طباعة فقط\n✓ حقول نصية قابلة للتعبئة\n✓ تاريخ اليوم تلقائياً\n✓ حساب تلقائي للأسعار مع الضريبة 15%');
-            window.location.href = 'quotations.html';
+            // الحصول على ID القالب المحفوظ
+            supabase.from('quotation_templates')
+                .select('id')
+                .eq('username', currentUser)
+                .eq('name', templateName)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single()
+                .then(function(result) {
+                    if (result.data) {
+                        console.log('Template saved with ID:', result.data.id);
+                    }
+                    alert('تم حفظ القالب بنجاح! ✅\n\nالقالب يحتوي على:\n✓ زر طباعة\n✓ زر حفظ المطبوعة\n✓ حقول نصية قابلة للتعبئة\n✓ تاريخ اليوم تلقائياً\n✓ حساب تلقائي للأسعار مع الضريبة 15%');
+                    window.location.href = 'quotations.html';
+                });
         }
     });
 }
