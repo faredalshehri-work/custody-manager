@@ -2636,6 +2636,16 @@ if (body) {
     
     var templateHTML = '<!DOCTYPE html>\n' + clonedDoc.outerHTML;
     
+    // التحقق من أن المحتوى ليس فارغاً
+    if (!templateHTML || templateHTML.length < 100) {
+        alert('❌ خطأ: القالب فارغ! تأكد من وجود محتوى في المحرر.');
+        console.error('Template HTML is empty or too short:', templateHTML);
+        return;
+    }
+    
+    console.log('Template HTML length:', templateHTML.length);
+    console.log('Template HTML preview:', templateHTML.substring(0, 200));
+    
     // طلب اسم القالب
     var templateName = prompt('أدخل اسم القالب:', 'قالب_' + new Date().toISOString().slice(0,10));
     if (!templateName) return;
@@ -2654,12 +2664,15 @@ if (body) {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
     );
     
+    console.log('Saving to Supabase...', { username: currentUser, name: templateName, contentLength: templateHTML.length });
+    
     // حفظ القالب في Supabase
     supabase.from('quotation_templates').insert({
         username: currentUser,
         name: templateName,
         html_content: templateHTML
     }).then(function(response) {
+        console.log('Supabase response:', response);
         if (response.error) {
             console.error('Supabase Error:', response.error);
             alert('خطأ في الحفظ: ' + response.error.message);
