@@ -1,7 +1,6 @@
 <html lang="ar" dir="rtl" style="--header-margin: 2mm; --footer-margin: 2mm; --page-margin-top: 5mm; --page-margin-bottom: 5mm; --page-margin-left: 10mm; --page-margin-right: 10mm;"><head>
     <meta charset="UTF-8">
     <title>المحرر المطور - تحكم كامل بالصور والهوامش</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --header-margin: 5mm; --footer-margin: 5mm;
@@ -147,11 +146,89 @@
 }
 
        @media print {
-    .toolbar, .sidebar, .delete-page-btn { display: none !important; }
-    .page { margin: 0; box-shadow: none; border: none; page-break-after: always; }
-    body { background: white; }
+    /* إخفاء العناصر غير المطلوبة فقط */
+    .toolbar, .sidebar, .delete-page-btn, #line-spacing-tools { 
+        display: none !important; 
+    }
     
-    /* إزالة تنسيق القفل عند الطباعة */
+    /* ضبط الـ body - بدون تغيير */
+    body { 
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    /* الصفحة - نفس التنسيق تماماً كالمحرر */
+    .page { 
+        /* نحتفظ بكل شيء كما هو في المحرر */
+        width: 210mm !important;
+        height: 297mm !important;
+        padding: var(--page-margin-top) var(--page-margin-right) var(--page-margin-bottom) var(--page-margin-left) !important;
+        margin: 0 !important; /* فقط نلغي الـ auto margin */
+        background: white !important;
+        position: relative !important;
+        box-sizing: border-box !important;
+        display: flex !important; /* نحتفظ بالـ flex */
+        flex-direction: column !important;
+        box-shadow: none !important; 
+        border: none !important;
+        page-break-after: always !important;
+        page-break-inside: avoid !important;
+    }
+    
+    /* الهيدر - نفس التنسيق */
+    .header { 
+        margin-bottom: var(--header-margin) !important;
+        border-bottom: 1px dashed #eee !important;
+        text-align: center !important;
+        position: relative !important;
+        min-height: 100px !important;
+        flex-shrink: 0 !important;
+        page-break-inside: avoid !important;
+        page-break-after: avoid !important;
+    }
+    
+    /* المحتوى - نفس التنسيق + تعديل صغير */
+    .content { 
+        flex-grow: 1 !important;
+        position: relative !important;
+        overflow: visible !important; /* visible بدل hidden للطباعة */
+        page-break-inside: auto !important;
+        /* نضيف min-height لدفع الفوتر للأسفل */
+        min-height: 0 !important;
+        /* منع فصل السطور الأخيرة عن الفوتر */
+        orphans: 3 !important;
+        widows: 3 !important;
+    }
+    
+    /* الفوتر - نفس التنسيق + منع الفصل */
+    .footer { 
+        margin-top: var(--footer-margin) !important;
+        border-top: 1px dashed #eee !important;
+        text-align: center !important;
+        position: relative !important;
+        min-height: 50px !important;
+        flex-shrink: 0 !important;
+        page-break-inside: avoid !important;
+        page-break-before: avoid !important;
+        /* إجبار الفوتر على البقاء مع المحتوى */
+        break-inside: avoid !important;
+        break-before: avoid-page !important;
+    }
+    
+    /* منع فصل المحتوى عن الفوتر بقوة */
+    .content + .footer {
+        break-before: avoid-page !important;
+        page-break-before: avoid !important;
+    }
+    
+    /* منع فصل آخر جزء من المحتوى */
+    .content > *:last-child {
+        page-break-after: avoid !important;
+        margin-bottom: 0 !important;
+    }
+    
+    /* إزالة تنسيق القفل */
     .locked-section {
         background-color: transparent !important;
         border: none !important;
@@ -161,25 +238,66 @@
     .locked-section::before {
         display: none !important;
     }
+    
+    /* ضبط @page - هوامش صفر لأننا نستخدم padding */
+    @page {
+        size: A4 portrait;
+        margin: 0mm;
+    }
+    
+    /* الصور - نحتفظ بنفس التنسيق */
+    img, .floating-img {
+        max-width: 100% !important;
+        height: auto !important;
+        page-break-inside: avoid !important;
+    }
+    
+    /* الجداول */
+    table {
+        page-break-inside: auto !important;
+        width: 100% !important;
+    }
+    
+    table tr {
+        page-break-inside: avoid !important;
+    }
+    
+    /* الخطوط والمسافات - نحتفظ بكل شيء */
+    * {
+        /* نحتفظ بجميع font-size و line-height كما هي */
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    /* إزالة الصفحة الفارغة الأخيرة */
+    .page:last-child {
+        page-break-after: avoid !important;
+    }
 }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
 <div class="toolbar">
-    <button onclick="window.location.href='quotations.html'" style="background:#34495e;">← رجوع</button>
+    <button onclick="window.location.href='quotations.html'" style="background:#3498db;">
+        <i class="fas fa-arrow-right"></i> رجوع
+    </button>
     <button onclick="insertNewImage()" style="background:#e67e22;">إدراج صورة 🖼️</button>
     <button onclick="addNewPage()" style="background:#9b59b6;">إضافة صفحة جديدة 📄</button>
 <button onclick="toggleLockSection('header')" id="lockHeaderBtn" style="background: rgb(231, 76, 60);">🔒 فتح الهيدر</button>
 <button onclick="toggleLockSection('content')" id="lockContentBtn" style="background:#e67e22;">🔓 قفل المحتوى</button>
 <button onclick="toggleLockSection('footer')" id="lockFooterBtn" style="background: rgb(231, 76, 60);">🔒 فتح الفوتر</button>
+    <button onclick="restoreOriginal()" style="background:#e74c3c;" title="استعادة آخر نسخة محفوظة">
+        <i class="fas fa-undo"></i> استعادة الأصلي
+    </button>
     <button onclick="execCmd('bold')">B</button>
     <button onclick="execCmd('justifyCenter')">توسيط</button>
-    <button onclick="saveEditorOnline()" style="background:#2ecc71;">حفظ التغييرات 💾</button>
-    <button onclick="resetToOriginal()" style="background:#e74c3c;">إعادة للأصلي 🔄</button>
+	<button onclick="saveToSupabase()" style="background:#27ae60;">💾 حفظ أونلاين</button>
     <button onclick="exportAsFile()" style="background:#16a085;">تصدير كملف HTML 💾📄</button>
 <button onclick="exportAsTemplate()" style="background:#8e44ad;">تصدير كقالب 📋✨</button>
-    <button onclick="window.print()">طباعة 📑</button>
+    <button onclick="window.print()">طباعة 📑</button><button onclick="savePrintedQuotation()" style="padding: 10px 30px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 10px;">حفظ المطبوعة 💾</button>
     <div style="font-size: 11px; color: #aaa; margin-right: 15px;">
         تكبير/تصغير (نص أو صورة): Ctrl + [ ] أو [ ]
     </div>
@@ -2061,103 +2179,6 @@ function closeSpacingTools() {
     localStorage.setItem('marginStyles', JSON.stringify(styles));
     localStorage.setItem('lockedSections', JSON.stringify(lockedSections));
 }
-
-// --- حفظ المحرر أونلاين في Supabase ---
-async function saveEditorOnline() {
-    const currentUser = localStorage.getItem('currentUser');
-    if (!currentUser) {
-        alert('❌ يجب تسجيل الدخول أولاً!');
-        window.location.href = 'index.html';
-        return;
-    }
-    
-    // الحصول على محتوى المحرر الكامل
-    const fullHTML = document.documentElement.outerHTML;
-    
-    const supabase = window.supabase.createClient(
-        'https://opyuncxyjdqxawddhdjn.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
-    );
-    
-    // التحقق إذا يوجد نسخة محفوظة مسبقاً
-    const { data: existing } = await supabase
-        .from('editor_content')
-        .select('id')
-        .eq('username', currentUser)
-        .single();
-    
-    if (existing) {
-        // تحديث النسخة الموجودة
-        const { error } = await supabase
-            .from('editor_content')
-            .update({ 
-                content: fullHTML,
-                updated_at: new Date().toISOString()
-            })
-            .eq('username', currentUser);
-        
-        if (error) {
-            alert('❌ خطأ في الحفظ: ' + error.message);
-        } else {
-            alert('✅ تم حفظ تعديلات المحرر بنجاح!');
-        }
-    } else {
-        // إنشاء نسخة جديدة
-        const { error } = await supabase
-            .from('editor_content')
-            .insert({
-                username: currentUser,
-                content: fullHTML
-            });
-        
-        if (error) {
-            alert('❌ خطأ في الحفظ: ' + error.message);
-        } else {
-            alert('✅ تم حفظ تعديلات المحرر بنجاح!');
-        }
-    }
-}
-
-// --- إعادة المحرر للأصلي ---
-async function resetToOriginal() {
-    if (!confirm('⚠️ هل أنت متأكد؟\n\nسيتم حذف كل تعديلات المحرر والرجوع للقالب الأصلي!\n\nملاحظة: القوالب التي قمت بتصديرها لن تتأثر.')) {
-        return;
-    }
-    
-    const currentUser = localStorage.getItem('currentUser');
-    if (!currentUser) {
-        alert('❌ يجب تسجيل الدخول أولاً!');
-        return;
-    }
-    
-    const supabase = window.supabase.createClient(
-        'https://opyuncxyjdqxawddhdjn.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
-    );
-    
-    // حذف النسخة المحفوظة من Supabase
-    const { error } = await supabase
-        .from('editor_content')
-        .delete()
-        .eq('username', currentUser);
-    
-    if (error) {
-        alert('❌ خطأ في الحذف: ' + error.message);
-        return;
-    }
-    
-    // حذف كل localStorage إلا currentUser
-    const savedUser = localStorage.getItem('currentUser');
-    localStorage.clear();
-    if (savedUser) {
-        localStorage.setItem('currentUser', savedUser);
-    }
-    
-    // إعادة تحميل الصفحة لتحميل القالب الأصلي
-    alert('✅ تم إعادة المحرر للقالب الأصلي وحذف كل البيانات المحلية!');
-    window.location.reload();
-}
-
 // --- مزامنة الهيدر والفوتر من الصفحة الأولى لجميع الصفحات ---
 function syncHeaderFooterToAllPages() {
     const firstPage = document.querySelector('.page');
@@ -2584,7 +2605,7 @@ function exportAsTemplate() {
     var clonedDoc = document.documentElement.cloneNode(true);
     var oldToolbar = clonedDoc.querySelector('.toolbar');
     if (oldToolbar) {
-        oldToolbar.innerHTML = '<button onclick="window.print()" style="padding: 10px 30px; background: #2ecc71; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-left: 10px;">طباعة 📑</button><button onclick="savePrintedQuotation()" style="padding: 10px 30px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">حفظ المطبوعة 💾</button>';
+        oldToolbar.innerHTML = '<button onclick="window.print()" style="padding: 10px 30px; background: #2ecc71; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">طباعة 📑</button><button onclick="savePrintedQuotation()" style="padding: 10px 30px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 10px;">حفظ المطبوعة 💾</button>';
         oldToolbar.style.justifyContent = 'center';
         oldToolbar.style.padding = '15px';
     }
@@ -2618,8 +2639,9 @@ function exportAsTemplate() {
                         var isPhoneField = /phone|mobile|tel|mob/i.test(cleanName);
 						var isTempField = /temp|temperature|درجة|حرارة/i.test(cleanName);
 var fieldClass = isPhoneField ? 'template-field phone-field' : (isTempField ? 'template-field temp-field' : 'template-field');
-var minWidth = isPhoneField ? '80px' : (isTempField ? '10px' : '150px');
-return '<input type="text" class="' + fieldClass + '" placeholder="' + cleanName + '" value="" data-var="' + cleanName + '" style="border: 1px solid #3498db; padding: 0px 8px; border-radius: 3px; background: #e8f4f8; min-width: ' + minWidth + '; max-width: 1300px; text-align: center; font-family: inherit; font-size: inherit; display: inline-block;">';
+var minWidth = isPhoneField ? '80px' : (isTempField ? '35px' : '150px');
+var maxWidth = isTempField ? '60px' : '1300px';
+return '<input type="text" class="' + fieldClass + '" placeholder="' + cleanName + '" value="" data-var="' + cleanName + '" style="border: 1px solid #3498db; padding: 0px 8px; border-radius: 3px; background: #e8f4f8; min-width: ' + minWidth + '; max-width: ' + maxWidth + '; text-align: center; font-family: inherit; font-size: inherit; display: inline-block;">';
                     });
                     node.parentNode.replaceChild(span, node);
                 }
@@ -2721,13 +2743,13 @@ return '<input type="text" class="' + fieldClass + '" placeholder="' + cleanName
     var calcScript = document.createElement('script');
 
 	var autoResizeScript = document.createElement('script');
-autoResizeScript.textContent = 'function autoResizeInput(input) { var minWidth = input.classList.contains("temp-field") ? 10 : 100; var maxWidth = 800; var tempSpan = document.createElement("span"); tempSpan.style.visibility = "hidden"; tempSpan.style.position = "absolute"; tempSpan.style.whiteSpace = "nowrap"; tempSpan.style.font = window.getComputedStyle(input).font; tempSpan.textContent = input.value || input.placeholder || ""; document.body.appendChild(tempSpan); var newWidth = Math.max(minWidth, Math.min(maxWidth, tempSpan.offsetWidth + 20)); document.body.removeChild(tempSpan); input.style.width = newWidth + "px"; } document.addEventListener("DOMContentLoaded", function() { var allFields = document.querySelectorAll(".template-field"); allFields.forEach(function(field) { autoResizeInput(field); field.addEventListener("input", function() { autoResizeInput(this); }); }); });';
+autoResizeScript.textContent = 'function autoResizeInput(input) { var isTempField = input.classList.contains("temp-field"); var minWidth = isTempField ? 35 : 100; var maxWidth = isTempField ? 60 : 800; var tempSpan = document.createElement("span"); tempSpan.style.visibility = "hidden"; tempSpan.style.position = "absolute"; tempSpan.style.whiteSpace = "nowrap"; tempSpan.style.font = window.getComputedStyle(input).font; tempSpan.textContent = input.value || input.placeholder || ""; document.body.appendChild(tempSpan); var newWidth = Math.max(minWidth, Math.min(maxWidth, tempSpan.offsetWidth + 20)); document.body.removeChild(tempSpan); input.style.width = newWidth + "px"; } document.addEventListener("DOMContentLoaded", function() { var allFields = document.querySelectorAll(".template-field"); allFields.forEach(function(field) { autoResizeInput(field); field.addEventListener("input", function() { autoResizeInput(this); }); }); });';
 var body = clonedDoc.querySelector('body');
 if (body) {
     body.appendChild(autoResizeScript);
 }
 var syncFieldsScript = document.createElement('script');
-syncFieldsScript.textContent = 'document.addEventListener("DOMContentLoaded", function() { var allFields = document.querySelectorAll(".template-field"); allFields.forEach(function(field) { field.addEventListener("input", function() { var varName = this.getAttribute("data-var"); var value = this.value; var matchingFields = document.querySelectorAll(\'.template-field[data-var="\' + varName + \'"]\'); matchingFields.forEach(function(matchField) { if (matchField !== field) { matchField.value = value; if (typeof autoResizeInput === "function") { autoResizeInput(matchField); } } }); }); }); });';if (body) {
+syncFieldsScript.textContent = 'document.addEventListener("DOMContentLoaded", function() { var allFields = document.querySelectorAll(".template-field"); allFields.forEach(function(field) { field.addEventListener("input", function() { var varName = this.getAttribute("data-var"); var value = this.value; var matchingFields = document.querySelectorAll(".template-field[data-var=\\"" + varName + "\\"]"); matchingFields.forEach(function(matchField) { if (matchField !== field) { matchField.value = value; if (typeof autoResizeInput === "function") { autoResizeInput(matchField); } } }); }); }); });';if (body) {
     body.appendChild(syncFieldsScript);
 }
     
@@ -2740,24 +2762,24 @@ if (body) {
     
     var templateHTML = '<!DOCTYPE html>\n' + clonedDoc.outerHTML;
     
-    // طلب اسم القالب
+    // طلب اسم القالب من المستخدم
     var templateName = prompt('أدخل اسم القالب:', 'قالب_' + new Date().toISOString().slice(0,10));
     if (!templateName) return;
     
-    // التحقق من تسجيل الدخول
+    // الحصول على المستخدم الحالي
     var currentUser = localStorage.getItem('currentUser');
     if (!currentUser) {
         alert('يجب تسجيل الدخول أولاً!');
-        window.location.href = 'index.html';
         return;
     }
     
-    // حفظ في Supabase
+    // إنشاء Supabase client
     var supabase = window.supabase.createClient(
         'https://opyuncxyjdqxawddhdjn.supabase.co',
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
     );
     
+    // حفظ القالب في Supabase
     supabase.from('quotation_templates').insert({
         username: currentUser,
         name: templateName,
@@ -2766,25 +2788,69 @@ if (body) {
         if (response.error) {
             alert('خطأ في الحفظ: ' + response.error.message);
         } else {
-            // الحصول على ID القالب المحفوظ
-            supabase.from('quotation_templates')
-                .select('id')
-                .eq('username', currentUser)
-                .eq('name', templateName)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .single()
-                .then(function(result) {
-                    if (result.data) {
-                        console.log('Template saved with ID:', result.data.id);
-                    }
-                    alert('تم حفظ القالب بنجاح! ✅\n\nالقالب يحتوي على:\n✓ زر طباعة\n✓ زر حفظ المطبوعة\n✓ حقول نصية قابلة للتعبئة\n✓ تاريخ اليوم تلقائياً\n✓ حساب تلقائي للأسعار مع الضريبة 15%');
-                    window.location.href = 'quotations.html';
-                });
+            alert('تم حفظ القالب بنجاح! ✅\n\nالقالب يحتوي على:\n✓ زر طباعة فقط\n✓ حقول نصية قابلة للتعبئة\n✓ تاريخ اليوم تلقائياً\n✓ حساب تلقائي للأسعار مع الضريبة 15%\n\nيمكنك الآن العودة لقائمة عروض الأسعار لمشاهدة القالب.');
+            // العودة لقائمة عروض الأسعار
+            window.location.href = 'quotations.html';
         }
     });
 }
-
+async function saveToSupabase() {
+    const currentUser = localStorage.getItem('currentUser');
+    if (!currentUser) {
+        alert('يجب تسجيل الدخول أولاً!');
+        return;
+    }
+    
+    const templateId = localStorage.getItem('currentTemplateId');
+    const fullHTML = document.documentElement.outerHTML;
+    
+    const supabase = window.supabase.createClient(
+        'https://opyuncxyjdqxawddhdjn.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
+    );
+    
+    if (templateId) {
+        // تحديث القالب الموجود
+        const { error } = await supabase
+            .from('quotation_templates')
+            .update({ 
+                html_content: fullHTML,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', templateId);
+        
+        if (error) {
+            alert('❌ خطأ في الحفظ: ' + error.message);
+        } else {
+            // تحديث localStorage
+            localStorage.setItem('currentTemplateContent', fullHTML);
+            alert('✅ تم حفظ التعديلات بنجاح!');
+        }
+    } else {
+        // إنشاء قالب جديد
+        const templateName = prompt('أدخل اسم القالب:', 'قالب_جديد_' + new Date().toLocaleDateString('ar-SA'));
+        if (!templateName) return;
+        
+        const { data, error } = await supabase
+            .from('quotation_templates')
+            .insert({
+                username: currentUser,
+                name: templateName,
+                html_content: fullHTML,
+                original_content: fullHTML
+            })
+            .select();
+        
+        if (error) {
+            alert('❌ خطأ في الحفظ: ' + error.message);
+        } else if (data && data[0]) {
+            localStorage.setItem('currentTemplateId', data[0].id);
+            localStorage.setItem('currentTemplateName', templateName);
+            localStorage.setItem('currentTemplateContent', fullHTML);
+            alert('✅ تم إنشاء القالب بنجاح!');
+        }
+    }
+}
 
     function exportAsFile() {
         // حفظ المحتوى الحالي أولاً
@@ -2808,14 +2874,17 @@ if (body) {
 	
 
 	
-// تحميل المحرر من Supabase عند الدخول
-window.addEventListener('load', async function() {
-    const currentUser = localStorage.getItem('currentUser');
-    if (!currentUser) {
-        console.log('لا يوجد مستخدم - تحميل القالب الأصلي');
-        if (typeof checkSavedData === 'function') {
-            checkSavedData();
-        }
+
+// دالة استعادة المحتوى الأصلي من آخر نسخة محفوظة
+async function restoreOriginal() {
+    const templateId = localStorage.getItem('currentTemplateId');
+    
+    if (!templateId) {
+        alert('⚠️ لا يوجد قالب محفوظ لاستعادته!');
+        return;
+    }
+    
+    if (!confirm("🔄 استعادة النسخة الأصلية؟\n\nسيتم إرجاع جميع التعديلات إلى النسخة الأصلية المحفوظة أونلاين.\n\nهل أنت متأكد؟")) {
         return;
     }
     
@@ -2824,64 +2893,103 @@ window.addEventListener('load', async function() {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
     );
     
-    // محاولة تحميل النسخة المحفوظة
     const { data, error } = await supabase
-        .from('editor_content')
-        .select('content')
-        .eq('username', currentUser)
+        .from('quotation_templates')
+        .select('original_content')
+        .eq('id', templateId)
         .single();
     
-    if (data && data.content) {
-        console.log('تحميل المحرر المحفوظ من Supabase');
-        try {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(data.content, 'text/html');
-            const container = doc.getElementById('document-container');
-            
-            if (container) {
-                document.getElementById('document-container').innerHTML = container.innerHTML;
-                
-                // إعادة ربط الأحداث
-                document.querySelectorAll('.page').forEach(page => {
-                    const deleteBtn = page.querySelector('.delete-page-btn');
-                    if (deleteBtn) {
-                        deleteBtn.onclick = function() {
-                            if (confirm('هل تريد حذف هذه الصفحة؟')) {
-                                page.remove();
-                            }
-                        };
-                    }
-                    const content = page.querySelector('.content');
-                    if (content && typeof setupContentMonitoring === 'function') {
-                        setupContentMonitoring(content);
-                    }
-                });
-                
-                document.querySelectorAll('.floating-img').forEach(img => {
-                    img.onmousedown = startDragging;
-                    img.onclick = (e) => { e.stopPropagation(); selectImage(img); };
-                    img.onfocus = () => selectImage(img);
-                });
-                
-                if (typeof setupHeaderFooterSync === 'function') {
-                    setupHeaderFooterSync();
-                }
-                
-                console.log('تم تحميل المحرر المحفوظ بنجاح');
-            }
-        } catch (err) {
-            console.error('خطأ في تحميل المحرر:', err);
-            if (typeof checkSavedData === 'function') {
-                checkSavedData();
-            }
-        }
-    } else {
-        console.log('لا توجد نسخة محفوظة - تحميل القالب الأصلي');
-        if (typeof checkSavedData === 'function') {
-            checkSavedData();
-        }
+    if (error || !data) {
+        alert('❌ خطأ في جلب النسخة الأصلية: ' + (error?.message || 'لم يتم العثور على القالب'));
+        return;
     }
+    
+    const originalContent = data.original_content;
+    if (!originalContent) {
+        alert('⚠️ لا توجد نسخة أصلية محفوظة لهذا القالب!');
+        return;
+    }
+    
+    // تحميل النسخة الأصلية
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(originalContent, 'text/html');
+    const container = doc.getElementById('document-container');
+    
+    if (container) {
+        document.getElementById('document-container').innerHTML = container.innerHTML;
+        
+        // إعادة ربط الأحداث
+        document.querySelectorAll('.page').forEach(page => {
+            const deleteBtn = page.querySelector('.delete-page-btn');
+            if (deleteBtn) {
+                deleteBtn.onclick = function() {
+                    if (confirm('هل تريد حذف هذه الصفحة؟')) {
+                        page.remove();
+                    }
+                };
+            }
+            const content = page.querySelector('.content');
+            if (content) setupContentMonitoring(content);
+        });
+        
+        document.querySelectorAll('.floating-img').forEach(img => {
+            img.onmousedown = startDragging;
+            img.onclick = (e) => { e.stopPropagation(); selectImage(img); };
+            img.onfocus = () => selectImage(img);
+        });
+        
+        if (typeof setupHeaderFooterSync === 'function') {
+            setupHeaderFooterSync();
+        }
+        
+        alert('✅ تم استعادة النسخة الأصلية بنجاح!');
+    }
+}
+
+// تشغيل checkSavedData عند التحميل
+window.addEventListener('load', function() {
+    loadTemplateIfExists();
 });
+
+async function loadTemplateIfExists() {
+    const templateId = localStorage.getItem('currentTemplateId');
+    const templateContent = localStorage.getItem('currentTemplateContent');
+    
+    if (templateId && templateContent) {
+        // تحميل القالب من localStorage
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(templateContent, 'text/html');
+        const container = doc.getElementById('document-container');
+        
+        if (container) {
+            document.getElementById('document-container').innerHTML = container.innerHTML;
+            
+            // إعادة ربط الأحداث
+            document.querySelectorAll('.page').forEach(page => {
+                const deleteBtn = page.querySelector('.delete-page-btn');
+                if (deleteBtn) {
+                    deleteBtn.onclick = function() {
+                        if (confirm('هل تريد حذف هذه الصفحة؟')) {
+                            page.remove();
+                        }
+                    };
+                }
+                const content = page.querySelector('.content');
+                if (content) setupContentMonitoring(content);
+            });
+            
+            document.querySelectorAll('.floating-img').forEach(img => {
+                img.onmousedown = startDragging;
+                img.onclick = (e) => { e.stopPropagation(); selectImage(img); };
+                img.onfocus = () => selectImage(img);
+            });
+            
+            setupHeaderFooterSync();
+        }
+    } else if (typeof checkSavedData === 'function') {
+        checkSavedData();
+    }
+}
 </script>
 
 </body></html>
