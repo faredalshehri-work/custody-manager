@@ -109,15 +109,27 @@ async function savePrintedQuotation() {
     // تحويل المطبوعة لنسخة نهائية غير قابلة للتعديل
     var clonedDoc = document.documentElement.cloneNode(true);
     
-    // تحويل جميع input و textarea إلى نص عادي
+    // تحويل جميع input و textarea إلى نص عادي مع حفظ كل التنسيق
     clonedDoc.querySelectorAll('input, textarea').forEach(function(field) {
         var span = document.createElement('span');
         span.textContent = field.value || '';
+        
+        // نسخ كل الـ styles من الـ input
+        var computedStyle = window.getComputedStyle(field);
         span.style.cssText = field.style.cssText;
-        span.style.border = 'none';
-        span.style.background = 'transparent';
-        span.style.padding = '0';
+        span.style.fontFamily = computedStyle.fontFamily;
+        span.style.fontSize = computedStyle.fontSize;
+        span.style.fontWeight = computedStyle.fontWeight;
+        span.style.color = computedStyle.color;
+        span.style.textAlign = computedStyle.textAlign;
+        span.style.display = 'inline-block';
+        span.style.minWidth = computedStyle.minWidth;
+        span.style.maxWidth = computedStyle.maxWidth;
+        span.style.width = field.offsetWidth + 'px';
+        
+        // نحتفظ بالـ className للحفاظ على CSS classes
         span.className = field.className;
+        
         field.parentNode.replaceChild(span, field);
     });
     
@@ -134,6 +146,12 @@ async function savePrintedQuotation() {
     clonedDoc.querySelectorAll('button').forEach(function(btn) {
         btn.remove();
     });
+    
+    // إضافة CSS للطباعة النظيفة (بدون borders)
+    var printStyle = clonedDoc.createElement('style');
+    printStyle.textContent = '@media print { .template-field, .qty-field, .price-field, .date-field { border: none !important; background: transparent !important; } }';
+    var head = clonedDoc.querySelector('head');
+    if (head) head.appendChild(printStyle);
     
     const finalContent = clonedDoc.outerHTML;
     
