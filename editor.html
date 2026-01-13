@@ -2732,7 +2732,7 @@ return '<input type="text" class="' + fieldClass + '" placeholder="' + cleanName
     });
     var style = clonedDoc.querySelector('style');
     if (style) {
-        style.textContent += '\n.template-field { border: 1px solid #3498db !important; padding: 2px 5px; border-radius: 3px; background: #e8f4f8; min-width: 100px; max-width: 100%; text-align: center; } .phone-field { min-width: 80px !important; } .template-field:focus { outline: 2px solid #2980b9; background: white; } @media print { .template-field, .qty-field, .price-field { border: none !important; background: transparent !important; padding: 0 !important; } }';
+        style.textContent += '\n.template-field { border: 1px solid #3498db !important; padding: 2px 5px; border-radius: 3px; background: #e8f4f8; min-width: 100px; max-width: 100%; text-align: center; } .phone-field { min-width: 80px !important; } .template-field:focus { outline: 2px solid #2980b9; background: white; }';
     }
     var scripts = clonedDoc.querySelectorAll('script');
     scripts.forEach(function(script) {
