@@ -2047,9 +2047,19 @@ function closeSpacingTools() {
     function execCmd(c) { document.execCommand(c, false, null); }
 
     function saveToBrowser() {
-    // تم تعطيل الحفظ في localStorage
-    // الحفظ الآن يتم فقط عبر زر "حفظ التغييرات" (saveEditorOnline)
-    return;
+    const container = document.getElementById('document-container');
+    localStorage.setItem('documentContent', container.innerHTML);
+    
+    const styles = {
+        headerMargin: document.documentElement.style.getPropertyValue('--header-margin'),
+        footerMargin: document.documentElement.style.getPropertyValue('--footer-margin'),
+        pageMarginTop: document.documentElement.style.getPropertyValue('--page-margin-top'),
+        pageMarginBottom: document.documentElement.style.getPropertyValue('--page-margin-bottom'),
+        pageMarginLeft: document.documentElement.style.getPropertyValue('--page-margin-left'),
+        pageMarginRight: document.documentElement.style.getPropertyValue('--page-margin-right')
+    };
+    localStorage.setItem('marginStyles', JSON.stringify(styles));
+    localStorage.setItem('lockedSections', JSON.stringify(lockedSections));
 }
 
 // --- حفظ المحرر أونلاين في Supabase ---
@@ -2213,8 +2223,113 @@ firstFooter.addEventListener('input', function() {
 }
 
     function checkSavedData() {
-        // تم تعطيل التحميل من localStorage - الآن يتم التحميل من Supabase فقط
-        return;
+    const savedContent = localStorage.getItem('documentContent');
+    const savedStyles = localStorage.getItem('marginStyles');
+    const savedLocks = localStorage.getItem('lockedSections');
+    
+    if (savedContent) {
+        document.getElementById('document-container').innerHTML = savedContent;
+        
+        document.querySelectorAll('.page').forEach(page => {
+            const deleteBtn = page.querySelector('.delete-page-btn');
+            if (deleteBtn) {
+                deleteBtn.onclick = function() {
+                    if (confirm('هل تريد حذف هذه الصفحة؟')) {
+                        page.remove();
+                        saveToBrowser();
+                    }
+                };
+setupHeaderFooterSync();
+            }
+            
+            const content = page.querySelector('.content');
+            if (content) setupContentMonitoring(content);
+        });
+        
+        document.querySelectorAll('.floating-img').forEach(img => {
+            img.onmousedown = startDragging;
+            img.onclick = (e) => { e.stopPropagation(); selectImage(img); };
+            img.onfocus = () => selectImage(img);
+        });
+    }
+    
+   if (savedStyles) {
+    const styles = JSON.parse(savedStyles);
+    const sidebarInputs = document.querySelectorAll('.sidebar input');
+    
+    for (let prop in styles) {
+        if (styles[prop]) {
+            const cssVar = '--' + prop.replace(/([A-Z])/g, '-$1').toLowerCase();
+            document.documentElement.style.setProperty(cssVar, styles[prop]);
+        }
+    }
+    
+    // تحديث قيم الـ input fields
+    const marginValues = {
+        '--page-margin-top': styles.pageMarginTop,
+        '--page-margin-bottom': styles.pageMarginBottom,
+        '--page-margin-right': styles.pageMarginRight,
+        '--page-margin-left': styles.pageMarginLeft,
+        '--header-margin': styles.headerMargin,
+        '--footer-margin': styles.footerMargin
+    };
+    
+    sidebarInputs.forEach(input => {
+        const onInputAttr = input.getAttribute('oninput');
+        if (onInputAttr) {
+            const match = onInputAttr.match(/'([^']+)'/);
+            if (match && marginValues[match[1]]) {
+                const value = marginValues[match[1]].replace('mm', '');
+                input.value = value;
+            }
+        }
+    });
+}
+    
+    if (savedLocks) {
+    lockedSections = JSON.parse(savedLocks);
+    for (let sectionType in lockedSections) {
+        if (lockedSections[sectionType]) {
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => {
+                const section = page.querySelector('.' + sectionType);
+                if (section) {
+                    section.contentEditable = 'false';
+                    section.classList.add('locked-section');
+                }
+            });
+            
+            const btn = document.getElementById('lock' + sectionType.charAt(0).toUpperCase() + sectionType.slice(1) + 'Btn');
+            if (btn) {
+                btn.textContent = '🔒 فتح ' + getSectionName(sectionType);
+                btn.style.background = '#e74c3c';
+            }
+        }
+    }
+}
+        
+        if (savedMargins) {
+            const m = JSON.parse(savedMargins);
+            document.documentElement.style.setProperty('--page-margin-top', m.top + 'mm');
+            document.documentElement.style.setProperty('--page-margin-bottom', m.bottom + 'mm');
+            document.documentElement.style.setProperty('--page-margin-right', m.right + 'mm');
+            document.documentElement.style.setProperty('--page-margin-left', m.left + 'mm');
+            document.documentElement.style.setProperty('--header-margin', m.header + 'mm');
+            document.documentElement.style.setProperty('--footer-margin', m.footer + 'mm');
+            
+            document.querySelector('input[oninput*="top"]').value = m.top;
+            document.querySelector('input[oninput*="bottom"]').value = m.bottom;
+            document.querySelector('input[oninput*="right"]').value = m.right;
+            document.querySelector('input[oninput*="left"]').value = m.left;
+            document.querySelector('input[oninput*="header"]').value = m.header;
+            document.querySelector('input[oninput*="footer"]').value = m.footer;
+        }
+        
+        document.querySelectorAll('.content').forEach(content => {
+            setupContentMonitoring(content);
+        });
+        
+        setTimeout(() => checkEmptyPages(), 200);
     }
 
     document.onclick = (e) => {
@@ -2465,10 +2580,11 @@ function getSectionName(type) {
     return names[type] || type;
 }
 function exportAsTemplate() {
+    saveToBrowser();
     var clonedDoc = document.documentElement.cloneNode(true);
     var oldToolbar = clonedDoc.querySelector('.toolbar');
     if (oldToolbar) {
-        oldToolbar.innerHTML = '<button onclick="window.print()" style="padding: 10px 30px; background: #2ecc71; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-left: 10px;">طباعة 📑</button><button onclick="savePrintedQuotation()" style="padding: 10px 30px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">حفظ المطبوعة 💾</button>';
+        oldToolbar.innerHTML = '<button onclick="window.print()" style="padding: 10px 30px; background: #2ecc71; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">طباعة 📑</button>';
         oldToolbar.style.justifyContent = 'center';
         oldToolbar.style.padding = '15px';
     }
@@ -2493,12 +2609,6 @@ function exportAsTemplate() {
                     var span = document.createElement('span');
                     span.innerHTML = text.replace(/\{\{([^}]+)\}\}/g, function(match, varName) {
                         var cleanName = varName.trim();
-                        
-                        // معالجة خاصة لـ serial_number
-                        if (/serial|سيريال/i.test(cleanName)) {
-                            return '<span class="serial-number-placeholder"></span>';
-                        }
-                        
                         var isPhoneField = /phone|mobile|tel|mob/i.test(cleanName);
 						var isTempField = /temp|temperature|درجة|حرارة/i.test(cleanName);
 var fieldClass = isPhoneField ? 'template-field phone-field' : (isTempField ? 'template-field temp-field' : 'template-field');
@@ -2650,21 +2760,8 @@ if (body) {
         if (response.error) {
             alert('خطأ في الحفظ: ' + response.error.message);
         } else {
-            // الحصول على ID القالب المحفوظ
-            supabase.from('quotation_templates')
-                .select('id')
-                .eq('username', currentUser)
-                .eq('name', templateName)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .single()
-                .then(function(result) {
-                    if (result.data) {
-                        console.log('Template saved with ID:', result.data.id);
-                    }
-                    alert('تم حفظ القالب بنجاح! ✅\n\nالقالب يحتوي على:\n✓ زر طباعة\n✓ زر حفظ المطبوعة\n✓ حقول نصية قابلة للتعبئة\n✓ تاريخ اليوم تلقائياً\n✓ حساب تلقائي للأسعار مع الضريبة 15%');
-                    window.location.href = 'quotations.html';
-                });
+            alert('تم حفظ القالب بنجاح! ✅\n\nالقالب يحتوي على:\n✓ زر طباعة فقط\n✓ حقول نصية قابلة للتعبئة\n✓ تاريخ اليوم تلقائياً\n✓ حساب تلقائي للأسعار مع الضريبة 15%');
+            window.location.href = 'quotations.html';
         }
     });
 }
@@ -2718,35 +2815,52 @@ window.addEventListener('load', async function() {
     if (data && data.content) {
         console.log('تحميل المحرر المحفوظ من Supabase');
         try {
-            // حذف كل localStorage القديم (ما عدا currentUser)
-            const savedUser = localStorage.getItem('currentUser');
-            localStorage.clear();
-            if (savedUser) {
-                localStorage.setItem('currentUser', savedUser);
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(data.content, 'text/html');
+            const container = doc.getElementById('document-container');
+            
+            if (container) {
+                document.getElementById('document-container').innerHTML = container.innerHTML;
+                
+                // إعادة ربط الأحداث
+                document.querySelectorAll('.page').forEach(page => {
+                    const deleteBtn = page.querySelector('.delete-page-btn');
+                    if (deleteBtn) {
+                        deleteBtn.onclick = function() {
+                            if (confirm('هل تريد حذف هذه الصفحة؟')) {
+                                page.remove();
+                            }
+                        };
+                    }
+                    const content = page.querySelector('.content');
+                    if (content && typeof setupContentMonitoring === 'function') {
+                        setupContentMonitoring(content);
+                    }
+                });
+                
+                document.querySelectorAll('.floating-img').forEach(img => {
+                    img.onmousedown = startDragging;
+                    img.onclick = (e) => { e.stopPropagation(); selectImage(img); };
+                    img.onfocus = () => selectImage(img);
+                });
+                
+                if (typeof setupHeaderFooterSync === 'function') {
+                    setupHeaderFooterSync();
+                }
+                
+                console.log('تم تحميل المحرر المحفوظ بنجاح');
             }
-            
-            // تحميل الصفحة كاملة من Supabase
-            document.open();
-            document.write(data.content);
-            document.close();
-            
-            console.log('تم تحميل المحرر المحفوظ بنجاح');
         } catch (err) {
             console.error('خطأ في تحميل المحرر:', err);
-            alert('❌ خطأ في تحميل المحرر: ' + err.message);
-        }
-    } else {
-        console.log('لا توجد نسخة محفوظة - المحرر جاهز');
-        // حذف localStorage القديم
-        const savedUser = localStorage.getItem('currentUser');
-        const keysToRemove = [];
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key !== 'currentUser') {
-                keysToRemove.push(key);
+            if (typeof checkSavedData === 'function') {
+                checkSavedData();
             }
         }
-        keysToRemove.forEach(key => localStorage.removeItem(key));
+    } else {
+        console.log('لا توجد نسخة محفوظة - تحميل القالب الأصلي');
+        if (typeof checkSavedData === 'function') {
+            checkSavedData();
+        }
     }
 });
 </script>
