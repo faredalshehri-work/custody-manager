@@ -2623,7 +2623,7 @@ if (body) {
     body.appendChild(autoResizeScript);
 }
 var syncFieldsScript = document.createElement('script');
-syncFieldsScript.textContent = 'document.addEventListener("DOMContentLoaded", function() { var allFields = document.querySelectorAll(".template-field"); allFields.forEach(function(field) { field.addEventListener("input", function() { var varName = this.getAttribute("data-var"); var value = this.value; var matchingFields = document.querySelectorAll(".template-field[data-var=\\"" + varName + "\\"]"); matchingFields.forEach(function(matchField) { if (matchField !== field) { matchField.value = value; if (typeof autoResizeInput === "function") { autoResizeInput(matchField); } } }); }); }); });';if (body) {
+syncFieldsScript.textContent = 'document.addEventListener("DOMContentLoaded", function() { var allFields = document.querySelectorAll(".template-field"); allFields.forEach(function(field) { field.addEventListener("input", function() { var varName = this.getAttribute("data-var"); var value = this.value; var matchingFields = document.querySelectorAll(\'.template-field[data-var="\' + varName + \'"]\'); matchingFields.forEach(function(matchField) { if (matchField !== field) { matchField.value = value; if (typeof autoResizeInput === "function") { autoResizeInput(matchField); } } }); }); }); });';if (body) {
     body.appendChild(syncFieldsScript);
 }
     
