@@ -2500,8 +2500,8 @@ function exportAsTemplate() {
     // تعديل CSS الأساسي للقالب المُصدَّر
     var templateStyle = clonedDoc.querySelector('style');
     if (templateStyle) {
-        // إضافة CSS خاص بالقالب المُصدَّر
-        var additionalCSS = '\n/* تنسيقات القالب المُصدَّر */\nbody { background: #f5f5f5 !important; }\n.page { margin: 20px auto !important; display: block !important; }\n';
+        // إضافة CSS خاص بالقالب المُصدَّر - نظام block بسيط بدون flex
+        var additionalCSS = '\n/* تنسيقات القالب المُصدَّر */\nbody { background: #f5f5f5 !important; }\n.page { margin: 20mm auto !important; display: block !important; }\n.header, .content, .footer { display: block !important; position: relative !important; }\n';
         templateStyle.textContent += additionalCSS;
     }
     
@@ -2615,7 +2615,7 @@ return '<input type="text" class="' + fieldClass + '" placeholder="' + cleanName
     });
     var style = clonedDoc.querySelector('style');
     if (style) {
-        style.textContent += '\n.template-field { border: 1px solid #3498db !important; padding: 2px 5px; border-radius: 3px; background: #e8f4f8; min-width: 100px; max-width: 100%; text-align: center; } .phone-field { min-width: 80px !important; } .template-field:focus { outline: 2px solid #2980b9; background: white; } @media print { .toolbar, .sidebar, .delete-page-btn { display: none !important; } .page { margin: 0; box-shadow: none; border: none; page-break-after: always; } body { background: white; } .locked-section { background-color: transparent !important; border: none !important; opacity: 1 !important; } .locked-section::before { display: none !important; } .template-field, .qty-field, .price-field, .date-field { border: none !important; background: transparent !important; padding: 0 !important; } }';
+        style.textContent += '\n.template-field { border: 1px solid #3498db !important; padding: 2px 5px; border-radius: 3px; background: #e8f4f8; min-width: 100px; max-width: 100%; text-align: center; } .phone-field { min-width: 80px !important; } .template-field:focus { outline: 2px solid #2980b9; background: white; } @media print { .toolbar, .sidebar, .delete-page-btn { display: none !important; } body { background: white !important; margin: 0 !important; padding: 0 !important; } .page { width: 210mm !important; height: 297mm !important; margin: 0 !important; padding: var(--page-margin-top) var(--page-margin-right) var(--page-margin-bottom) var(--page-margin-left) !important; box-shadow: none !important; border: none !important; page-break-after: always !important; display: block !important; box-sizing: border-box !important; } .header, .content, .footer { display: block !important; position: relative !important; } .locked-section { background-color: transparent !important; border: none !important; opacity: 1 !important; } .locked-section::before { display: none !important; } .template-field, .qty-field, .price-field, .date-field { border: none !important; background: transparent !important; padding: 0 !important; } }';
     }
     var scripts = clonedDoc.querySelectorAll('script');
     scripts.forEach(function(script) {
