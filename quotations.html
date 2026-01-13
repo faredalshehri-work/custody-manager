@@ -38,10 +38,22 @@
                     .eq('username', user)
                     .order('created_at', { ascending: false });
                 
+                console.log('Loaded templates:', data);
+                console.log('Load error:', error);
+                
                 if (error) {
                     console.error('Error loading templates:', error);
                 } else {
                     setTemplates(data || []);
+                    // طباعة أول قالب كمثال
+                    if (data && data.length > 0) {
+                        console.log('First template:', {
+                            id: data[0].id,
+                            name: data[0].name,
+                            contentLength: data[0].html_content?.length || 0,
+                            contentPreview: data[0].html_content?.substring(0, 100) || 'EMPTY'
+                        });
+                    }
                 }
                 setLoading(false);
             };
@@ -53,155 +65,24 @@
                 }
             };
 
-            const openTemplate = async (template) => {
-                if (!template.html_content) {
-                    alert('❌ القالب فارغ أو تالف!');
-                    return;
-                }
-                
-                // توليد Serial Number
-                const now = new Date();
-                const month = String(now.getMonth() + 1).padStart(2, '0');
-                const year = String(now.getFullYear()).slice(-2);
-                const monthYear = month + year;
-                
-                const { data: lastPrint } = await supabase
-                    .from('printed_quotations')
-                    .select('serial_number')
-                    .eq('template_id', template.id)
-                    .like('serial_number', monthYear + '-%')
-                    .order('serial_number', { ascending: false })
-                    .limit(1)
-                    .single();
-                
-                let sequentialNumber = 0;
-                if (lastPrint && lastPrint.serial_number) {
-                    const parts = lastPrint.serial_number.split('-');
-                    if (parts.length === 2) {
-                        sequentialNumber = parseInt(parts[1]) + 1;
-                    }
-                }
-                
-                const serialNumber = monthYear + '-' + String(sequentialNumber).padStart(3, '0');
-                
-                // إضافة Serial Number في مكان placeholder بدون أي ستايل
-                let modifiedHTML = template.html_content;
-                modifiedHTML = modifiedHTML.replace(/<span class="serial-number-placeholder"[^>]*><\/span>/g, '<span class="serial-number-placeholder">' + serialNumber + '</span>');
-                
-                const templateInfoScript = `
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>
-<script>
-window.TEMPLATE_ID = ${template.id};
-window.TEMPLATE_NAME = '${template.name.replace(/'/g, "\\'")}';
-window.USERNAME = '${user}';
-window.SERIAL_NUMBER = '${serialNumber}';
-
-async function savePrintedQuotation() {
-    if (!confirm('هل تريد حفظ هذه المطبوعة؟\\n\\nرقم المرجع: ' + window.SERIAL_NUMBER)) {
+            const openTemplate = (template) => {
+    // التحقق من وجود محتوى
+    if (!template.html_content) {
+        alert('❌ القالب فارغ أو تالف!');
+        console.error('Template content is missing:', template);
         return;
     }
     
-    try {
-        const supabase = window.supabase.createClient(
-            'https://opyuncxyjdqxawddhdjn.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
-        );
-        
-        // جمع بيانات الحقول من الصفحة الحالية قبل الـ clone
-        const fieldsData = [];
-        document.querySelectorAll('input, textarea').forEach(function(field) {
-            fieldsData.push({
-                value: field.value || '',
-                className: field.className
-            });
-        });
-        
-        // الآن نعمل clone
-        var clonedDoc = document.documentElement.cloneNode(true);
-        
-        // تحويل جميع input و textarea إلى نص عادي (بدون borders أو backgrounds)
-        const clonedFields = clonedDoc.querySelectorAll('input, textarea');
-        clonedFields.forEach(function(field, index) {
-            if (index < fieldsData.length) {
-                const data = fieldsData[index];
-                var span = document.createElement('span');
-                span.textContent = data.value;
-                span.style.display = 'inline';
-                span.style.border = 'none';
-                span.style.background = 'none';
-                span.style.padding = '0';
-                span.style.margin = '0';
-                field.parentNode.replaceChild(span, field);
-            }
-        });
-        
-        // إزالة contenteditable من جميع العناصر
-        clonedDoc.querySelectorAll('[contenteditable]').forEach(function(elem) {
-            elem.removeAttribute('contenteditable');
-        });
-        
-        // إزالة toolbar
-        var toolbar = clonedDoc.querySelector('.toolbar');
-        if (toolbar) toolbar.remove();
-        
-        // إزالة أي أزرار أخرى
-        clonedDoc.querySelectorAll('button').forEach(function(btn) {
-            btn.remove();
-        });
-        
-        // إضافة CSS للتأكد من عدم وجود borders أو backgrounds
-        var cleanStyle = document.createElement('style');
-        cleanStyle.textContent = '.template-field, .qty-field, .price-field, .date-field, .phone-field { border: none !important; background: none !important; padding: 0 !important; margin: 0 !important; } @media print { .template-field, .qty-field, .price-field, .date-field, .phone-field { border: none !important; background: transparent !important; } }';
-        var head = clonedDoc.querySelector('head');
-        if (head) head.appendChild(cleanStyle);
-        
-        const finalContent = clonedDoc.outerHTML;
-        
-        const { error } = await supabase
-            .from('printed_quotations')
-            .insert({
-                template_id: window.TEMPLATE_ID,
-                template_name: window.TEMPLATE_NAME,
-                serial_number: window.SERIAL_NUMBER,
-                content: finalContent,
-                username: window.USERNAME
-            });
-        
-        if (error) {
-            if (error.code === '23505') {
-                alert('❌ هذا الرقم التسلسلي مُستخدم مسبقاً!\\n\\nيرجى:\\n1. إغلاق هذه النافذة\\n2. فتح القالب من جديد\\n3. تعبئة البيانات\\n4. الحفظ');
-            } else {
-                alert('❌ خطأ في الحفظ: ' + error.message);
-            }
-            console.error('Supabase error:', error);
-        } else {
-            alert('✅ تم حفظ المطبوعة بنجاح!\\n\\nرقم المرجع: ' + window.SERIAL_NUMBER);
-        }
-    } catch (err) {
-        alert('❌ حدث خطأ: ' + err.message);
-        console.error('Error:', err);
+    // إنشاء نافذة جديدة وكتابة المحتوى
+    const newWindow = window.open('', '_blank');
+    if (!newWindow) {
+        alert('⚠️ يرجى السماح بفتح النوافذ المنبثقة!');
+        return;
     }
-}
-<\/script>
-</body>`;
-                
-                modifiedHTML = modifiedHTML.replace('</body>', templateInfoScript);
-                
-                const newWindow = window.open('', '_blank');
-                if (!newWindow) {
-                    alert('⚠️ يرجى السماح بفتح النوافذ المنبثقة!');
-                    return;
-                }
-                
-                newWindow.document.write(modifiedHTML);
-                newWindow.document.close();
-            };
-
-            const viewPrints = (template) => {
-                localStorage.setItem('viewPrintsTemplateId', template.id);
-                localStorage.setItem('viewPrintsTemplateName', template.name);
-                window.location.href = 'prints.html';
-            };
+    
+    newWindow.document.write(template.html_content);
+    newWindow.document.close();
+};
 
             const filteredTemplates = templates.filter(t => 
                 t.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -214,8 +95,8 @@ async function savePrintedQuotation() {
                             <i className="fas fa-arrow-right"></i>
                         </button>
                         <h2><i className="fas fa-file-invoice"></i> عروض الأسعار</h2>
-                        <button className="btn-primary" onClick={() => window.location.href = 'editor.html'}>
-                            <i className="fas fa-plus"></i> محرر القوالب
+                        <button className="btn-main" onClick={() => window.location.href = 'editor.html'}>
+                            <i className="fas fa-edit"></i> محرر القوالب
                         </button>
                     </div>
 
@@ -244,7 +125,7 @@ async function savePrintedQuotation() {
                             <div className="no-data">
                                 <i className="fas fa-inbox"></i>
                                 <p>{searchTerm ? 'لا توجد نتائج' : 'لا توجد قوالب حالياً'}</p>
-                                <button className="btn-primary" onClick={() => window.location.href = 'editor.html'}>
+                                <button className="btn-main" onClick={() => window.location.href = 'editor.html'}>
                                     <i className="fas fa-plus"></i> إنشاء قالب جديد
                                 </button>
                             </div>
@@ -261,10 +142,7 @@ async function savePrintedQuotation() {
                                                 </small>
                                             </div>
                                             <div className="action-btns">
-                                                <button className="icon-btn" onClick={() => openTemplate(template)} title="تعبئة القالب" style={{background: '#3498db'}}>
-                                                    <i className="fas fa-edit"></i>
-                                                </button>
-                                                <button className="icon-btn" onClick={() => viewPrints(template)} title="عرض المطبوعات" style={{background: '#9b59b6'}}>
+                                                <button className="icon-btn" onClick={() => openTemplate(template)} title="فتح">
                                                     <i className="fas fa-eye"></i>
                                                 </button>
                                                 <button className="icon-btn del-btn" onClick={() => deleteTemplate(template.id)} title="حذف">
