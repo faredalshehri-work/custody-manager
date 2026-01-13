@@ -59,7 +59,7 @@
                     return;
                 }
                 
-                // توليد Serial Number فوراً
+                // توليد Serial Number
                 const now = new Date();
                 const month = String(now.getMonth() + 1).padStart(2, '0');
                 const year = String(now.getFullYear()).slice(-2);
@@ -84,9 +84,9 @@
                 
                 const serialNumber = String(sequentialNumber).padStart(3, '0') + '-' + monthYear;
                 
-                // إضافة Serial Number في المحتوى
+                // إضافة Serial Number في مكان placeholder
                 let modifiedHTML = template.html_content;
-                modifiedHTML = modifiedHTML.replace(/Ref:/g, 'Ref: ' + serialNumber);
+                modifiedHTML = modifiedHTML.replace(/<span class="serial-number-placeholder"[^>]*><\/span>/g, '<span class="serial-number-placeholder" style="font-weight: bold; color: #e74c3c;">' + serialNumber + '</span>');
                 
                 const templateInfoScript = `
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>
