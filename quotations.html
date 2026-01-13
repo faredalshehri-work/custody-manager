@@ -53,22 +53,51 @@
                 }
             };
 
-            const openTemplate = (template) => {
+            const openTemplate = async (template) => {
                 if (!template.html_content) {
                     alert('❌ القالب فارغ أو تالف!');
                     return;
                 }
                 
+                // توليد Serial Number فوراً
+                const now = new Date();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const year = String(now.getFullYear()).slice(-2);
+                const monthYear = month + year;
+                
+                const { data: lastPrint } = await supabase
+                    .from('printed_quotations')
+                    .select('serial_number')
+                    .eq('template_id', template.id)
+                    .like('serial_number', '%-' + monthYear)
+                    .order('serial_number', { ascending: false })
+                    .limit(1)
+                    .single();
+                
+                let sequentialNumber = 0;
+                if (lastPrint && lastPrint.serial_number) {
+                    const parts = lastPrint.serial_number.split('-');
+                    if (parts.length === 2) {
+                        sequentialNumber = parseInt(parts[0]) + 1;
+                    }
+                }
+                
+                const serialNumber = String(sequentialNumber).padStart(3, '0') + '-' + monthYear;
+                
+                // إضافة Serial Number في المحتوى
                 let modifiedHTML = template.html_content;
+                modifiedHTML = modifiedHTML.replace(/Ref:/g, 'Ref: ' + serialNumber);
                 
                 const templateInfoScript = `
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>
 <script>
 window.TEMPLATE_ID = ${template.id};
 window.TEMPLATE_NAME = '${template.name.replace(/'/g, "\\'")}';
 window.USERNAME = '${user}';
+window.SERIAL_NUMBER = '${serialNumber}';
 
 async function savePrintedQuotation() {
-    if (!confirm('هل تريد حفظ هذه المطبوعة؟')) {
+    if (!confirm('هل تريد حفظ هذه المطبوعة؟\\n\\nرقم المرجع: ' + window.SERIAL_NUMBER)) {
         return;
     }
     
@@ -77,50 +106,30 @@ async function savePrintedQuotation() {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
     );
     
-    const now = new Date();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const year = String(now.getFullYear()).slice(-2);
-    const monthYear = month + year;
-    
-    const { data: lastPrint } = await supabase
-        .from('printed_quotations')
-        .select('serial_number')
-        .eq('template_id', window.TEMPLATE_ID)
-        .like('serial_number', '%-' + monthYear)
-        .order('serial_number', { ascending: false })
-        .limit(1)
-        .single();
-    
-    let sequentialNumber = 0;
-    if (lastPrint && lastPrint.serial_number) {
-        const parts = lastPrint.serial_number.split('-');
-        if (parts.length === 2) {
-            sequentialNumber = parseInt(parts[0]) + 1;
-        }
-    }
-    
-    const serialNumber = String(sequentialNumber).padStart(3, '0') + '-' + monthYear;
-    
     const content = document.documentElement.outerHTML;
-    const modifiedContent = content.replace(/<span[^>]*>Ref:<\\/span>/, '<span>Ref: ' + serialNumber + '</span>');
     
     const { error } = await supabase
         .from('printed_quotations')
         .insert({
             template_id: window.TEMPLATE_ID,
             template_name: window.TEMPLATE_NAME,
-            serial_number: serialNumber,
-            content: modifiedContent,
+            serial_number: window.SERIAL_NUMBER,
+            content: content,
             username: window.USERNAME
         });
     
     if (error) {
-        alert('❌ خطأ في الحفظ: ' + error.message);
+        if (error.code === '23505') {
+            alert('❌ هذا الرقم التسلسلي مُستخدم مسبقاً!\\n\\nيرجى:\\n1. إغلاق هذه النافذة\\n2. فتح القالب من جديد\\n3. تعبئة البيانات\\n4. الحفظ');
+        } else {
+            alert('❌ خطأ في الحفظ: ' + error.message);
+        }
+        console.error('Supabase error:', error);
     } else {
-        alert('✅ تم حفظ المطبوعة بنجاح!\\n\\nرقم المرجع: ' + serialNumber);
+        alert('✅ تم حفظ المطبوعة بنجاح!\\n\\nرقم المرجع: ' + window.SERIAL_NUMBER);
     }
 }
-<\\/script>
+<\/script>
 </body>`;
                 
                 modifiedHTML = modifiedHTML.replace('</body>', templateInfoScript);
