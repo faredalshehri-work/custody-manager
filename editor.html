@@ -2574,7 +2574,30 @@ function getSectionName(type) {
 }
 function exportAsTemplate() {
     saveToBrowser();
+    
+    // حفظ قيم جميع الـ inputs, textareas, selects قبل الـ clone
+    var inputValues = [];
+    document.querySelectorAll('input, textarea, select').forEach(function(field, index) {
+        inputValues.push({
+            index: index,
+            value: field.value,
+            checked: field.checked,
+            type: field.type
+        });
+    });
+    
     var clonedDoc = document.documentElement.cloneNode(true);
+    
+    // استعادة القيم في النسخة المستنسخة
+    clonedDoc.querySelectorAll('input, textarea, select').forEach(function(field, index) {
+        if (inputValues[index]) {
+            field.value = inputValues[index].value;
+            if (inputValues[index].type === 'checkbox' || inputValues[index].type === 'radio') {
+                field.checked = inputValues[index].checked;
+            }
+        }
+    });
+    
     var oldToolbar = clonedDoc.querySelector('.toolbar');
     if (oldToolbar) {
         oldToolbar.innerHTML = '<button onclick="window.print()" style="padding: 10px 30px; background: #2ecc71; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">طباعة 📑</button>';
