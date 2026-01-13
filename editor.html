@@ -2922,7 +2922,44 @@ async function restoreOriginal() {
 
 // تشغيل checkSavedData عند التحميل
 window.addEventListener('load', function() {
-    loadTemplateIfExists();
+    // تحميل المحتوى المحفوظ من Supabase
+    (async function loadEditorContent() {
+        const currentUser = localStorage.getItem('currentUser');
+        if (!currentUser) {
+            loadTemplateIfExists();
+            return;
+        }
+        
+        const supabase = window.supabase.createClient(
+            'https://opyuncxyjdqxawddhdjn.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
+        );
+        
+        const { data, error } = await supabase
+            .from('editor_content')
+            .select('content')
+            .eq('username', currentUser)
+            .single();
+        
+        if (data && data.content) {
+            // استبدال محتوى الصفحة بالمحتوى المحفوظ
+            const parser = new DOMParser();
+            const savedDoc = parser.parseFromString(data.content, 'text/html');
+            
+            // نسخ الصفحات المحفوظة
+            const savedPages = savedDoc.querySelectorAll('.page');
+            if (savedPages.length > 0) {
+                const pagesContainer = document.getElementById('pages');
+                pagesContainer.innerHTML = '';
+                savedPages.forEach(page => {
+                    pagesContainer.appendChild(page.cloneNode(true));
+                });
+            }
+        } else {
+            // إذا ما في محتوى محفوظ، جرب تحمل template
+            loadTemplateIfExists();
+        }
+    })();
 });
 
 async function loadTemplateIfExists() {
