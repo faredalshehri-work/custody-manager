@@ -73,6 +73,78 @@
         return;
     }
     
+    // إضافة template metadata في HTML
+    let modifiedHTML = template.html_content;
+    
+    // إضافة script في نهاية body يحتوي على template info
+    const templateInfoScript = `
+<script>
+window.TEMPLATE_ID = ${template.id};
+window.TEMPLATE_NAME = '${template.name.replace(/'/g, "\\'")}';
+window.USERNAME = '${user}';
+
+async function savePrintedQuotation() {
+    if (!confirm('هل تريد حفظ هذه المطبوعة؟')) {
+        return;
+    }
+    
+    const supabase = window.supabase.createClient(
+        'https://opyuncxyjdqxawddhdjn.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
+    );
+    
+    // توليد Serial Number
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = String(now.getFullYear()).slice(-2);
+    const monthYear = month + year;
+    
+    // الحصول على آخر رقم تسلسلي لهذا القالب في نفس الشهر/السنة
+    const { data: lastPrint } = await supabase
+        .from('printed_quotations')
+        .select('serial_number')
+        .eq('template_id', window.TEMPLATE_ID)
+        .like('serial_number', '%-' + monthYear)
+        .order('serial_number', { ascending: false })
+        .limit(1)
+        .single();
+    
+    let sequentialNumber = 0;
+    if (lastPrint && lastPrint.serial_number) {
+        const parts = lastPrint.serial_number.split('-');
+        if (parts.length === 2) {
+            sequentialNumber = parseInt(parts[0]) + 1;
+        }
+    }
+    
+    const serialNumber = String(sequentialNumber).padStart(3, '0') + '-' + monthYear;
+    
+    // إضافة Serial Number في المحتوى
+    const content = document.documentElement.outerHTML;
+    const modifiedContent = content.replace(/<span[^>]*>Ref:<\\/span>/, '<span>Ref: ' + serialNumber + '</span>');
+    
+    // حفظ المطبوعة
+    const { error } = await supabase
+        .from('printed_quotations')
+        .insert({
+            template_id: window.TEMPLATE_ID,
+            template_name: window.TEMPLATE_NAME,
+            serial_number: serialNumber,
+            content: modifiedContent,
+            username: window.USERNAME
+        });
+    
+    if (error) {
+        alert('❌ خطأ في الحفظ: ' + error.message);
+    } else {
+        alert('✅ تم حفظ المطبوعة بنجاح!\\n\\nرقم المرجع: ' + serialNumber);
+    }
+}
+</script>
+</body>`;
+    
+    modifiedHTML = modifiedHTML.replace('</body>', templateInfoScript);
+    
     // إنشاء نافذة جديدة وكتابة المحتوى
     const newWindow = window.open('', '_blank');
     if (!newWindow) {
@@ -80,9 +152,16 @@
         return;
     }
     
-    newWindow.document.write(template.html_content);
+    newWindow.document.write(modifiedHTML);
     newWindow.document.close();
 };
+
+            const viewPrints = (template) => {
+                // حفظ template_id في localStorage والانتقال لصفحة المطبوعات
+                localStorage.setItem('viewPrintsTemplateId', template.id);
+                localStorage.setItem('viewPrintsTemplateName', template.name);
+                window.location.href = 'prints.html';
+            };
 
             const filteredTemplates = templates.filter(t => 
                 t.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -142,7 +221,10 @@
                                                 </small>
                                             </div>
                                             <div className="action-btns">
-                                                <button className="icon-btn" onClick={() => openTemplate(template)} title="فتح">
+                                                <button className="icon-btn" onClick={() => openTemplate(template)} title="تعبئة القالب" style={{background: '#3498db'}}>
+                                                    <i className="fas fa-edit"></i>
+                                                </button>
+                                                <button className="icon-btn" onClick={() => viewPrints(template)} title="عرض المطبوعات" style={{background: '#9b59b6'}}>
                                                     <i className="fas fa-eye"></i>
                                                 </button>
                                                 <button className="icon-btn del-btn" onClick={() => deleteTemplate(template.id)} title="حذف">
