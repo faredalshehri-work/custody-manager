@@ -297,7 +297,7 @@
 	<button onclick="saveToSupabase()" style="background:#27ae60;">💾 حفظ أونلاين</button>
     <button onclick="exportAsFile()" style="background:#16a085;">تصدير كملف HTML 💾📄</button>
 <button onclick="exportAsTemplate()" style="background:#8e44ad;">تصدير كقالب 📋✨</button>
-    <button onclick="window.print()">طباعة 📑</button><button onclick="savePrintedQuotation()" style="padding: 10px 30px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 10px;">حفظ المطبوعة 💾</button>
+    <button onclick="window.print()">طباعة 📑</button>
     <div style="font-size: 11px; color: #aaa; margin-right: 15px;">
         تكبير/تصغير (نص أو صورة): Ctrl + [ ] أو [ ]
     </div>
@@ -2801,7 +2801,6 @@ async function saveToSupabase() {
         return;
     }
     
-    const templateId = localStorage.getItem('currentTemplateId');
     const fullHTML = document.documentElement.outerHTML;
     
     const supabase = window.supabase.createClient(
@@ -2809,46 +2808,22 @@ async function saveToSupabase() {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
     );
     
-    if (templateId) {
-        // تحديث القالب الموجود
-        const { error } = await supabase
-            .from('quotation_templates')
-            .update({ 
-                html_content: fullHTML,
-                updated_at: new Date().toISOString()
-            })
-            .eq('id', templateId);
-        
-        if (error) {
-            alert('❌ خطأ في الحفظ: ' + error.message);
-        } else {
-            // تحديث localStorage
-            localStorage.setItem('currentTemplateContent', fullHTML);
-            alert('✅ تم حفظ التعديلات بنجاح!');
-        }
+    // حفظ في editor_content (محتوى المحرر)
+    const { error } = await supabase
+        .from('editor_content')
+        .upsert({
+            username: currentUser,
+            content: fullHTML,
+            updated_at: new Date().toISOString()
+        }, {
+            onConflict: 'username'
+        });
+    
+    if (error) {
+        alert('❌ خطأ في الحفظ: ' + error.message);
+        console.error('Supabase error:', error);
     } else {
-        // إنشاء قالب جديد
-        const templateName = prompt('أدخل اسم القالب:', 'قالب_جديد_' + new Date().toLocaleDateString('ar-SA'));
-        if (!templateName) return;
-        
-        const { data, error } = await supabase
-            .from('quotation_templates')
-            .insert({
-                username: currentUser,
-                name: templateName,
-                html_content: fullHTML,
-                original_content: fullHTML
-            })
-            .select();
-        
-        if (error) {
-            alert('❌ خطأ في الحفظ: ' + error.message);
-        } else if (data && data[0]) {
-            localStorage.setItem('currentTemplateId', data[0].id);
-            localStorage.setItem('currentTemplateName', templateName);
-            localStorage.setItem('currentTemplateContent', fullHTML);
-            alert('✅ تم إنشاء القالب بنجاح!');
-        }
+        alert('✅ تم حفظ المحرر أونلاين بنجاح!');
     }
 }
 
