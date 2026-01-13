@@ -110,18 +110,8 @@ async function savePrintedQuotation() {
         // جمع بيانات الحقول من الصفحة الحالية قبل الـ clone
         const fieldsData = [];
         document.querySelectorAll('input, textarea').forEach(function(field) {
-            const computedStyle = window.getComputedStyle(field);
             fieldsData.push({
                 value: field.value || '',
-                cssText: field.style.cssText,
-                fontFamily: computedStyle.fontFamily,
-                fontSize: computedStyle.fontSize,
-                fontWeight: computedStyle.fontWeight,
-                color: computedStyle.color,
-                textAlign: computedStyle.textAlign,
-                minWidth: computedStyle.minWidth,
-                maxWidth: computedStyle.maxWidth,
-                width: field.offsetWidth + 'px',
                 className: field.className
             });
         });
@@ -129,24 +119,18 @@ async function savePrintedQuotation() {
         // الآن نعمل clone
         var clonedDoc = document.documentElement.cloneNode(true);
         
-        // تحويل جميع input و textarea إلى نص عادي مع استخدام البيانات المحفوظة
+        // تحويل جميع input و textarea إلى نص عادي (بدون borders أو backgrounds)
         const clonedFields = clonedDoc.querySelectorAll('input, textarea');
         clonedFields.forEach(function(field, index) {
             if (index < fieldsData.length) {
                 const data = fieldsData[index];
                 var span = document.createElement('span');
                 span.textContent = data.value;
-                span.style.cssText = data.cssText;
-                span.style.fontFamily = data.fontFamily;
-                span.style.fontSize = data.fontSize;
-                span.style.fontWeight = data.fontWeight;
-                span.style.color = data.color;
-                span.style.textAlign = data.textAlign;
-                span.style.display = 'inline-block';
-                span.style.minWidth = data.minWidth;
-                span.style.maxWidth = data.maxWidth;
-                span.style.width = data.width;
-                span.className = data.className;
+                span.style.display = 'inline';
+                span.style.border = 'none';
+                span.style.background = 'none';
+                span.style.padding = '0';
+                span.style.margin = '0';
                 field.parentNode.replaceChild(span, field);
             }
         });
@@ -165,11 +149,11 @@ async function savePrintedQuotation() {
             btn.remove();
         });
         
-        // إضافة CSS للطباعة النظيفة (بدون borders)
-        var printStyle = document.createElement('style');
-        printStyle.textContent = '@media print { .template-field, .qty-field, .price-field, .date-field { border: none !important; background: transparent !important; } }';
+        // إضافة CSS للتأكد من عدم وجود borders أو backgrounds
+        var cleanStyle = document.createElement('style');
+        cleanStyle.textContent = '.template-field, .qty-field, .price-field, .date-field, .phone-field { border: none !important; background: none !important; padding: 0 !important; margin: 0 !important; } @media print { .template-field, .qty-field, .price-field, .date-field, .phone-field { border: none !important; background: transparent !important; } }';
         var head = clonedDoc.querySelector('head');
-        if (head) head.appendChild(printStyle);
+        if (head) head.appendChild(cleanStyle);
         
         const finalContent = clonedDoc.outerHTML;
         
