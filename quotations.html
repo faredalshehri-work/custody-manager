@@ -69,7 +69,7 @@
                     .from('printed_quotations')
                     .select('serial_number')
                     .eq('template_id', template.id)
-                    .like('serial_number', '%-' + monthYear)
+                    .like('serial_number', monthYear + '-%')
                     .order('serial_number', { ascending: false })
                     .limit(1)
                     .single();
@@ -78,15 +78,15 @@
                 if (lastPrint && lastPrint.serial_number) {
                     const parts = lastPrint.serial_number.split('-');
                     if (parts.length === 2) {
-                        sequentialNumber = parseInt(parts[0]) + 1;
+                        sequentialNumber = parseInt(parts[1]) + 1;
                     }
                 }
                 
-                const serialNumber = String(sequentialNumber).padStart(3, '0') + '-' + monthYear;
+                const serialNumber = monthYear + '-' + String(sequentialNumber).padStart(3, '0');
                 
-                // إضافة Serial Number في مكان placeholder
+                // إضافة Serial Number في مكان placeholder بدون أي ستايل
                 let modifiedHTML = template.html_content;
-                modifiedHTML = modifiedHTML.replace(/<span class="serial-number-placeholder"[^>]*><\/span>/g, '<span class="serial-number-placeholder" style="font-weight: bold; color: #e74c3c;">' + serialNumber + '</span>');
+                modifiedHTML = modifiedHTML.replace(/<span class="serial-number-placeholder"[^>]*><\/span>/g, '<span class="serial-number-placeholder">' + serialNumber + '</span>');
                 
                 const templateInfoScript = `
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>
