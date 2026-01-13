@@ -1,6 +1,7 @@
 <html lang="ar" dir="rtl" style="--header-margin: 2mm; --footer-margin: 2mm; --page-margin-top: 5mm; --page-margin-bottom: 5mm; --page-margin-left: 10mm; --page-margin-right: 10mm;"><head>
     <meta charset="UTF-8">
     <title>المحرر المطور - تحكم كامل بالصور والهوامش</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --header-margin: 5mm; --footer-margin: 5mm;
@@ -146,89 +147,11 @@
 }
 
        @media print {
-    /* إخفاء العناصر غير المطلوبة فقط */
-    .toolbar, .sidebar, .delete-page-btn, #line-spacing-tools { 
-        display: none !important; 
-    }
+    .toolbar, .sidebar, .delete-page-btn { display: none !important; }
+    .page { margin: 0; box-shadow: none; border: none; page-break-after: always; }
+    body { background: white; }
     
-    /* ضبط الـ body - بدون تغيير */
-    body { 
-        background: white !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-    
-    /* الصفحة - نفس التنسيق تماماً كالمحرر */
-    .page { 
-        /* نحتفظ بكل شيء كما هو في المحرر */
-        width: 210mm !important;
-        height: 297mm !important;
-        padding: var(--page-margin-top) var(--page-margin-right) var(--page-margin-bottom) var(--page-margin-left) !important;
-        margin: 0 !important; /* فقط نلغي الـ auto margin */
-        background: white !important;
-        position: relative !important;
-        box-sizing: border-box !important;
-        display: flex !important; /* نحتفظ بالـ flex */
-        flex-direction: column !important;
-        box-shadow: none !important; 
-        border: none !important;
-        page-break-after: always !important;
-        page-break-inside: avoid !important;
-    }
-    
-    /* الهيدر - نفس التنسيق */
-    .header { 
-        margin-bottom: var(--header-margin) !important;
-        border-bottom: 1px dashed #eee !important;
-        text-align: center !important;
-        position: relative !important;
-        min-height: 100px !important;
-        flex-shrink: 0 !important;
-        page-break-inside: avoid !important;
-        page-break-after: avoid !important;
-    }
-    
-    /* المحتوى - نفس التنسيق + تعديل صغير */
-    .content { 
-        flex-grow: 1 !important;
-        position: relative !important;
-        overflow: visible !important; /* visible بدل hidden للطباعة */
-        page-break-inside: auto !important;
-        /* نضيف min-height لدفع الفوتر للأسفل */
-        min-height: 0 !important;
-        /* منع فصل السطور الأخيرة عن الفوتر */
-        orphans: 3 !important;
-        widows: 3 !important;
-    }
-    
-    /* الفوتر - نفس التنسيق + منع الفصل */
-    .footer { 
-        margin-top: var(--footer-margin) !important;
-        border-top: 1px dashed #eee !important;
-        text-align: center !important;
-        position: relative !important;
-        min-height: 50px !important;
-        flex-shrink: 0 !important;
-        page-break-inside: avoid !important;
-        page-break-before: avoid !important;
-        /* إجبار الفوتر على البقاء مع المحتوى */
-        break-inside: avoid !important;
-        break-before: avoid-page !important;
-    }
-    
-    /* منع فصل المحتوى عن الفوتر بقوة */
-    .content + .footer {
-        break-before: avoid-page !important;
-        page-break-before: avoid !important;
-    }
-    
-    /* منع فصل آخر جزء من المحتوى */
-    .content > *:last-child {
-        page-break-after: avoid !important;
-        margin-bottom: 0 !important;
-    }
-    
-    /* إزالة تنسيق القفل */
+    /* إزالة تنسيق القفل عند الطباعة */
     .locked-section {
         background-color: transparent !important;
         border: none !important;
@@ -238,63 +161,21 @@
     .locked-section::before {
         display: none !important;
     }
-    
-    /* ضبط @page - هوامش صفر لأننا نستخدم padding */
-    @page {
-        size: A4 portrait;
-        margin: 0mm;
-    }
-    
-    /* الصور - نحتفظ بنفس التنسيق */
-    img, .floating-img {
-        max-width: 100% !important;
-        height: auto !important;
-        page-break-inside: avoid !important;
-    }
-    
-    /* الجداول */
-    table {
-        page-break-inside: auto !important;
-        width: 100% !important;
-    }
-    
-    table tr {
-        page-break-inside: avoid !important;
-    }
-    
-    /* الخطوط والمسافات - نحتفظ بكل شيء */
-    * {
-        /* نحتفظ بجميع font-size و line-height كما هي */
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-    }
-    
-    /* إزالة الصفحة الفارغة الأخيرة */
-    .page:last-child {
-        page-break-after: avoid !important;
-    }
 }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
 <div class="toolbar">
-    <button onclick="window.location.href='quotations.html'" style="background:#3498db;">
-        <i class="fas fa-arrow-right"></i> رجوع
-    </button>
+    <button onclick="window.location.href='quotations.html'" style="background:#34495e;">← رجوع للقوالب</button>
     <button onclick="insertNewImage()" style="background:#e67e22;">إدراج صورة 🖼️</button>
     <button onclick="addNewPage()" style="background:#9b59b6;">إضافة صفحة جديدة 📄</button>
 <button onclick="toggleLockSection('header')" id="lockHeaderBtn" style="background: rgb(231, 76, 60);">🔒 فتح الهيدر</button>
 <button onclick="toggleLockSection('content')" id="lockContentBtn" style="background:#e67e22;">🔓 قفل المحتوى</button>
 <button onclick="toggleLockSection('footer')" id="lockFooterBtn" style="background: rgb(231, 76, 60);">🔒 فتح الفوتر</button>
-    <button onclick="restoreOriginal()" style="background:#e74c3c;" title="استعادة آخر نسخة محفوظة">
-        <i class="fas fa-undo"></i> استعادة الأصلي
-    </button>
     <button onclick="execCmd('bold')">B</button>
     <button onclick="execCmd('justifyCenter')">توسيط</button>
-	<button onclick="saveToSupabase()" style="background:#27ae60;">💾 حفظ أونلاين</button>
+    <button onclick="saveToBrowser()" style="background:#2ecc71;">حفظ التغييرات 💾</button>
     <button onclick="exportAsFile()" style="background:#16a085;">تصدير كملف HTML 💾📄</button>
 <button onclick="exportAsTemplate()" style="background:#8e44ad;">تصدير كقالب 📋✨</button>
     <button onclick="window.print()">طباعة 📑</button>
@@ -2601,56 +2482,40 @@ function getSectionName(type) {
     return names[type] || type;
 }
 function exportAsTemplate() {
-    // نفس الكود لإنشاء القالب
-    var clonedDoc = document.cloneNode(true);
-    clonedDoc.querySelector('.toolbar').remove();
+    saveToBrowser();
+    var clonedDoc = document.documentElement.cloneNode(true);
+    var oldToolbar = clonedDoc.querySelector('.toolbar');
+    if (oldToolbar) {
+        oldToolbar.innerHTML = '<button onclick="window.print()" style="padding: 10px 30px; background: #2ecc71; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">طباعة 📑</button>';
+        oldToolbar.style.justifyContent = 'center';
+        oldToolbar.style.padding = '15px';
+    }
     var sidebar = clonedDoc.querySelector('.sidebar');
     if (sidebar) sidebar.remove();
-    var lineTools = clonedDoc.querySelector('#line-spacing-tools');
-    if (lineTools) lineTools.remove();
-    var scripts = clonedDoc.querySelectorAll('script');
-    scripts.forEach(function(script) {
-        var text = script.textContent || '';
-        if (text.includes('insertNewImage') || 
-            text.includes('startDragging') || 
-            text.includes('addPage') || 
-            text.includes('exportAsTemplate') ||
-            text.includes('exportAsFile') ||
-            text.includes('saveToBrowser') ||
-            text.includes('loadFromBrowser')) {
-            script.remove();
-        }
-    });
-    var allImages = clonedDoc.querySelectorAll('.floating-img');
-    allImages.forEach(function(img) {
-        img.classList.remove('active');
-        img.removeAttribute('tabindex');
-        img.style.border = 'none';
-    });
-    var newToolbar = clonedDoc.createElement('div');
-    newToolbar.className = 'toolbar';
-    newToolbar.innerHTML = '<button onclick="window.print()" style="background:#27ae60; font-size:16px;">طباعة 🖨️</button>';
-    clonedDoc.body.insertBefore(newToolbar, clonedDoc.body.firstChild);
+    var lineSpacing = clonedDoc.querySelector('#line-spacing-tools');
+    if (lineSpacing) lineSpacing.remove();
+    var deleteButtons = clonedDoc.querySelectorAll('.delete-page-btn');
+    deleteButtons.forEach(function(btn) { btn.remove(); });
     var allSections = clonedDoc.querySelectorAll('.header, .content, .footer');
     allSections.forEach(function(section) {
+        section.setAttribute('contenteditable', 'false');
         section.classList.remove('locked-section');
-        section.removeAttribute('contenteditable');
     });
     allSections.forEach(function(section) {
         var tempDiv = document.createElement('div');
         tempDiv.innerHTML = section.innerHTML;
         function replaceInTextNodes(node) {
             if (node.nodeType === 3) {
-                var pattern = /\{\{([^}]+)\}\}/g;
-                if (pattern.test(node.textContent)) {
+                var text = node.textContent;
+                if (text.includes('{{') && text.includes('}}')) {
                     var span = document.createElement('span');
-                    span.innerHTML = node.textContent.replace(pattern, function(match, varName) {
+                    span.innerHTML = text.replace(/\{\{([^}]+)\}\}/g, function(match, varName) {
                         var cleanName = varName.trim();
                         var isPhoneField = /phone|mobile|tel|mob/i.test(cleanName);
-                        var isTempField = /temp|temperature|درجة|حرارة/i.test(cleanName);
-                        var fieldClass = isPhoneField ? 'template-field phone-field' : (isTempField ? 'template-field temp-field' : 'template-field');
-                        var minWidth = isPhoneField ? '80px' : (isTempField ? '10px' : '150px');
-                        return '<input type="text" class="' + fieldClass + '" placeholder="' + cleanName + '" value="" data-var="' + cleanName + '" style="border: 1px solid #3498db; padding: 0px 8px; border-radius: 3px; background: #e8f4f8; min-width: ' + minWidth + '; max-width: 1300px; text-align: center; font-family: inherit; font-size: inherit; display: inline-block;">';
+						var isTempField = /temp|temperature|درجة|حرارة/i.test(cleanName);
+var fieldClass = isPhoneField ? 'template-field phone-field' : (isTempField ? 'template-field temp-field' : 'template-field');
+var minWidth = isPhoneField ? '80px' : (isTempField ? '10px' : '150px');
+return '<input type="text" class="' + fieldClass + '" placeholder="' + cleanName + '" value="" data-var="' + cleanName + '" style="border: 1px solid #3498db; padding: 0px 8px; border-radius: 3px; background: #e8f4f8; min-width: ' + minWidth + '; max-width: 1300px; text-align: center; font-family: inherit; font-size: inherit; display: inline-block;">';
                     });
                     node.parentNode.replaceChild(span, node);
                 }
@@ -2670,8 +2535,8 @@ function exportAsTemplate() {
                 if (datePattern.test(node.textContent)) {
                     var span = document.createElement('span');
                     span.innerHTML = node.textContent.replace(datePattern, function(matchedDate) {
-                        return '<input type="text" class="date-field" value="' + formattedDate + '" style="border: 1px solid #27ae60; padding: 0px 8px; border-radius: 3px; background: #e8f5e9; width: 150px; text-align: center; font-family: inherit; font-size: inherit; display: inline-block;">';
-                    });
+    return '<input type="text" class="date-field" value="' + formattedDate + '" style="border: 1px solid #27ae60; padding: 0px 8px; border-radius: 3px; background: #e8f5e9; width: 150px; text-align: center; font-family: inherit; font-size: inherit; display: inline-block;">';
+});
                     node.parentNode.replaceChild(span, node);
                 }
             } else if (node.nodeType === 1) {
@@ -2684,33 +2549,47 @@ function exportAsTemplate() {
     tables.forEach(function(table) {
         var rows = table.querySelectorAll('tr');
         rows.forEach(function(row, rowIndex) {
-            if (rowIndex === 0) return;
+            if (rowIndex === 0) return; // تخطي الهيدر
+            
             var cells = row.querySelectorAll('td');
             var rowText = row.textContent;
+            
+            // تخطي صفوف الضريبة والإجمالي
             if (rowText.includes('ضريبة') || rowText.includes('الإجمالي النهائي') || rowText.includes('Grand Total')) {
                 return;
             }
+            
+            // البحث عن الكمية والسعر والإجمالي
             var qtyCell = null;
             var priceCell = null;
             var totalCell = null;
+            
             cells.forEach(function(cell, idx) {
                 var text = cell.textContent.trim();
+                
+                // إذا الخلية فيها رقم صغير (1-100) = كمية
                 if (!qtyCell && text.match(/^[1-9]\d{0,2}$/) && !text.includes(',')) {
                     qtyCell = cell;
                 }
+                // إذا الخلية فيها رقم كبير مع فواصل = سعر
                 else if (!priceCell && text.match(/^\d{1,3}(,\d{3})*(\.\d+)?$/)) {
                     priceCell = cell;
                 }
+                // آخر خلية فيها رقم = إجمالي
                 if (text.match(/^\d{1,3}(,\d{3})*(\.\d+)?$/)) {
                     totalCell = cell;
                 }
             });
+            
+            // تحويل الكمية إلى input
             if (qtyCell) {
                 var qtyValue = parseFloat(qtyCell.textContent.trim());
                 if (!isNaN(qtyValue) && qtyValue > 0) {
                     qtyCell.innerHTML = '<input type="number" class="qty-field" value="' + qtyValue + '" min="1" style="width: 90%; text-align: center; border: 1px solid #3498db; padding: 0px; border-radius: 3px; background: #e8f4f8; font-size: 10pt;" oninput="calculateRow(this)">';
                 }
             }
+            
+            // تحويل السعر إلى input
             if (priceCell && priceCell !== totalCell) {
                 var priceText = priceCell.textContent.trim().replace(/[^\d.]/g, '');
                 var priceValue = parseFloat(priceText);
@@ -2718,6 +2597,8 @@ function exportAsTemplate() {
                     priceCell.innerHTML = '<input type="number" class="price-field" value="' + priceValue + '" min="0" step="0.01" style="width: 90%; text-align: center; border: 1px solid #3498db; padding: 0px; border-radius: 3px; background: #e8f4f8; font-size: 10pt;" oninput="calculateRow(this)">';
                 }
             }
+            
+            // تعليم خلية الإجمالي
             if (totalCell) {
                 totalCell.classList.add('item-total');
             }
@@ -2734,209 +2615,147 @@ function exportAsTemplate() {
         }
     });
     var calcScript = document.createElement('script');
-    var autoResizeScript = document.createElement('script');
-    autoResizeScript.textContent = 'function autoResizeInput(input) { var minWidth = input.classList.contains("temp-field") ? 10 : 100; var maxWidth = 800; var tempSpan = document.createElement("span"); tempSpan.style.visibility = "hidden"; tempSpan.style.position = "absolute"; tempSpan.style.whiteSpace = "nowrap"; tempSpan.style.font = window.getComputedStyle(input).font; tempSpan.textContent = input.value || input.placeholder || ""; document.body.appendChild(tempSpan); var newWidth = Math.max(minWidth, Math.min(maxWidth, tempSpan.offsetWidth + 20)); document.body.removeChild(tempSpan); input.style.width = newWidth + "px"; } document.addEventListener("DOMContentLoaded", function() { var allFields = document.querySelectorAll(".template-field"); allFields.forEach(function(field) { autoResizeInput(field); field.addEventListener("input", function() { autoResizeInput(this); }); }); });';
-    var body = clonedDoc.querySelector('body');
-    if (body) {
-        body.appendChild(autoResizeScript);
-    }
-    var syncFieldsScript = document.createElement('script');
-    syncFieldsScript.textContent = 'document.addEventListener("DOMContentLoaded", function() { var allFields = document.querySelectorAll(".template-field"); allFields.forEach(function(field) { field.addEventListener("input", function() { var varName = this.getAttribute("data-var"); var value = this.value; var matchingFields = document.querySelectorAll(".template-field[data-var=\\"" + varName + "\\"]"); matchingFields.forEach(function(matchField) { if (matchField !== field) { matchField.value = value; if (typeof autoResizeInput === "function") { autoResizeInput(matchField); } } }); }); }); });';
-    if (body) {
-        body.appendChild(syncFieldsScript);
-    }
-    calcScript.textContent = 'function calculateRow(input) { var row = input.closest("tr"); var qtyInput = row.querySelector(".qty-field"); var priceInput = row.querySelector(".price-field"); var totalCell = row.querySelector(".item-total"); if (qtyInput && priceInput && totalCell) { var qty = parseFloat(qtyInput.value) || 0; var price = parseFloat(priceInput.value) || 0; var total = qty * price; totalCell.textContent = total.toFixed(2).replace(/\\B(?=(\\d{3})+(?!\\d))/g, ","); } calculateGrandTotal(); } function calculateGrandTotal() { var itemTotals = document.querySelectorAll(".item-total"); var subtotal = 0; itemTotals.forEach(function(cell) { var value = parseFloat(cell.textContent.replace(/,/g, "")) || 0; subtotal += value; }); var taxAmount = subtotal * 0.15; var grandTotal = subtotal + taxAmount; var allCells = document.querySelectorAll("td"); allCells.forEach(function(cell) { var text = cell.textContent; if (text.includes("ضريبة") && !text.includes("الإجمالي")) { var row = cell.closest("tr"); var cells = row.querySelectorAll("td"); var lastCell = cells[cells.length - 1]; if (lastCell) lastCell.textContent = taxAmount.toFixed(2).replace(/\\B(?=(\\d{3})+(?!\\d))/g, ","); } if (text.includes("الإجمالي النهائي")) { var row = cell.closest("tr"); var cells = row.querySelectorAll("td"); var lastCell = cells[cells.length - 1]; if (lastCell) { lastCell.textContent = grandTotal.toFixed(2).replace(/\\B(?=(\\d{3})+(?!\\d))/g, ","); lastCell.style.fontWeight = "bold"; } } }); } window.addEventListener("load", function() { calculateGrandTotal(); });';
-    var body = clonedDoc.querySelector('body');
-    if (body) {
-        body.appendChild(calcScript);
-    }
+
+	var autoResizeScript = document.createElement('script');
+autoResizeScript.textContent = 'function autoResizeInput(input) { var minWidth = input.classList.contains("temp-field") ? 10 : 100; var maxWidth = 800; var tempSpan = document.createElement("span"); tempSpan.style.visibility = "hidden"; tempSpan.style.position = "absolute"; tempSpan.style.whiteSpace = "nowrap"; tempSpan.style.font = window.getComputedStyle(input).font; tempSpan.textContent = input.value || input.placeholder || ""; document.body.appendChild(tempSpan); var newWidth = Math.max(minWidth, Math.min(maxWidth, tempSpan.offsetWidth + 20)); document.body.removeChild(tempSpan); input.style.width = newWidth + "px"; } document.addEventListener("DOMContentLoaded", function() { var allFields = document.querySelectorAll(".template-field"); allFields.forEach(function(field) { autoResizeInput(field); field.addEventListener("input", function() { autoResizeInput(this); }); }); });';
+var body = clonedDoc.querySelector('body');
+if (body) {
+    body.appendChild(autoResizeScript);
+}
+var syncFieldsScript = document.createElement('script');
+syncFieldsScript.textContent = 'document.addEventListener("DOMContentLoaded", function() { var allFields = document.querySelectorAll(".template-field"); allFields.forEach(function(field) { field.addEventListener("input", function() { var varName = this.getAttribute("data-var"); var value = this.value; var matchingFields = document.querySelectorAll(".template-field[data-var=\\"" + varName + "\\"]"); matchingFields.forEach(function(matchField) { if (matchField !== field) { matchField.value = value; if (typeof autoResizeInput === "function") { autoResizeInput(matchField); } } }); }); }); });';if (body) {
+    body.appendChild(syncFieldsScript);
+}
     
-    // هنا التعديل: الحفظ في Supabase بدلاً من التحميل
+calcScript.textContent = 'function calculateRow(input) { var row = input.closest("tr"); var qtyInput = row.querySelector(".qty-field"); var priceInput = row.querySelector(".price-field"); var totalCell = row.querySelector(".item-total"); if (qtyInput && priceInput && totalCell) { var qty = parseFloat(qtyInput.value) || 0; var price = parseFloat(priceInput.value) || 0; var total = qty * price; totalCell.textContent = total.toFixed(2).replace(/\\B(?=(\\d{3})+(?!\\d))/g, ","); } calculateGrandTotal(); } function calculateGrandTotal() { var itemTotals = document.querySelectorAll(".item-total"); var subtotal = 0; itemTotals.forEach(function(cell) { var value = parseFloat(cell.textContent.replace(/,/g, "")) || 0; subtotal += value; }); var taxAmount = subtotal * 0.15; var grandTotal = subtotal + taxAmount; var allCells = document.querySelectorAll("td"); allCells.forEach(function(cell) { var text = cell.textContent; if (text.includes("ضريبة") && !text.includes("الإجمالي")) { var row = cell.closest("tr"); var cells = row.querySelectorAll("td"); var lastCell = cells[cells.length - 1]; if (lastCell) lastCell.textContent = taxAmount.toFixed(2).replace(/\\B(?=(\\d{3})+(?!\\d))/g, ","); } if (text.includes("الإجمالي النهائي")) { var row = cell.closest("tr"); var cells = row.querySelectorAll("td"); var lastCell = cells[cells.length - 1]; if (lastCell) { lastCell.textContent = grandTotal.toFixed(2).replace(/\\B(?=(\\d{3})+(?!\\d))/g, ","); lastCell.style.fontWeight = "bold"; } } }); } window.addEventListener("load", function() { calculateGrandTotal(); });';
+var body = clonedDoc.querySelector('body');
+if (body) {
+    body.appendChild(calcScript);
+}
+
+    
     var templateHTML = '<!DOCTYPE html>\n' + clonedDoc.outerHTML;
     
+    // طلب اسم القالب
     var templateName = prompt('أدخل اسم القالب:', 'قالب_' + new Date().toISOString().slice(0,10));
     if (!templateName) return;
     
+    // التحقق من تسجيل الدخول
     var currentUser = localStorage.getItem('currentUser');
     if (!currentUser) {
         alert('يجب تسجيل الدخول أولاً!');
+        window.location.href = 'index.html';
         return;
     }
     
+    // إنشاء Supabase client
     var supabase = window.supabase.createClient(
         'https://opyuncxyjdqxawddhdjn.supabase.co',
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
     );
     
+    // حفظ القالب في Supabase
     supabase.from('quotation_templates').insert({
         username: currentUser,
         name: templateName,
         html_content: templateHTML
     }).then(function(response) {
         if (response.error) {
+            console.error('Supabase Error:', response.error);
             alert('خطأ في الحفظ: ' + response.error.message);
         } else {
-            alert('تم حفظ القالب بنجاح! ✅\n\nالقالب يحتوي على:\n✓ زر طباعة فقط\n✓ حقول نصية قابلة للتعبئة\n✓ تاريخ اليوم تلقائياً\n✓ حساب تلقائي للأسعار مع الضريبة 15%\n\nيمكنك الآن العودة لقائمة عروض الأسعار لمشاهدة القالب.');
-            window.location.href = 'quotations.html';
+            alert('✅ تم حفظ القالب بنجاح!\n\nالقالب يحتوي على:\n✓ زر طباعة فقط\n✓ حقول نصية قابلة للتعبئة\n✓ تاريخ اليوم تلقائياً\n✓ حساب تلقائي للأسعار مع الضريبة 15%\n\nسيتم الانتقال لقائمة عروض الأسعار...');
+            // مسح بيانات القالب الحالي
+            localStorage.removeItem('currentTemplateId');
+            localStorage.removeItem('currentTemplateName');
+            localStorage.removeItem('currentTemplateContent');
+            // الانتقال لقائمة عروض الأسعار
+            setTimeout(function() {
+                window.location.href = 'quotations.html';
+            }, 1000);
         }
+    }).catch(function(error) {
+        console.error('Error:', error);
+        alert('خطأ في الاتصال بقاعدة البيانات!');
     });
 }
-	
 
-	
 
-// دالة استعادة المحتوى الأصلي من آخر نسخة محفوظة
-async function restoreOriginal() {
-    const templateId = localStorage.getItem('currentTemplateId');
-    
-    if (!templateId) {
-        alert('⚠️ لا يوجد قالب محفوظ لاستعادته!');
-        return;
-    }
-    
-    if (!confirm("🔄 استعادة النسخة الأصلية؟\n\nسيتم إرجاع جميع التعديلات إلى النسخة الأصلية المحفوظة أونلاين.\n\nهل أنت متأكد؟")) {
-        return;
-    }
-    
-    const supabase = window.supabase.createClient(
-        'https://opyuncxyjdqxawddhdjn.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
-    );
-    
-    const { data, error } = await supabase
-        .from('quotation_templates')
-        .select('original_content')
-        .eq('id', templateId)
-        .single();
-    
-    if (error || !data) {
-        alert('❌ خطأ في جلب النسخة الأصلية: ' + (error?.message || 'لم يتم العثور على القالب'));
-        return;
-    }
-    
-    const originalContent = data.original_content;
-    if (!originalContent) {
-        alert('⚠️ لا توجد نسخة أصلية محفوظة لهذا القالب!');
-        return;
-    }
-    
-    // تحميل النسخة الأصلية
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(originalContent, 'text/html');
-    const container = doc.getElementById('document-container');
-    
-    if (container) {
-        document.getElementById('document-container').innerHTML = container.innerHTML;
+    function exportAsFile() {
+        // حفظ المحتوى الحالي أولاً
+        saveToBrowser();
         
-        // إعادة ربط الأحداث
-        document.querySelectorAll('.page').forEach(page => {
-            const deleteBtn = page.querySelector('.delete-page-btn');
-            if (deleteBtn) {
-                deleteBtn.onclick = function() {
-                    if (confirm('هل تريد حذف هذه الصفحة؟')) {
-                        page.remove();
+        // نسخ الملف الحالي بالكامل
+        const htmlContent = document.documentElement.outerHTML;
+        
+        const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'مستند_' + new Date().toISOString().slice(0,10) + '.html';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        alert('تم تصدير الملف بنجاح! ✅\nيمكنك الآن نسخه أو إرساله وسيحتفظ بكل التنسيقات.');
+    }
+	
+
+	
+// تحميل القالب عند الدخول من quotations.html
+window.addEventListener('load', function() {
+    const templateId = localStorage.getItem('currentTemplateId');
+    const templateContent = localStorage.getItem('currentTemplateContent');
+    
+    if (templateId && templateContent) {
+        console.log('Loading template from localStorage...');
+        
+        try {
+            // تحليل المحتوى
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(templateContent, 'text/html');
+            const container = doc.getElementById('document-container');
+            
+            if (container) {
+                document.getElementById('document-container').innerHTML = container.innerHTML;
+                
+                // إعادة ربط الأحداث للصفحات
+                document.querySelectorAll('.page').forEach(page => {
+                    const deleteBtn = page.querySelector('.delete-page-btn');
+                    if (deleteBtn) {
+                        deleteBtn.onclick = function() {
+                            if (confirm('هل تريد حذف هذه الصفحة؟')) {
+                                page.remove();
+                            }
+                        };
                     }
-                };
-            }
-            const content = page.querySelector('.content');
-            if (content) setupContentMonitoring(content);
-        });
-        
-        document.querySelectorAll('.floating-img').forEach(img => {
-            img.onmousedown = startDragging;
-            img.onclick = (e) => { e.stopPropagation(); selectImage(img); };
-            img.onfocus = () => selectImage(img);
-        });
-        
-        if (typeof setupHeaderFooterSync === 'function') {
-            setupHeaderFooterSync();
-        }
-        
-        alert('✅ تم استعادة النسخة الأصلية بنجاح!');
-    }
-}
-
-// تشغيل checkSavedData عند التحميل
-window.addEventListener('load', function() {
-    loadTemplateIfExists();
-});
-
-async function loadTemplateIfExists() {
-    const templateId = localStorage.getItem('currentTemplateId');
-    const templateContent = localStorage.getItem('currentTemplateContent');
-    
-    if (templateId && templateContent) {
-        // تحميل القالب من localStorage
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(templateContent, 'text/html');
-        const container = doc.getElementById('document-container');
-        
-        if (container) {
-            document.getElementById('document-container').innerHTML = container.innerHTML;
-            
-            // إعادة ربط الأحداث
-            document.querySelectorAll('.page').forEach(page => {
-                const deleteBtn = page.querySelector('.delete-page-btn');
-                if (deleteBtn) {
-                    deleteBtn.onclick = function() {
-                        if (confirm('هل تريد حذف هذه الصفحة؟')) {
-                            page.remove();
-                        }
-                    };
+                    const content = page.querySelector('.content');
+                    if (content && typeof setupContentMonitoring === 'function') {
+                        setupContentMonitoring(content);
+                    }
+                });
+                
+                // إعادة ربط الأحداث للصور
+                document.querySelectorAll('.floating-img').forEach(img => {
+                    img.onmousedown = startDragging;
+                    img.onclick = (e) => { e.stopPropagation(); selectImage(img); };
+                    img.onfocus = () => selectImage(img);
+                });
+                
+                // ربط الـ sync للهيدر والفوتر
+                if (typeof setupHeaderFooterSync === 'function') {
+                    setupHeaderFooterSync();
                 }
-                const content = page.querySelector('.content');
-                if (content) setupContentMonitoring(content);
-            });
-            
-            document.querySelectorAll('.floating-img').forEach(img => {
-                img.onmousedown = startDragging;
-                img.onclick = (e) => { e.stopPropagation(); selectImage(img); };
-                img.onfocus = () => selectImage(img);
-            });
-            
-            setupHeaderFooterSync();
+                
+                console.log('Template loaded successfully!');
+            }
+        } catch (error) {
+            console.error('Error loading template:', error);
+            alert('خطأ في تحميل القالب!');
         }
     } else if (typeof checkSavedData === 'function') {
-        checkSavedData();
-    }
-}
-	// تحميل القالب إذا كان موجود
-window.addEventListener('load', function() {
-    const templateId = localStorage.getItem('currentTemplateId');
-    const templateContent = localStorage.getItem('currentTemplateContent');
-    
-    if (templateId && templateContent) {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(templateContent, 'text/html');
-        const container = doc.getElementById('document-container');
-        
-        if (container) {
-            document.getElementById('document-container').innerHTML = container.innerHTML;
-            
-            document.querySelectorAll('.page').forEach(page => {
-                const deleteBtn = page.querySelector('.delete-page-btn');
-                if (deleteBtn) {
-                    deleteBtn.onclick = function() {
-                        if (confirm('هل تريد حذف هذه الصفحة؟')) {
-                            page.remove();
-                        }
-                    };
-                }
-                const content = page.querySelector('.content');
-                if (content) setupContentMonitoring(content);
-            });
-            
-            document.querySelectorAll('.floating-img').forEach(img => {
-                img.onmousedown = startDragging;
-                img.onclick = (e) => { e.stopPropagation(); selectImage(img); };
-                img.onfocus = () => selectImage(img);
-            });
-            
-            if (typeof setupHeaderFooterSync === 'function') {
-                setupHeaderFooterSync();
-            }
-        }
-    } else if (typeof checkSavedData === 'function') {
+        // تحميل البيانات المحفوظة في المتصفح
         checkSavedData();
     }
 });
