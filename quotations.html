@@ -101,79 +101,101 @@ async function savePrintedQuotation() {
         return;
     }
     
-    const supabase = window.supabase.createClient(
-        'https://opyuncxyjdqxawddhdjn.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
-    );
-    
-    // تحويل المطبوعة لنسخة نهائية غير قابلة للتعديل
-    var clonedDoc = document.documentElement.cloneNode(true);
-    
-    // تحويل جميع input و textarea إلى نص عادي مع حفظ كل التنسيق
-    clonedDoc.querySelectorAll('input, textarea').forEach(function(field) {
-        var span = document.createElement('span');
-        span.textContent = field.value || '';
+    try {
+        const supabase = window.supabase.createClient(
+            'https://opyuncxyjdqxawddhdjn.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9weXVuY3h5amRxeGF3ZGRoZGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTkyNjIsImV4cCI6MjA4MTg3NTI2Mn0.BFObQBOTaUCWktaaCGNBbm_UQ98j4GG9QXz_cOywz0M'
+        );
         
-        // نسخ كل الـ styles من الـ input
-        var computedStyle = window.getComputedStyle(field);
-        span.style.cssText = field.style.cssText;
-        span.style.fontFamily = computedStyle.fontFamily;
-        span.style.fontSize = computedStyle.fontSize;
-        span.style.fontWeight = computedStyle.fontWeight;
-        span.style.color = computedStyle.color;
-        span.style.textAlign = computedStyle.textAlign;
-        span.style.display = 'inline-block';
-        span.style.minWidth = computedStyle.minWidth;
-        span.style.maxWidth = computedStyle.maxWidth;
-        span.style.width = field.offsetWidth + 'px';
-        
-        // نحتفظ بالـ className للحفاظ على CSS classes
-        span.className = field.className;
-        
-        field.parentNode.replaceChild(span, field);
-    });
-    
-    // إزالة contenteditable من جميع العناصر
-    clonedDoc.querySelectorAll('[contenteditable]').forEach(function(elem) {
-        elem.removeAttribute('contenteditable');
-    });
-    
-    // إزالة toolbar
-    var toolbar = clonedDoc.querySelector('.toolbar');
-    if (toolbar) toolbar.remove();
-    
-    // إزالة أي أزرار أخرى
-    clonedDoc.querySelectorAll('button').forEach(function(btn) {
-        btn.remove();
-    });
-    
-    // إضافة CSS للطباعة النظيفة (بدون borders)
-    var printStyle = clonedDoc.createElement('style');
-    printStyle.textContent = '@media print { .template-field, .qty-field, .price-field, .date-field { border: none !important; background: transparent !important; } }';
-    var head = clonedDoc.querySelector('head');
-    if (head) head.appendChild(printStyle);
-    
-    const finalContent = clonedDoc.outerHTML;
-    
-    const { error } = await supabase
-        .from('printed_quotations')
-        .insert({
-            template_id: window.TEMPLATE_ID,
-            template_name: window.TEMPLATE_NAME,
-            serial_number: window.SERIAL_NUMBER,
-            content: finalContent,
-            username: window.USERNAME
+        // جمع بيانات الحقول من الصفحة الحالية قبل الـ clone
+        const fieldsData = [];
+        document.querySelectorAll('input, textarea').forEach(function(field) {
+            const computedStyle = window.getComputedStyle(field);
+            fieldsData.push({
+                value: field.value || '',
+                cssText: field.style.cssText,
+                fontFamily: computedStyle.fontFamily,
+                fontSize: computedStyle.fontSize,
+                fontWeight: computedStyle.fontWeight,
+                color: computedStyle.color,
+                textAlign: computedStyle.textAlign,
+                minWidth: computedStyle.minWidth,
+                maxWidth: computedStyle.maxWidth,
+                width: field.offsetWidth + 'px',
+                className: field.className
+            });
         });
-    
-    if (error) {
-        if (error.code === '23505') {
-            alert('❌ هذا الرقم التسلسلي مُستخدم مسبقاً!\\n\\nيرجى:\\n1. إغلاق هذه النافذة\\n2. فتح القالب من جديد\\n3. تعبئة البيانات\\n4. الحفظ');
+        
+        // الآن نعمل clone
+        var clonedDoc = document.documentElement.cloneNode(true);
+        
+        // تحويل جميع input و textarea إلى نص عادي مع استخدام البيانات المحفوظة
+        const clonedFields = clonedDoc.querySelectorAll('input, textarea');
+        clonedFields.forEach(function(field, index) {
+            if (index < fieldsData.length) {
+                const data = fieldsData[index];
+                var span = document.createElement('span');
+                span.textContent = data.value;
+                span.style.cssText = data.cssText;
+                span.style.fontFamily = data.fontFamily;
+                span.style.fontSize = data.fontSize;
+                span.style.fontWeight = data.fontWeight;
+                span.style.color = data.color;
+                span.style.textAlign = data.textAlign;
+                span.style.display = 'inline-block';
+                span.style.minWidth = data.minWidth;
+                span.style.maxWidth = data.maxWidth;
+                span.style.width = data.width;
+                span.className = data.className;
+                field.parentNode.replaceChild(span, field);
+            }
+        });
+        
+        // إزالة contenteditable من جميع العناصر
+        clonedDoc.querySelectorAll('[contenteditable]').forEach(function(elem) {
+            elem.removeAttribute('contenteditable');
+        });
+        
+        // إزالة toolbar
+        var toolbar = clonedDoc.querySelector('.toolbar');
+        if (toolbar) toolbar.remove();
+        
+        // إزالة أي أزرار أخرى
+        clonedDoc.querySelectorAll('button').forEach(function(btn) {
+            btn.remove();
+        });
+        
+        // إضافة CSS للطباعة النظيفة (بدون borders)
+        var printStyle = document.createElement('style');
+        printStyle.textContent = '@media print { .template-field, .qty-field, .price-field, .date-field { border: none !important; background: transparent !important; } }';
+        var head = clonedDoc.querySelector('head');
+        if (head) head.appendChild(printStyle);
+        
+        const finalContent = clonedDoc.outerHTML;
+        
+        const { error } = await supabase
+            .from('printed_quotations')
+            .insert({
+                template_id: window.TEMPLATE_ID,
+                template_name: window.TEMPLATE_NAME,
+                serial_number: window.SERIAL_NUMBER,
+                content: finalContent,
+                username: window.USERNAME
+            });
+        
+        if (error) {
+            if (error.code === '23505') {
+                alert('❌ هذا الرقم التسلسلي مُستخدم مسبقاً!\\n\\nيرجى:\\n1. إغلاق هذه النافذة\\n2. فتح القالب من جديد\\n3. تعبئة البيانات\\n4. الحفظ');
+            } else {
+                alert('❌ خطأ في الحفظ: ' + error.message);
+            }
+            console.error('Supabase error:', error);
         } else {
-            alert('❌ خطأ في الحفظ: ' + error.message);
+            alert('✅ تم حفظ المطبوعة بنجاح!\\n\\nرقم المرجع: ' + window.SERIAL_NUMBER);
         }
-        console.error('Supabase error:', error);
-    } else {
-        alert('✅ تم حفظ المطبوعة بنجاح!\\n\\nرقم المرجع: ' + window.SERIAL_NUMBER);
+    } catch (err) {
+        alert('❌ حدث خطأ: ' + err.message);
+        console.error('Error:', err);
     }
 }
 <\/script>
