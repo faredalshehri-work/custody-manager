@@ -84,15 +84,6 @@
     newWindow.document.close();
 };
 
-const editTemplate = (template) => {
-    // حفظ ID القالب في localStorage
-    localStorage.setItem('currentTemplateId', template.id);
-    localStorage.setItem('currentTemplateName', template.name);
-    localStorage.setItem('currentTemplateContent', template.html_content);
-    // فتح المحرر
-    window.location.href = 'editor.html';
-};
-
             const filteredTemplates = templates.filter(t => 
                 t.name.toLowerCase().includes(searchTerm.toLowerCase())
             );
@@ -151,9 +142,6 @@ const editTemplate = (template) => {
                                                 </small>
                                             </div>
                                             <div className="action-btns">
-                                                <button className="icon-btn" onClick={() => editTemplate(template)} title="تعديل" style={{background: '#f39c12'}}>
-    <i className="fas fa-edit"></i>
-</button>
                                                 <button className="icon-btn" onClick={() => openTemplate(template)} title="فتح">
                                                     <i className="fas fa-eye"></i>
                                                 </button>
